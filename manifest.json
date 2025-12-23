@@ -1,0 +1,22 @@
+
+{
+  "name": "SPFP - Planejador Financeiro",
+  "short_name": "SPFP",
+  "description": "Sistema de Planejamento Financeiro Pessoal - Gestão Inteligente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Crect width='100' height='100' rx='20' fill='%23000000'/%3E%3Ccircle cx='50' cy='50' r='40' stroke='%233b82f6' stroke-width='2'/%3E%3Cg stroke='%233b82f6' stroke-width='0.5' opacity='0.8'%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(0 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(45 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(90 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(135 50 50)'/%3E%3C/g%3E%3Ctext x='50' y='60' font-family='serif' font-size='30' font-weight='bold' fill='%233b82f6' text-anchor='middle'%3ELF%3C/text%3E%3Ctext x='50' y='85' font-family='sans-serif' font-size='10' font-weight='bold' fill='%233b82f6' text-anchor='middle' letter-spacing='2'%3ESPFP%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Crect width='100' height='100' rx='20' fill='%23000000'/%3E%3Ccircle cx='50' cy='50' r='40' stroke='%233b82f6' stroke-width='2'/%3E%3Cg stroke='%233b82f6' stroke-width='0.5' opacity='0.8'%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(0 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(45 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(90 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='15' transform='rotate(135 50 50)'/%3E%3C/g%3E%3Ctext x='50' y='60' font-family='serif' font-size='30' font-weight='bold' fill='%233b82f6' text-anchor='middle'%3ELF%3C/text%3E%3Ctext x='50' y='85' font-family='sans-serif' font-size='10' font-weight='bold' fill='%233b82f6' text-anchor='middle' letter-spacing='2'%3ESPFP%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+
+import React from 'react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw } from 'lucide-react';
+import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
+import { Logo } from './Logo';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { userProfile, isSyncing } = useFinance();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const mobileNavItems = [
+    { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
+    { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
+    { id: 'add', path: '/transactions/add', icon: PlusCircle, label: 'Novo', isFab: true },
+    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
+    { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
+  ];
+
+  const desktopNavItems = [
+    { id: 'dashboard', path: '/', icon: Home, label: 'Dashboard' },
+    { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas' },
+    { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
+    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
+    { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
+  ];
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Tem certeza que deseja sair da sua conta?')) {
+      await logout();
+    }
+  };
+
+  const getPageTitle = () => {
+    const currentPath = location.pathname;
+    if (currentPath === '/' || currentPath === '/dashboard') return 'Visão Geral';
+    if (currentPath === '/settings') return 'Configurações';
+    const item = desktopNavItems.find(i => i.path === currentPath);
+    return item ? item.label : 'Visão Geral';
+  };
+
+  return (
+    <div className="flex h-screen bg-black overflow-hidden w-full font-sans text-gray-100">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-72 bg-black text-white flex-col shadow-xl z-20 border-r border-gray-900">
+        <div className="p-6 border-b border-gray-900 flex items-center space-x-4">
+          <div className="bg-blue-900/10 p-2 rounded-full border border-blue-500/20 shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+            <Logo className="text-accent" size={54} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl font-serif font-bold tracking-wider text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">SPFP</h1>
+            <p className="text-[10px] text-blue-400 tracking-[0.2em] uppercase">Planejador</p>
+            <div className="mt-2 h-6 flex items-center">
+              {isSyncing ? (
+                <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 animate-pulse">
+                  <RefreshCw size={10} className="mr-1.5 text-blue-400 animate-spin" />
+                  <span className="text-[9px] font-bold text-blue-300 uppercase tracking-widest">Sync...</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/5 border border-emerald-500/20">
+                  <span className="relative flex h-1.5 w-1.5 mr-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[9px] font-bold text-emerald-300 uppercase tracking-widest">Online</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 py-6 px-4 space-y-2">
+          {desktopNavItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
+                    ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={22} className={`mr-3 ${isActive ? 'text-accent drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                    <span className="font-medium text-base">{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-gray-900 bg-black">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `flex items-center w-full px-4 py-3 rounded-xl transition-colors ${isActive ? 'bg-blue-900/20 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Settings size={20} className="mr-3" />
+            <span className="font-medium">Configurações</span>
+          </NavLink>
+          <div className="mt-4 flex items-center justify-between px-4 py-3 bg-white/5 rounded-xl border border-white/5 group">
+            <div className="flex items-center min-w-0 mr-2 cursor-pointer" onClick={() => navigate('/settings')}>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold text-sm mr-3 overflow-hidden shadow-lg border border-blue-500/30">
+                {userProfile.name ? userProfile.name.substring(0, 2).toUpperCase() : 'US'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate group-hover:text-accent transition-colors">{userProfile.name || 'Usuário'}</p>
+                <p className="text-[10px] text-gray-500 truncate font-medium">{userProfile.email}</p>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-900/20 transition-all">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-black">
+        <header className="flex bg-black h-16 md:h-20 border-b border-gray-900 items-center justify-between px-6 md:px-8 shadow-sm">
+          <h2 className="text-xl md:text-2xl font-bold text-white tracking-wide">
+            {getPageTitle()}
+          </h2>
+          <div className="flex items-center space-x-4">
+            {/* Status de Sincronização Mobile */}
+            <div className="md:hidden flex items-center justify-center">
+              {isSyncing ? (
+                <div className="w-9 h-9 rounded-full bg-blue-900/20 flex items-center justify-center border border-blue-500/30">
+                  <RefreshCw size={18} className="text-blue-500 animate-spin" />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-emerald-900/20 flex items-center justify-center border border-emerald-500/30">
+                  <Check size={18} className="text-emerald-500" />
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => navigate('/transactions/add')}
+              className="bg-accent text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-bold hover:bg-blue-600 transition-all flex items-center shadow-[0_0_15px_rgba(59,130,246,0.4)] transform active:scale-95 border border-blue-400/20"
+            >
+              <PlusCircle size={16} className="md:mr-2" />
+              <span className="hidden md:inline">Nova Transação</span>
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 md:p-8 bg-black">
+          <div className="max-w-7xl mx-auto w-full h-full">
+            {children}
+          </div>
+        </main>
+
+        {/* Mobile Bottom Navigation */}
+        <nav className="md:hidden absolute bottom-0 w-full bg-[#0a0a0a] border-t border-gray-900 shadow-[0_-5px_10px_rgba(0,0,0,0.5)] z-50 pb-safe">
+          <div className="flex justify-around items-center h-16 px-2">
+            {mobileNavItems.map((item) => {
+              const Icon = item.icon;
+              if (item.isFab) {
+                return (
+                  <button key={item.id} onClick={() => navigate(item.path)} className="relative -top-6 bg-accent text-white p-4 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)] transform active:scale-95 border-4 border-black">
+                    <Icon size={28} strokeWidth={2.5} />
+                  </button>
+                );
+              }
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  className={({ isActive }) => `flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-accent' : 'text-gray-500'}`}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={22} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : ''} />
+                      <span className="text-[10px] font-medium">{item.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;
