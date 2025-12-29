@@ -7,12 +7,13 @@ import {
   ArrowUpCircle, ArrowDownCircle, Wallet, PieChart as PieIcon,
   Compass, AlertTriangle, CheckCircle, Clock, Info,
   Settings2, Eye, EyeOff, ChevronUp, ChevronDown, X, Calendar,
-  TrendingUp, Target, Sparkles
+  TrendingUp, Target, Sparkles, FileText
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Logo } from './Logo';
 import { CategoryIcon } from './CategoryIcon';
 import { DashboardWidget } from '../types';
+import { ImportExportModal } from './ImportExportModal';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +22,7 @@ const Dashboard: React.FC = () => {
   const { totalBalance, transactions, categories, accounts, userProfile, updateUserProfile } = useFinance();
   const [showTotalDetails, setShowTotalDetails] = useState(false);
   const [isEditModeOpen, setIsEditModeOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [showInvestTooltip, setShowInvestTooltip] = useState(false);
 
   const today = new Date();
@@ -362,6 +364,13 @@ const Dashboard: React.FC = () => {
           <Settings2 size={16} />
           <span>Personalizar</span>
         </button>
+        <button
+          onClick={() => setIsImportExportOpen(true)}
+          className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-all shadow-sm active:scale-95 ml-2"
+        >
+          <FileText size={16} />
+          <span className="hidden sm:inline">Importar</span>
+        </button>
       </div>
 
       {/* CARD DE INCENTIVO AO INVESTIMENTO (Só aparece no último dia do mês se houver saldo) */}
@@ -504,6 +513,8 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Modal de Importação/Exportação */}
+      <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} />
     </div>
   );
 };
