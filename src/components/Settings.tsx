@@ -70,22 +70,41 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-2">Foto de Perfil (URL)</label>
+                            <label className="block text-xs font-semibold text-gray-500 mb-2">Foto de Perfil</label>
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border-2 border-gray-100">
+                                <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0 border-2 border-gray-100 dark:border-gray-600">
                                     {formData.avatar ? (
                                         <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://ui-avatars.com/api/?name=User')} />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400"><User size={24} /></div>
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400"><User size={32} /></div>
                                     )}
                                 </div>
-                                <input
-                                    type="url"
-                                    className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-purple-500"
-                                    placeholder="https://exemplo.com/foto.jpg"
-                                    value={formData.avatar || ''}
-                                    onChange={(e) => handleChange('avatar', e.target.value)}
-                                />
+                                <div className="flex-1">
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/jpg"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    handleChange('avatar', reader.result as string);
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                        className="hidden"
+                                        id="avatar-upload"
+                                    />
+                                    <label
+                                        htmlFor="avatar-upload"
+                                        className="cursor-pointer inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold rounded-lg transition-colors"
+                                    >
+                                        <ImageIcon size={16} className="mr-2" />
+                                        Escolher Foto
+                                    </label>
+                                    <p className="text-xs text-gray-400 mt-1">PNG ou JPEG, máx. 5MB</p>
+                                </div>
                             </div>
                         </div>
                     </div>

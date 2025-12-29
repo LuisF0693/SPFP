@@ -60,6 +60,7 @@ export interface Transaction {
   date: string;
   type: TransactionType;
   categoryId: string;
+  spender?: 'ME' | 'SPOUSE'; // Quem fez a compra
 }
 
 export interface FinanceContextType {

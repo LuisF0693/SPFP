@@ -2,12 +2,12 @@
 // ... imports remain the same
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
   ArrowUpCircle, ArrowDownCircle, Wallet, PieChart as PieIcon,
   Compass, AlertTriangle, CheckCircle, Clock, Info,
   Settings2, Eye, EyeOff, ChevronUp, ChevronDown, X, Calendar,
-  TrendingUp, Target, Sparkles, FileText
+  TrendingUp, Target, Sparkles, FileText, ChevronLeft
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Logo } from './Logo';
@@ -24,6 +24,8 @@ const Dashboard: React.FC = () => {
   const [isEditModeOpen, setIsEditModeOpen] = useState(false);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [showInvestTooltip, setShowInvestTooltip] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const today = new Date();
   today.setHours(23, 59, 59, 999);
@@ -60,13 +62,20 @@ const Dashboard: React.FC = () => {
     .filter(t => t.daysDiff >= 0 && t.daysDiff <= 7)
     .sort((a, b) => a.daysDiff - b.daysDiff);
 
-  // Filtro de transações do mês vigente (já ocorridas ou previstas)
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  // Filtro de transações do mês selecionado
   const currentMonthTx = transactions.filter(t => {
     const d = new Date(t.date);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
   });
+
+  const changeMonth = (delta: number) => {
+    let newMonth = selectedMonth + delta;
+    let newYear = selectedYear;
+    if (newMonth > 11) { newMonth = 0; newYear++; }
+    else if (newMonth < 0) { newMonth = 11; newYear--; }
+    setSelectedMonth(newMonth);
+    setSelectedYear(newYear);
+  };
 
   // Gastos já realizados este mês (até hoje)
   const expenseSoFar = currentMonthTx.filter(t => t.type === 'EXPENSE' && new Date(t.date) <= today).reduce((acc, t) => acc + t.value, 0);
