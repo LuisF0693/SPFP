@@ -26,6 +26,8 @@ export interface UserProfile {
   spouseCpf: string;
   spouseEmail: string;
   dashboardLayout?: DashboardWidget[];
+  avatar?: string;
+  theme?: 'dark' | 'light';
 }
 
 export interface Account {
@@ -34,7 +36,7 @@ export interface Account {
   type: AccountType;
   owner: AccountOwner;
   balance: number;
-  creditLimit?: number; 
+  creditLimit?: number;
   color?: string; // Cor de fundo do cartão
   lastFourDigits?: string;
   network?: CardNetwork;
@@ -55,7 +57,7 @@ export interface Transaction {
   accountId: string;
   description: string;
   value: number;
-  date: string; 
+  date: string;
   type: TransactionType;
   categoryId: string;
 }

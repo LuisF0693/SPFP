@@ -12,7 +12,7 @@ interface TransactionListProps {
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
-    const { transactions, categories, deleteTransaction, addCategory, updateCategory, deleteCategory } = useFinance();
+    const { transactions, categories, deleteTransaction, addCategory, updateCategory, deleteCategory, accounts } = useFinance();
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -27,11 +27,31 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const [catIcon, setCatIcon] = useState('default');
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+    // Tab State
+    const [activeTab, setActiveTab] = useState<'CHECKING' | 'CREDIT'>('CHECKING');
+
     // --- Transaction Logic ---
     const filteredTransactions = transactions.filter(t => {
         const d = new Date(t.date);
         return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
     });
+
+    const isCreditCardTransaction = (tx: Transaction) => {
+        const account = accounts.find(a => a.id === tx.accountId);
+        return account?.type === 'CREDIT_CARD';
+    };
+
+    const regularTransactions = filteredTransactions.filter(t => !isCreditCardTransaction(t));
+    const creditTransactions = filteredTransactions.filter(t => isCreditCardTransaction(t));
+
+    // Group Credit Transactions by Card
+    const creditTransactionsByCard = creditTransactions.reduce((acc, t) => {
+        const account = accounts.find(a => a.id === t.accountId);
+        if (!account) return acc;
+        if (!acc[account.id]) acc[account.id] = { account, transactions: [] };
+        acc[account.id].transactions.push(t);
+        return acc;
+    }, {} as Record<string, { account: typeof accounts[0], transactions: typeof transactions }>);
 
     const changeMonth = (delta: number) => {
         let newMonth = selectedMonth + delta;
@@ -147,26 +167,111 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             ) : (
                 /* Transaction List UI */
                 <>
-                    <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-6">
-                        <button onClick={() => changeMonth(-1)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><ChevronLeft size={20} /></button>
-                        <span className="font-bold text-gray-800">{getMonthName(selectedMonth)} {selectedYear}</span>
-                        <button onClick={() => changeMonth(1)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg rotate-180"><ChevronLeft size={20} /></button>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-6 gap-4">
+                        <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => setActiveTab('CHECKING')}
+                                className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'CHECKING' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Conta Corrente
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('CREDIT')}
+                                className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'CREDIT' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Cartões de Crédito
+                            </button>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <button onClick={() => changeMonth(-1)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><ChevronLeft size={20} /></button>
+                            <span className="font-bold text-gray-800 min-w-[140px] text-center">{getMonthName(selectedMonth)} {selectedYear}</span>
+                            <button onClick={() => changeMonth(1)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg rotate-180"><ChevronLeft size={20} /></button>
+                        </div>
                     </div>
 
-                    <div className="space-y-3 pb-20">
-                        {filteredTransactions.length === 0 ? <div className="text-center text-gray-400 py-10">Nenhuma transação neste mês.</div> : (
-                            filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => {
-                                const cat = categories.find(c => c.id === tx.categoryId);
-                                return (
-                                    <div key={tx.id} className="bg-white p-4 rounded-xl shadow-sm border-l-4 flex items-center" style={{ borderLeftColor: tx.type === 'INCOME' ? '#4caf50' : '#f44336' }}>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between"><p className="font-bold text-gray-800">{tx.description}</p><p className={`font-bold ${tx.type === 'INCOME' ? 'text-success' : 'text-danger'}`}>{formatCurrency(tx.value)}</p></div>
-                                            <div className="flex justify-between mt-1 items-center"><div className="flex items-center bg-gray-50 px-2 py-0.5 rounded border border-gray-100"><CategoryIcon iconName={cat?.icon} color={cat?.color} size={10} className="mr-1" /><span className="text-[10px] font-medium text-gray-600">{cat?.name}</span></div><p className="text-[10px] text-gray-400">{formatDate(tx.date)}</p></div>
+                    <div className="space-y-6 pb-20">
+                        {activeTab === 'CHECKING' ? (
+                            regularTransactions.length === 0 ? (
+                                <div className="text-center text-gray-400 py-10">Nenhuma transação de conta corrente/débito neste mês.</div>
+                            ) : (
+                                regularTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => {
+                                    const cat = categories.find(c => c.id === tx.categoryId);
+                                    const acc = accounts.find(a => a.id === tx.accountId);
+                                    return (
+                                        <div key={tx.id} className="bg-white p-4 rounded-xl shadow-sm border-l-4 flex items-center group hover:bg-gray-50 transition-colors" style={{ borderLeftColor: tx.type === 'INCOME' ? '#10b981' : '#f43f5e' }}>
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-bold text-gray-800">{tx.description}</p>
+                                                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">{acc?.name || 'Conta Desconhecida'}</span>
+                                                    </div>
+                                                    <p className={`font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-500'}`}>{formatCurrency(tx.value)}</p>
+                                                </div>
+                                                <div className="flex justify-between mt-2 items-center">
+                                                    <div className="flex items-center bg-gray-100 px-2 py-1 rounded-md">
+                                                        <CategoryIcon iconName={cat?.icon} color={cat?.color} size={12} className="mr-1.5" />
+                                                        <span className="text-[11px] font-bold text-gray-600">{cat?.name}</span>
+                                                    </div>
+                                                    <p className="text-[11px] text-gray-400 font-medium">{formatDate(tx.date)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => onEdit(tx)} className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
+                                                <button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-gray-400 hover:text-danger hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                                            </div>
                                         </div>
-                                        <div className="flex ml-2"><button onClick={() => onEdit(tx)} className="p-2 text-gray-300 hover:text-primary"><Edit2 size={16} /></button><button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-gray-300 hover:text-danger"><Trash2 size={16} /></button></div>
+                                    );
+                                })
+                            )
+                        ) : (
+                            /* Credit Card View */
+                            Object.keys(creditTransactionsByCard).length === 0 ? (
+                                <div className="text-center text-gray-400 py-10">Nenhuma transação de cartão de crédito neste mês.</div>
+                            ) : (
+                                Object.values(creditTransactionsByCard).map(({ account, transactions }) => (
+                                    <div key={account.id} className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+                                        <div className="p-4 flex justify-between items-center" style={{ backgroundColor: account.color || '#3b82f6' }}>
+                                            <div className="text-white">
+                                                <h3 className="font-bold text-lg">{account.name}</h3>
+                                                <p className="text-xs opacity-80">Fatura de {getMonthName(selectedMonth)}</p>
+                                            </div>
+                                            <div className="bg-white/20 px-3 py-1 rounded-lg">
+                                                <span className="text-white font-bold text-sm">
+                                                    {formatCurrency(transactions.reduce((input, t) => input + t.value, 0))}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="divide-y divide-gray-100">
+                                            {transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => {
+                                                const cat = categories.find(c => c.id === tx.categoryId);
+                                                return (
+                                                    <div key={tx.id} className="bg-white p-4 flex items-center group hover:bg-gray-50 transition-colors">
+                                                        <div className="flex-1">
+                                                            <div className="flex justify-between">
+                                                                <p className="font-bold text-gray-800 text-sm">{tx.description}</p>
+                                                                <p className={`font-bold text-sm ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-500'}`}>{formatCurrency(tx.value)}</p>
+                                                            </div>
+                                                            <div className="flex justify-between mt-1 items-center">
+                                                                <div className="flex items-center">
+                                                                    <div className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: cat?.color }}></div>
+                                                                    <span className="text-[11px] text-gray-500">{cat?.name}</span>
+                                                                </div>
+                                                                <p className="text-[10px] text-gray-400">{formatDate(tx.date)}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => onEdit(tx)} className="p-1.5 text-gray-300 hover:text-primary"><Edit2 size={14} /></button>
+                                                            <button onClick={() => handleDeleteTransaction(tx.id)} className="p-1.5 text-gray-300 hover:text-danger"><Trash2 size={14} /></button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                );
-                            })
+                                ))
+                            )
                         )}
                     </div>
                 </>

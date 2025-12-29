@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (userProfile.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [userProfile.theme]);
 
   const mobileNavItems = [
     { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
@@ -48,16 +56,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-black overflow-hidden w-full font-sans text-gray-100">
+    <div className="flex h-screen bg-gray-50 dark:bg-black overflow-hidden w-full font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 bg-black text-white flex-col shadow-xl z-20 border-r border-gray-900">
-        <div className="p-6 border-b border-gray-900 flex items-center space-x-4">
+      <aside className="hidden md:flex w-72 bg-white dark:bg-black flex-col shadow-xl z-20 border-r border-gray-200 dark:border-gray-900 transition-colors duration-300">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-900 flex items-center space-x-4">
           <div className="bg-blue-900/10 p-2 rounded-full border border-blue-500/20 shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
             <Logo className="text-accent" size={54} />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-3xl font-serif font-bold tracking-wider text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">SPFP</h1>
-            <p className="text-[10px] text-blue-400 tracking-[0.2em] uppercase">Planejador</p>
+            <h1 className="text-3xl font-serif font-bold tracking-wider text-gray-900 dark:text-white drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">SPFP</h1>
+            <p className="text-[10px] text-blue-500 dark:text-blue-400 tracking-[0.2em] uppercase">Planejador</p>
             <div className="mt-2 h-6 flex items-center">
               {isSyncing ? (
                 <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 animate-pulse">
@@ -85,8 +93,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 key={item.id}
                 to={item.path}
                 className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                    ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
                 {({ isActive }) => (
@@ -100,7 +108,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-900 bg-black">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-black">
           <NavLink
             to="/settings"
             className={({ isActive }) => `flex items-center w-full px-4 py-3 rounded-xl transition-colors ${isActive ? 'bg-blue-900/20 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
@@ -108,13 +116,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Settings size={20} className="mr-3" />
             <span className="font-medium">Configurações</span>
           </NavLink>
-          <div className="mt-4 flex items-center justify-between px-4 py-3 bg-white/5 rounded-xl border border-white/5 group">
+          <div className="mt-4 flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/5 group transition-colors">
             <div className="flex items-center min-w-0 mr-2 cursor-pointer" onClick={() => navigate('/settings')}>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold text-sm mr-3 overflow-hidden shadow-lg border border-blue-500/30">
-                {userProfile.name ? userProfile.name.substring(0, 2).toUpperCase() : 'US'}
+                {userProfile.avatar ? (
+                  <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  userProfile.name ? userProfile.name.substring(0, 2).toUpperCase() : 'US'
+                )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate group-hover:text-accent transition-colors">{userProfile.name || 'Usuário'}</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-white truncate group-hover:text-accent transition-colors">{userProfile.name || 'Usuário'}</p>
                 <p className="text-[10px] text-gray-500 truncate font-medium">{userProfile.email}</p>
               </div>
             </div>
@@ -126,9 +138,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-black">
-        <header className="flex bg-black h-16 md:h-20 border-b border-gray-900 items-center justify-between px-6 md:px-8 shadow-sm">
-          <h2 className="text-xl md:text-2xl font-bold text-white tracking-wide">
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-gray-50 dark:bg-black transition-colors duration-300">
+        <header className="flex bg-white dark:bg-black h-16 md:h-20 border-b border-gray-200 dark:border-gray-900 items-center justify-between px-6 md:px-8 shadow-sm transition-colors duration-300">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-wide">
             {getPageTitle()}
           </h2>
           <div className="flex items-center space-x-4">
@@ -155,7 +167,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 md:p-8 bg-black">
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 md:p-8 bg-gray-50 dark:bg-black transition-colors duration-300">
           <div className="max-w-7xl mx-auto w-full h-full">
             {children}
           </div>
