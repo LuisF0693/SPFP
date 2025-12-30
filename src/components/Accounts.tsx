@@ -4,7 +4,7 @@ import { formatCurrency, formatDate } from '../utils';
 import { AccountType, AccountOwner, Account, CardNetwork } from '../types';
 import {
     Building, CreditCard, Plus, X, Users, Heart, Edit2, Trash2,
-    ShoppingBag, Calendar, CreditCard as CardIcon, Download, Receipt
+    ShoppingBag, Calendar, CreditCard as CardIcon, Download, Receipt, Wifi
 } from 'lucide-react';
 import { BankLogo } from './BankLogo';
 import { CategoryIcon } from './CategoryIcon';
@@ -222,10 +222,10 @@ const Accounts: React.FC = () => {
                 acc[t.categoryId] = (acc[t.categoryId] || 0) + t.value;
                 return acc;
             }, {} as Record<string, number>)
-    ).map(([catId, value]) => {
+    ).map(([catId, value]: [string, number]) => {
         const cat = categories.find(c => c.id === catId);
         return { name: cat?.name || 'Outros', value, color: cat?.color, icon: cat?.icon };
-    }).sort((a, b) => b.value - a.value).slice(0, 3);
+    }).sort((a: { value: number }, b: { value: number }) => b.value - a.value).slice(0, 3);
 
 
     return (
