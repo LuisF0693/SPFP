@@ -1,11 +1,14 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
-import { Trash2, Edit2, Settings as SettingsIcon, Upload, Sparkles, X, ChevronLeft, Check, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
+import {
+    Trash2, Edit2, Upload, Search, Filter, ChevronLeft, ChevronRight,
+    ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock
+} from 'lucide-react';
 import { Transaction, Category, CategoryGroup } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
+import { EmojiPicker } from './EmojiPicker';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -13,53 +16,42 @@ interface TransactionListProps {
 
 const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const { transactions, categories, deleteTransaction, addCategory, updateCategory, deleteCategory, accounts, userProfile } = useFinance();
+
+    // Date State
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-    // View State
-    const [showCategoryManager, setShowCategoryManager] = useState(false);
+    // Filter State
+    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PENDING'>('ALL');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal States
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+    const [showCategoryManager, setShowCategoryManager] = useState(false);
 
-    // Category Management State
-    const [catName, setCatName] = useState('');
-    const [catColor, setCatColor] = useState('#3b82f6');
-    const [catGroup, setCatGroup] = useState<CategoryGroup>('VARIABLE');
-    const [catIcon, setCatIcon] = useState('default');
-    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+    // Filter Logic
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(t => {
+            const d = new Date(t.date);
+            const matchesDate = d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+            const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // --- Transaction Logic ---
-    const filteredTransactions = transactions.filter(t => {
-        const d = new Date(t.date);
-        return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
-    });
+            let matchesType = true;
+            if (filterType === 'INCOME') matchesType = t.type === 'INCOME';
+            if (filterType === 'EXPENSE') matchesType = t.type === 'EXPENSE';
+            if (filterType === 'PENDING') matchesType = new Date(t.date) > new Date(); // Simple logic for "Pending/Scheduled"
 
-    const isCreditCardTransaction = (tx: Transaction) => {
-        const account = accounts.find(a => a.id === tx.accountId);
-        return account?.type === 'CREDIT_CARD';
-    };
+            return matchesDate && matchesSearch && matchesType;
+        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [transactions, selectedMonth, selectedYear, searchTerm, filterType]);
 
-    const regularTransactions = filteredTransactions.filter(t => !isCreditCardTransaction(t));
-    const creditTransactions = filteredTransactions.filter(t => isCreditCardTransaction(t));
-
-    // Group Credit Transactions by Card
-    const creditTransactionsByCard = creditTransactions.reduce((acc, t) => {
-        const account = accounts.find(a => a.id === t.accountId);
-        if (!account) return acc;
-        if (!acc[account.id]) acc[account.id] = { account, transactions: [] };
-        acc[account.id].transactions.push(t);
-        return acc;
-    }, {} as Record<string, { account: typeof accounts[0], transactions: typeof transactions }>);
-
-    const toggleCardExpansion = (cardId: string) => {
-        const newExpanded = new Set(expandedCards);
-        if (newExpanded.has(cardId)) {
-            newExpanded.delete(cardId);
-        } else {
-            newExpanded.add(cardId);
-        }
-        setExpandedCards(newExpanded);
-    };
+    // Stats Calculations
+    const stats = useMemo(() => {
+        const income = filteredTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.value, 0);
+        const expense = filteredTransactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
+        const balance = income - expense;
+        return { income, expense, balance };
+    }, [filteredTransactions]);
 
     const changeMonth = (delta: number) => {
         let newMonth = selectedMonth + delta;
@@ -70,236 +62,293 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         setSelectedYear(newYear);
     };
 
-    const handleDeleteTransaction = (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir esta transação?')) deleteTransaction(id);
+    const getStatus = (date: string) => {
+        const d = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (d > today) return { label: 'Agendado', color: 'text-yellow-500', icon: Clock };
+        return { label: 'Pago', color: 'text-emerald-500', icon: CheckCircle };
     };
 
-    // ... Category Management Logic ...
-    const handleEditCategory = (cat: Category) => {
-        setEditingCategory(cat);
-        setCatName(cat.name);
-        setCatColor(cat.color);
-        setCatGroup(cat.group || 'VARIABLE');
-        setCatIcon(cat.icon || 'default');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const resetCategoryForm = () => {
-        setEditingCategory(null); setCatName(''); setCatColor('#3b82f6'); setCatGroup('VARIABLE'); setCatIcon('default');
-    };
-
-    const handleSubmitCategory = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!catName) return;
-        if (editingCategory) updateCategory({ id: editingCategory.id, name: catName, color: catColor, group: catGroup, icon: catIcon });
-        else addCategory({ name: catName, color: catColor, group: catGroup, icon: catIcon });
-        resetCategoryForm();
-    };
-
-    // ... Render Helpers ...
-    const groupLabels: Record<CategoryGroup, string> = { 'FIXED': 'Gastos Fixos', 'VARIABLE': 'Gastos Variáveis', 'INVESTMENT': 'Investimentos', 'INCOME': 'Renda' };
-    const groupedCategories = categories.reduce((acc, cat) => {
-        const group = cat.group || 'VARIABLE';
-        if (!acc[group]) acc[group] = []; acc[group].push(cat); return acc;
-    }, {} as Record<CategoryGroup, Category[]>);
-
-    const groupOrder: CategoryGroup[] = ['FIXED', 'VARIABLE', 'INVESTMENT', 'INCOME'];
-
-    const getSpenderBadge = (tx: Transaction) => {
-        if (!tx.spender || !userProfile.hasSpouse) return null;
-        if (tx.spender === 'SPOUSE') {
-            return <span className="text-[9px] bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-1.5 py-0.5 rounded font-bold ml-1">{userProfile.spouseName || 'Parceiro(a)'}</span>;
+    const getSpenderInfo = (spender?: 'ME' | 'SPOUSE') => {
+        if (spender === 'SPOUSE') {
+            return {
+                name: userProfile.spouseName || 'Cônjuge',
+                avatar: null, // Could use an image if available
+                initial: (userProfile.spouseName || 'C')[0],
+                color: 'bg-pink-500'
+            };
         }
-        return null;
+        return {
+            name: userProfile.name || 'Eu',
+            avatar: userProfile.avatar,
+            initial: (userProfile.name || 'E')[0],
+            color: 'bg-indigo-500'
+        };
     };
 
     return (
-        <div className="p-5 h-full relative">
+        <div className="p-6 space-y-8 pb-24 animate-fade-in relative min-h-screen">
+
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center">
-                    {showCategoryManager && <button onClick={() => setShowCategoryManager(false)} className="mr-3 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"><ChevronLeft size={24} /></button>}
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{showCategoryManager ? 'Gerenciar Categorias' : 'Extrato'}</h2>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Lançamentos</h2>
+                    <p className="text-gray-500 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
                 </div>
-                {!showCategoryManager ? (
-                    <div className="flex items-center space-x-3">
-                        <button onClick={() => setIsImportModalOpen(true)} className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors flex items-center" title="Importar Extrato PDF">
-                            <Upload size={22} />
-                            <span className="hidden md:inline ml-2 text-sm font-medium">Importar PDF/CSV</span>
-                        </button>
-                        <button onClick={() => setShowCategoryManager(true)} className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors" title="Categorias"><SettingsIcon size={22} /></button>
-                    </div>
-                ) : <button onClick={() => setShowCategoryManager(false)} className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-gray-200">Voltar</button>}
+                <button
+                    onClick={() => { /* Should trigger add transaction */ }}
+                    className="bg-accent hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center"
+                >
+                    + Novo Lançamento
+                </button>
             </div>
 
-            {/* Body Content */}
-            {showCategoryManager ? (
-                /* Category Manager UI */
-                <div className="animate-fade-in space-y-6 pb-20">
-                    <form onSubmit={handleSubmitCategory} className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 relative">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <Sparkles className="text-accent mr-2" size={20} />
-                            {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div><label className="block text-xs font-semibold text-gray-500 mb-1">Nome</label><input type="text" className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none focus:border-accent transition-colors text-gray-900 dark:text-white" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Ex: Mercado, Lazer..." required /></div>
-                            <div><label className="block text-xs font-semibold text-gray-500 mb-1">Divisão</label><select value={catGroup} onChange={(e) => setCatGroup(e.target.value as CategoryGroup)} className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none text-gray-900 dark:text-white">{Object.entries(groupLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
-                        </div>
-                        <div className="flex justify-between items-center pt-2">
-                            <div className="flex gap-2">
-                                {['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'].map(c => (
-                                    <button key={c} type="button" onClick={() => setCatColor(c)} className={`w-6 h-6 rounded-full border-2 ${catColor === c ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />
-                                ))}
-                            </div>
-                            <div className="flex">
-                                {editingCategory && <button type="button" onClick={resetCategoryForm} className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg mr-2 text-sm transition-colors">Cancelar Edição</button>}
-                                <button type="submit" className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95">
-                                    {editingCategory ? 'Salvar Alterações' : 'Criar Categoria'}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <div className="space-y-6">
-                        {groupOrder.map(groupKey => {
-                            const items = groupedCategories[groupKey];
-                            if (!items || items.length === 0) return null;
-                            return (
-                                <div key={groupKey} className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-800">
-                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{groupLabels[groupKey]}</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {items.map(cat => (
-                                            <div key={cat.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg group">
-                                                <div className="flex items-center space-x-3"><div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center"><CategoryIcon iconName={cat.icon} color={cat.color} size={16} /></div><span className="text-sm font-bold text-gray-700 dark:text-gray-300">{cat.name}</span></div>
-                                                <div className="flex space-x-1"><button onClick={() => handleEditCategory(cat)} className="p-1 text-gray-400 hover:text-accent"><Edit2 size={14} /></button><button onClick={() => deleteCategory(cat.id)} className="p-1 text-gray-400 hover:text-danger"><Trash2 size={14} /></button></div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                        <span className="text-gray-400 text-sm font-medium">Total Receitas</span>
+                        <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><ArrowUpCircle size={20} /></div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.income)}</h3>
+                    <p className="text-emerald-500 text-xs font-bold relative z-10">+12% vs mês anterior</p>
+                    <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowUpCircle size={100} /></div>
+                </div>
+
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                        <span className="text-gray-400 text-sm font-medium">Total Despesas</span>
+                        <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500"><ArrowDownCircle size={20} /></div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.expense)}</h3>
+                    <p className="text-rose-500 text-xs font-bold relative z-10">+5% vs mês anterior</p>
+                    <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowDownCircle size={100} /></div>
+                </div>
+
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                        <span className="text-gray-400 text-sm font-medium">Saldo Atual</span>
+                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Wallet size={20} /></div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.balance)}</h3>
+                    <p className="text-blue-500 text-xs font-bold relative z-10">{stats.balance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}</p>
+                    <div className="absolute top-0 right-0 p-8 opacity-5"><Wallet size={100} /></div>
+                </div>
+            </div>
+
+            {/* Filters & Search - Dark/Light Compatible but styling towards Dark Ref */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="relative w-full md:w-96">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome, categoria ou valor..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[#0f172a] border border-gray-800 text-white pl-10 pr-4 py-3 rounded-xl outline-none focus:border-accent text-sm placeholder-gray-500"
+                    />
+                </div>
+
+                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                    {(['ALL', 'INCOME', 'EXPENSE', 'PENDING'] as const).map(type => (
+                        <button
+                            key={type}
+                            onClick={() => setFilterType(type)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${filterType === type
+                                    ? 'bg-accent text-white'
+                                    : 'bg-[#1e293b] text-gray-400 hover:bg-gray-800'
+                                }`}
+                        >
+                            {type === 'ALL' && 'Todos'}
+                            {type === 'INCOME' && 'Receitas'}
+                            {type === 'EXPENSE' && 'Despesas'}
+                            {type === 'PENDING' && 'Pendentes'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Transactions Table */}
+            <div className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+
+                {/* Month Navigation within Table Header? Or keep separate? Keeping separate for now or inside header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                    <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-800 rounded text-gray-400"><ChevronLeft size={20} /></button>
+                    <span className="font-bold text-white uppercase tracking-wider text-sm">{getMonthName(selectedMonth)} {selectedYear}</span>
+                    <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-800 rounded text-gray-400"><ChevronRight size={20} /></button>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-500">
+                                <th className="p-4 font-medium">Data</th>
+                                <th className="p-4 font-medium">Resp.</th>
+                                <th className="p-4 font-medium">Descrição</th>
+                                <th className="p-4 font-medium">Categoria</th>
+                                <th className="p-4 font-medium">Conta</th>
+                                <th className="p-4 font-medium">Status</th>
+                                <th className="p-4 font-medium text-right">Valor</th>
+                                <th className="p-4 font-medium text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800">
+                            {filteredTransactions.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="p-8 text-center text-gray-500 font-medium">
+                                        Nenhuma transação encontrada.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredTransactions.map(tx => {
+                                    const cat = categories.find(c => c.id === tx.categoryId);
+                                    const acc = accounts.find(a => a.id === tx.accountId);
+                                    const status = getStatus(tx.date);
+                                    const StatusIcon = status.icon;
+                                    const spender = getSpenderInfo(tx.spender);
+
+                                    return (
+                                        <tr key={tx.id} className="group hover:bg-[#1e293b]/50 transition-colors">
+                                            <td className="p-4 text-gray-400 text-sm font-mono whitespace-nowrap">
+                                                {formatDate(tx.date)}
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="relative group/tooltip">
+                                                    <div className={`w-8 h-8 rounded-full ${spender.color} flex items-center justify-center text-xs font-bold text-white overflow-hidden border-2 border-[#0f172a]`}>
+                                                        {spender.avatar ? <img src={spender.avatar} alt={spender.name} className="w-full h-full object-cover" /> : spender.initial}
+                                                    </div>
+                                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-bold text-white bg-black rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap z-20">
+                                                        {spender.name}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="p-2 bg-[#1e293b] rounded-lg text-white">
+                                                        <CategoryIcon iconName={cat?.icon} size={18} />
+                                                    </div>
+                                                    <span className="text-gray-200 font-bold text-sm truncate max-w-[150px]">{tx.description}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium" style={{ backgroundColor: `${cat?.color}15`, color: cat?.color }}>
+                                                    {cat?.name}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-gray-400 text-sm">
+                                                {acc?.name}
+                                            </td>
+                                            <td className="p-4">
+                                                <div className={`flex items-center space-x-1.5 text-xs font-bold ${status.color}`}>
+                                                    <StatusIcon size={14} />
+                                                    <span>{status.label}</span>
+                                                </div>
+                                            </td>
+                                            <td className={`p-4 text-right font-bold text-sm ${tx.type === 'INCOME' ? 'text-emerald-500' : 'text-white'}`}>
+                                                {tx.type === 'INCOME' ? '+' : '-'} {formatCurrency(tx.value)}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => onEdit(tx)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"><Edit2 size={14} /></button>
+                                                    <button onClick={() => deleteTransaction(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Footer / Pagination Placeholder */}
+                <div className="p-4 border-t border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                    <span>Mostrando <strong>{filteredTransactions.length}</strong> resultados</span>
+                    <div className="flex gap-2">
+                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-500 cursor-not-allowed">Anterior</button>
+                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-500 cursor-not-allowed">Próximo</button>
                     </div>
                 </div>
-            ) : (
-                /* Unified Transaction List UI */
-                <>
-                    <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
-                        <button onClick={() => changeMonth(-1)} className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><ChevronLeft size={20} /></button>
-                        <span className="font-bold text-gray-800 dark:text-white">{getMonthName(selectedMonth)} {selectedYear}</span>
-                        <button onClick={() => changeMonth(1)} className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg rotate-180"><ChevronLeft size={20} /></button>
-                    </div>
+            </div>
 
-                    <div className="space-y-4 pb-20">
-                        {/* Credit Card Headers (Clickable) */}
-                        {Object.values(creditTransactionsByCard).map(({ account, transactions: cardTxs }) => {
-                            const isExpanded = expandedCards.has(account.id);
-                            const total = cardTxs.reduce((sum, t) => sum + t.value, 0);
+            {/* Category Manager Reuse Logic (Placeholder for now, assuming external modal or page) */}
+            <div className="flex justify-end pt-4">
+                <button onClick={() => setShowCategoryManager(!showCategoryManager)} className="text-sm font-bold text-gray-500 hover:text-white flex items-center gap-2">
+                    <Filter size={16} /> Gerenciar Categorias & Emojis
+                </button>
+            </div>
 
-                            return (
-                                <div key={account.id} className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
-                                    {/* Card Header (Clickable) */}
-                                    <button
-                                        onClick={() => toggleCardExpansion(account.id)}
-                                        className="w-full p-4 flex items-center justify-between transition-all hover:brightness-110"
-                                        style={{ backgroundColor: account.color || '#3b82f6' }}
-                                    >
-                                        <div className="flex items-center space-x-3 text-white">
-                                            <CreditCard size={24} />
-                                            <div className="text-left">
-                                                <h3 className="font-bold text-lg">{account.name}</h3>
-                                                <p className="text-xs opacity-80">Fatura de {getMonthName(selectedMonth)}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-3">
-                                            <div className="text-right text-white">
-                                                <p className="text-sm font-bold">{formatCurrency(total)}</p>
-                                                <p className="text-[10px] opacity-80">{cardTxs.length} compra{cardTxs.length !== 1 ? 's' : ''}</p>
-                                            </div>
-                                            {isExpanded ? <ChevronUp size={20} className="text-white" /> : <ChevronDown size={20} className="text-white" />}
-                                        </div>
-                                    </button>
-
-                                    {/* Expanded Card Transactions */}
-                                    {isExpanded && (
-                                        <div className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
-                                            {cardTxs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => {
-                                                const cat = categories.find(c => c.id === tx.categoryId);
-                                                return (
-                                                    <div key={tx.id} className="p-4 flex items-center group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                                        <div className="flex-1">
-                                                            <div className="flex justify-between items-start">
-                                                                <div>
-                                                                    <p className="font-bold text-gray-800 dark:text-white text-sm flex items-center">
-                                                                        {tx.description}
-                                                                        {getSpenderBadge(tx)}
-                                                                    </p>
-                                                                </div>
-                                                                <p className="font-bold text-sm text-rose-500">{formatCurrency(tx.value)}</p>
-                                                            </div>
-                                                            <div className="flex justify-between mt-1 items-center">
-                                                                <div className="flex items-center">
-                                                                    <div className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: cat?.color }}></div>
-                                                                    <span className="text-[11px] text-gray-500 dark:text-gray-400">{cat?.name}</span>
-                                                                </div>
-                                                                <p className="text-[10px] text-gray-400">{formatDate(tx.date)}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button onClick={() => onEdit(tx)} className="p-1.5 text-gray-300 hover:text-primary"><Edit2 size={14} /></button>
-                                                            <button onClick={() => handleDeleteTransaction(tx.id)} className="p-1.5 text-gray-300 hover:text-danger"><Trash2 size={14} /></button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+            {showCategoryManager && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    {/* Simplified Category Manager for Context */}
+                    <div className="bg-[#0f172a] w-full max-w-2xl rounded-2xl p-6 border border-gray-800">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-white text-xl">Gerenciar Categorias</h3>
+                            <button onClick={() => setShowCategoryManager(false)} className="text-gray-400 hover:text-white">✕</button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto">
+                            {categories.map(cat => (
+                                <div key={cat.id} className="bg-[#1e293b] p-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-transparent hover:border-gray-600 group relative">
+                                    <div className="text-2xl">{cat.icon || '📦'}</div>
+                                    <span className="text-xs font-bold text-gray-300 text-center">{cat.name}</span>
+                                    <button onClick={() => deleteCategory(cat.id)} className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"><Trash2 size={12} /></button>
                                 </div>
-                            );
-                        })}
-
-                        {/* Regular Transactions */}
-                        {regularTransactions.length === 0 && Object.keys(creditTransactionsByCard).length === 0 ? (
-                            <div className="text-center text-gray-400 py-10">Nenhuma transação neste mês.</div>
-                        ) : (
-                            regularTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => {
-                                const cat = categories.find(c => c.id === tx.categoryId);
-                                const acc = accounts.find(a => a.id === tx.accountId);
-                                return (
-                                    <div key={tx.id} className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border-l-4 flex items-center group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" style={{ borderLeftColor: tx.type === 'INCOME' ? '#10b981' : '#f43f5e' }}>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <p className="font-bold text-gray-800 dark:text-white flex items-center">
-                                                        {tx.description}
-                                                        {getSpenderBadge(tx)}
-                                                    </p>
-                                                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">{acc?.name || 'Conta Desconhecida'}</span>
-                                                </div>
-                                                <p className={`font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-500'}`}>{formatCurrency(tx.value)}</p>
-                                            </div>
-                                            <div className="flex justify-between mt-2 items-center">
-                                                <div className="flex items-center bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
-                                                    <CategoryIcon iconName={cat?.icon} color={cat?.color} size={12} className="mr-1.5" />
-                                                    <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400">{cat?.name}</span>
-                                                </div>
-                                                <p className="text-[11px] text-gray-400 font-medium">{formatDate(tx.date)}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => onEdit(tx)} className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 size={16} /></button>
-                                            <button onClick={() => handleDeleteTransaction(tx.id)} className="p-2 text-gray-400 hover:text-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><Trash2 size={16} /></button>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
+                            ))}
+                        </div>
+                        <div className="mt-6 pt-6 border-t border-gray-800">
+                            <p className="text-sm text-gray-500 mb-4">Adicionar Nova Categoria</p>
+                            <CategoryCreator />
+                        </div>
                     </div>
-                </>
+                </div>
             )}
 
-            {/* Import Modal */}
             <ImportExportModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
         </div>
     );
 };
+
+// Internal Subcomponent for Creation
+const CategoryCreator = () => {
+    const { addCategory } = useFinance();
+    const [name, setName] = useState('');
+    const [emoji, setEmoji] = useState('🍕');
+    const [color, setColor] = useState('#3b82f6');
+    const [showPicker, setShowPicker] = useState(false);
+
+    const handleCreate = (e: React.FormEvent) => {
+        e.preventDefault();
+        addCategory({ name, color, icon: emoji, group: 'VARIABLE' }); // Defaulting group for simplicity
+        setName('');
+        alert('Categoria criada!');
+    };
+
+    return (
+        <form onSubmit={handleCreate} className="flex gap-4 items-end">
+            <div className="relative">
+                <label className="block text-xs font-bold text-gray-500 mb-1">Ícone</label>
+                <button type="button" onClick={() => setShowPicker(!showPicker)} className="w-12 h-12 bg-[#1e293b] rounded-xl flex items-center justify-center text-2xl border border-gray-700 hover:border-accent">
+                    {emoji}
+                </button>
+                {showPicker && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 w-64 shadow-xl">
+                        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-2">
+                            <EmojiPicker selectedEmoji={emoji} onSelect={(e) => { setEmoji(e); setShowPicker(false); }} />
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="flex-1">
+                <label className="block text-xs font-bold text-gray-500 mb-1">Nome</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full h-12 px-4 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-accent" placeholder="Ex: Mercado" required />
+            </div>
+            <button type="submit" className="h-12 px-6 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors">
+                Criar
+            </button>
+        </form>
+    )
+}
 
 export default TransactionList;

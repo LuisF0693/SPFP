@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { 
-  Home, Car, HeartPulse, GraduationCap, ShoppingCart, Utensils, 
-  ShoppingBag, Palmtree, Gamepad2, Gift, Wrench, Zap, Wifi, 
-  Smartphone, PiggyBank, TrendingUp, Shield, DollarSign, Briefcase, 
+import {
+  Home, Car, HeartPulse, GraduationCap, ShoppingCart, Utensils,
+  ShoppingBag, Palmtree, Gamepad2, Gift, Wrench, Zap, Wifi,
+  Smartphone, PiggyBank, TrendingUp, Shield, DollarSign, Briefcase,
   Coffee, Music, Film, Book, Circle, Plane
 } from 'lucide-react';
 
@@ -44,9 +44,23 @@ interface CategoryIconProps {
 }
 
 export const CategoryIcon: React.FC<CategoryIconProps> = ({ iconName, size = 20, color, className }) => {
-  const IconComponent = (iconName && iconMap[iconName]) ? iconMap[iconName] : iconMap['default'];
-  
-  return <IconComponent size={size} color={color} className={className} />;
+  // Check if it's a legacy Lucide icon
+  const isLucideIcon = iconName && iconMap[iconName];
+
+  if (isLucideIcon) {
+    const IconComponent = iconMap[iconName];
+    return <IconComponent size={size} color={color} className={className} />;
+  }
+
+  // Otherwise treat as Emoji
+  return (
+    <span
+      className={`flex items-center justify-center leading-none select-none ${className}`}
+      style={{ fontSize: size, width: size, height: size }}
+    >
+      {iconName || '📦'}
+    </span>
+  );
 };
 
 export const AVAILABLE_ICONS = Object.keys(iconMap).filter(k => k !== 'default');
