@@ -81,59 +81,60 @@
          OVERRIDE GLOBAL PARA DARK MODE SPFP 
          Isso inverte as cores padrão do Tailwind usadas nos componentes
          para evitar ter que reescrever todos os arquivos um por um.
+         APLICADO APENAS QUANDO A CLASSE DARK ESTÁ PRESENTE NO HTML
       */
 
-    /* Fundo da aplicação (era cinza claro, agora é preto) */
-    .bg-gray-50 {
+    /* Fundo da aplicação (era cinza claro, agora é preto no dark mode) */
+    html.dark .bg-gray-50 {
       background-color: #000000 !important;
     }
 
-    /* Cards e Containers (era branco, agora é cinza escuro/azulado) */
-    .bg-white {
+    /* Cards e Containers (era branco, agora é cinza escuro/azulado no dark mode) */
+    html.dark .bg-white {
       background-color: #0f172a !important;
       border-color: #1e293b !important;
     }
 
-    /* Texto Principal (era preto/cinza escuro, agora é branco) */
-    .text-gray-900 {
+    /* Texto Principal (era preto/cinza escuro, agora é branco no dark mode) */
+    html.dark .text-gray-900 {
       color: #ffffff !important;
     }
 
-    .text-gray-800 {
+    html.dark .text-gray-800 {
       color: #f8fafc !important;
     }
 
-    .text-gray-700 {
+    html.dark .text-gray-700 {
       color: #e2e8f0 !important;
     }
 
-    .text-gray-600 {
+    html.dark .text-gray-600 {
       color: #cbd5e1 !important;
     }
 
-    /* Bordas (eram cinza claro, agora cinza escuro para contraste no preto) */
-    .border-gray-200,
-    .border-gray-100 {
+    /* Bordas (eram cinza claro, agora cinza escuro para contraste no preto no dark mode) */
+    html.dark .border-gray-200,
+    html.dark .border-gray-100 {
       border-color: #1e293b !important;
     }
 
-    .border-gray-50 {
+    html.dark .border-gray-50 {
       border-color: #0f172a !important;
     }
 
     /* Ajustes específicos de Hover */
-    .hover\:bg-gray-50:hover {
+    html.dark .hover\:bg-gray-50:hover {
       background-color: #1e293b !important;
     }
 
-    .hover\:bg-gray-100:hover {
+    html.dark .hover\:bg-gray-100:hover {
       background-color: #334155 !important;
     }
 
-    /* Inputs (garantir legibilidade no fundo escuro) */
-    input,
-    select,
-    textarea {
+    /* Inputs (garantir legibilidade no fundo escuro no dark mode) */
+    html.dark input,
+    html.dark select,
+    html.dark textarea {
       background-color: #020617 !important;
       color: white !important;
       border-color: #334155 !important;
