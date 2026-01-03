@@ -177,24 +177,31 @@ const Dashboard: React.FC = () => {
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Meta de Economia</p>
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">{Math.round(savingsProgress)}%</h2>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Meta de Economia (15%)</p>
+              <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">{formatCurrency(savingsTarget)}</h2>
             </div>
             <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-500">
               <Target size={24} />
             </div>
           </div>
           <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-            <span>Progresso Atual</span>
-            <span className="text-emerald-500 font-bold">{formatCurrency(Math.max(currentSavings, 0))}</span>
+            <span>Economia Atual</span>
+            <span className={`font-bold ${currentSavings >= savingsTarget ? 'text-emerald-500' : 'text-blue-500'}`}>
+              {formatCurrency(Math.max(currentSavings, 0))}
+            </span>
           </div>
           <div className="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-1000"
+              className={`h-full rounded-full transition-all duration-1000 ${currentSavings >= savingsTarget ? 'bg-emerald-500' : 'bg-blue-500'}`}
               style={{ width: `${savingsProgress}%` }}
             ></div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">Meta: {formatCurrency(savingsTarget)} (Fundo de Emergência)</p>
+          <p className="text-xs text-gray-400 mt-2">
+            {currentSavings >= savingsTarget
+              ? 'Meta atingida! 🎉'
+              : `Faltam ${formatCurrency(Math.max(savingsTarget - currentSavings, 0))} para atingir 15%`
+            }
+          </p>
         </div>
       </div>
 
