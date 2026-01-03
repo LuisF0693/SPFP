@@ -219,7 +219,7 @@ const Accounts: React.FC = () => {
     // Spending by Category for Cards
     const cardCategoryData = Object.entries(
         transactions
-            .filter(t => creditCards.map(c => c.id).includes(t.accountId) && t.type === 'EXPENSE' && new Date(t.date).getMonth() === today.getMonth())
+            .filter(t => creditCards.map(c => c.id).includes(t.accountId) && t.type === 'EXPENSE' && new Date(t.date).getMonth() === today.getMonth() && new Date(t.date).getFullYear() === today.getFullYear())
             .reduce((acc, t) => {
                 acc[t.categoryId] = (acc[t.categoryId] || 0) + t.value;
                 return acc;
