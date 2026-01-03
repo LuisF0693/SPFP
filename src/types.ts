@@ -38,6 +38,7 @@ export interface UserProfile {
   dashboardLayout?: DashboardWidget[];
   avatar?: string;
   theme?: 'dark' | 'light';
+  monthlySavingsTarget?: number;
 }
 
 export interface Account {

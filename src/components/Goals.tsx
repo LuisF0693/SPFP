@@ -7,10 +7,12 @@ import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 
 const Goals: React.FC = () => {
-    const { goals, addGoal, updateGoal, deleteGoal } = useFinance();
+    const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [filter, setFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
+    const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
+    const [newSavingsTarget, setNewSavingsTarget] = useState(userProfile.monthlySavingsTarget || 0);
 
     // Safety check in case goals isn't loaded yet or is undefined
     const safeGoals = Array.isArray(goals) ? goals : [];
@@ -20,6 +22,42 @@ const Goals: React.FC = () => {
     const totalTarget = safeGoals.reduce((acc, g) => acc + g.targetAmount, 0);
     const totalProgress = totalTarget > 0 ? (totalAccumulated / totalTarget) * 100 : 0;
     const completedGoals = safeGoals.filter(g => g.status === 'COMPLETED' || g.currentAmount >= g.targetAmount).length;
+
+    // Monthly Savings Logic
+    const calculateAverageSavings = () => {
+        const now = new Date();
+        const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`; // format YYYY-MM based on JS month index
+
+        // Group by month
+        const monthlyStats: Record<string, number> = {};
+
+        transactions.forEach(tx => {
+            const date = new Date(tx.date);
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+
+            // Skip current incomplete month for average
+            if (key === currentMonthKey) return;
+
+            if (!monthlyStats[key]) monthlyStats[key] = 0;
+
+            if (tx.type === 'INCOME') monthlyStats[key] += tx.value;
+            else if (tx.type === 'EXPENSE') monthlyStats[key] -= tx.value;
+        });
+
+        // Get last 3 months with data
+        const sortedMonths = Object.keys(monthlyStats).sort().reverse().slice(0, 3);
+        if (sortedMonths.length === 0) return 0;
+
+        const sum = sortedMonths.reduce((acc, key) => acc + monthlyStats[key], 0);
+        return sum / sortedMonths.length;
+    };
+
+    const averageSavings = calculateAverageSavings();
+
+    const handleSaveTarget = () => {
+        updateUserProfile({ ...userProfile, monthlySavingsTarget: newSavingsTarget });
+        setIsTargetModalOpen(false);
+    };
 
     // Sort by closest deadline
     const sortedGoals = [...safeGoals].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
@@ -89,16 +127,27 @@ const Goals: React.FC = () => {
                     </p>
                 </div>
 
-                {/* Economia Mensal (Simulado/Mocked as per request context implication) */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                {/* Economia Mensal / Meta de Economia */}
+                <div
+                    onClick={() => {
+                        setNewSavingsTarget(userProfile.monthlySavingsTarget || 0);
+                        setIsTargetModalOpen(true);
+                    }}
+                    className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-all"
+                >
                     <div className="flex justify-between items-start mb-2 relative z-10">
                         <span className="text-gray-400 text-sm font-medium">Economia Ideal/Mês</span>
                         <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><TrendingUp size={20} /></div>
                     </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">R$ 1.200</h3>
-                    <p className="text-emerald-500 text-xs font-bold relative z-10">
-                        Sugestão
+                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">
+                        {userProfile.monthlySavingsTarget ? formatCurrency(userProfile.monthlySavingsTarget) : 'Definir'}
+                    </h3>
+                    <p className="text-gray-400 text-xs font-bold relative z-10">
+                        Média real: <span className={averageSavings >= (userProfile.monthlySavingsTarget || 0) ? "text-emerald-500" : "text-yellow-500"}>{formatCurrency(averageSavings)}</span>
                     </p>
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="bg-gray-700 p-1 rounded-full text-xs text-white">Editar</div>
+                    </div>
                 </div>
 
                 {/* Próxima Conclusão */}
@@ -202,6 +251,43 @@ const Goals: React.FC = () => {
                         onUpdate={updateGoal}
                         initialData={editingGoal}
                     />
+                </div>
+            )}
+
+            {/* Modal para editar meta de economia mensal */}
+            {isTargetModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 text-white relative">
+                        <h3 className="text-lg font-bold mb-4">Definir Economia Mensal Ideal</h3>
+                        <p className="text-sm text-gray-400 mb-4">Quanto você deseja economizar por mês?</p>
+
+                        <div className="relative mb-6">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                            <input
+                                type="number"
+                                value={newSavingsTarget}
+                                onChange={(e) => setNewSavingsTarget(Number(e.target.value))}
+                                className="w-full bg-[#1e293b] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white outline-none focus:border-blue-500"
+                                placeholder="0.00"
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsTargetModalOpen(false)}
+                                className="flex-1 px-4 py-2 rounded-xl font-bold text-gray-400 hover:bg-gray-800 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveTarget}
+                                className="flex-1 px-4 py-2 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all"
+                            >
+                                Salvar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

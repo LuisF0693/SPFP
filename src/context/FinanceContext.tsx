@@ -36,7 +36,8 @@ const INITIAL_PROFILE: UserProfile = {
   name: '', email: '', cpf: '', phone: '',
   hasChildren: false, children: [],
   hasSpouse: false, spouseName: '', spouseCpf: '', spouseEmail: '',
-  dashboardLayout: DEFAULT_LAYOUT
+  dashboardLayout: DEFAULT_LAYOUT,
+  monthlySavingsTarget: 0
 };
 
 // Helper to access user metadata properly (Supabase stores display_name in user_metadata)
