@@ -403,88 +403,86 @@ const Accounts: React.FC = () => {
                                 <button onClick={() => { resetForm(); setNewAccType('CREDIT_CARD'); setShowForm(true); }} className="mt-4 text-accent font-bold text-sm hover:underline">Cadastrar Cartão</button>
                             </div>
                         ) : (
+                            creditCards.map(card => {
                                 const calcInvoice = getInvoiceValue(card.id);
-                        const limit = card.creditLimit || 0;
-                        // Total usage usually implies Balance (all debt), but for this view "Fatura" is specific.
-                        // If we want "Available Limit", it should be Limit - Balance.
-                        // Let's use Balance for consistency with "Real" available limit, but show Invoice for "Fatura" text.
-                        const realBalance = Math.abs(card.balance);
-                        const used = realBalance;
-                        const available = limit - used;
+                                const limit = card.creditLimit || 0;
+                                const realBalance = Math.abs(card.balance);
+                                const used = realBalance;
+                                const available = limit - used;
                                 const percent = limit > 0 ? (used / limit) * 100 : 0;
 
-                        return (
-                        <div key={card.id} className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row group/card">
-                            {/* Card Visual */}
-                            <div
-                                onClick={() => setViewingInvoiceAccount(card)}
-                                className="w-full md:w-[280px] p-6 lg:p-6 flex flex-col justify-between text-white rounded-[20px] relative overflow-hidden shrink-0 min-h-[160px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300"
-                                style={{ background: card.color || '#0f172a' }}
-                            >
-                                {/* Background Pattern */}
-                                <div className="absolute top-0 right-0 p-8 opacity-10"><Wifi size={64} /></div>
+                                return (
+                                    <div key={card.id} className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row group/card">
+                                        {/* Card Visual */}
+                                        <div
+                                            onClick={() => setViewingInvoiceAccount(card)}
+                                            className="w-full md:w-[280px] p-6 lg:p-6 flex flex-col justify-between text-white rounded-[20px] relative overflow-hidden shrink-0 min-h-[160px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300"
+                                            style={{ background: card.color || '#0f172a' }}
+                                        >
+                                            {/* Background Pattern */}
+                                            <div className="absolute top-0 right-0 p-8 opacity-10"><Wifi size={64} /></div>
 
-                                <div className="flex justify-between items-start z-10">
-                                    <span className="font-bold tracking-widest uppercase">{card.name}</span>
-                                    <Wifi size={20} className="rotate-90" />
-                                </div>
-                                <div className="z-10 mt-6">
-                                    <div className="w-10 h-7 bg-yellow-400/80 rounded-md mb-3 flex items-center justify-center relative overflow-hidden">
-                                        <div className="absolute w-[120%] h-[1px] bg-black/20 inset-0 m-auto rotate-45"></div>
-                                    </div>
-                                    <p className="font-mono text-sm tracking-widest opacity-90">
-                                        •••• •••• •••• {card.lastFourDigits || '0000'}
-                                    </p>
-                                    <div className="flex justify-between items-end mt-2">
-                                        <p className="text-[10px] opacity-70 uppercase tracking-widest">RICARDO SILVA</p>
-                                        {card.network === 'VISA' && <span className="font-bold italic text-lg">VISA</span>}
-                                        {card.network === 'MASTERCARD' && <div className="flex -space-x-1.5"><div className="w-4 h-4 rounded-full bg-red-500/90"></div><div className="w-4 h-4 rounded-full bg-yellow-500/90"></div></div>}
-                                    </div>
-                                </div>
-                            </div>
+                                            <div className="flex justify-between items-start z-10">
+                                                <span className="font-bold tracking-widest uppercase">{card.name}</span>
+                                                <Wifi size={20} className="rotate-90" />
+                                            </div>
+                                            <div className="z-10 mt-6">
+                                                <div className="w-10 h-7 bg-yellow-400/80 rounded-md mb-3 flex items-center justify-center relative overflow-hidden">
+                                                    <div className="absolute w-[120%] h-[1px] bg-black/20 inset-0 m-auto rotate-45"></div>
+                                                </div>
+                                                <p className="font-mono text-sm tracking-widest opacity-90">
+                                                    •••• •••• •••• {card.lastFourDigits || '0000'}
+                                                </p>
+                                                <div className="flex justify-between items-end mt-2">
+                                                    <p className="text-[10px] opacity-70 uppercase tracking-widest">RICARDO SILVA</p>
+                                                    {card.network === 'VISA' && <span className="font-bold italic text-lg">VISA</span>}
+                                                    {card.network === 'MASTERCARD' && <div className="flex -space-x-1.5"><div className="w-4 h-4 rounded-full bg-red-500/90"></div><div className="w-4 h-4 rounded-full bg-yellow-500/90"></div></div>}
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            {/* Card Details */}
-                            <div className="flex-1 p-6 flex flex-col justify-center">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h4 className="font-bold text-gray-900 dark:text-white text-lg">{card.name}</h4>
-                                        <p className="text-xs text-gray-400">Conta Corrente Final 4022</p>
-                                    </div>
-                                    <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded border border-emerald-500/20 uppercase">Ativo</span>
-                                </div>
+                                        {/* Card Details */}
+                                        <div className="flex-1 p-6 flex flex-col justify-center">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-lg">{card.name}</h4>
+                                                    <p className="text-xs text-gray-400">Conta Corrente Final 4022</p>
+                                                </div>
+                                                <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded border border-emerald-500/20 uppercase">Ativo</span>
+                                            </div>
 
-                                <div className="grid grid-cols-2 gap-8 mb-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500 mb-1">Fatura Atual</p>
-                                        <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(calcInvoice)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 mb-1">Limite Disponível</p>
-                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(available)}</p>
-                                    </div>
-                                </div>
+                                            <div className="grid grid-cols-2 gap-8 mb-4">
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">Fatura Atual</p>
+                                                    <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(calcInvoice)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">Limite Disponível</p>
+                                                    <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(available)}</p>
+                                                </div>
+                                            </div>
 
-                                <div className="mb-6">
-                                    <div className="flex justify-between text-xs mb-1.5">
-                                        <span className="text-gray-500">Usado: {Math.round(percent)}%</span>
-                                        <span className="text-gray-400">Limite: {formatCurrency(limit)}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-                                        <div className="bg-accent h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(percent, 100)}%` }}></div>
-                                    </div>
-                                </div>
+                                            <div className="mb-6">
+                                                <div className="flex justify-between text-xs mb-1.5">
+                                                    <span className="text-gray-500">Usado: {Math.round(percent)}%</span>
+                                                    <span className="text-gray-400">Limite: {formatCurrency(limit)}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                                                    <div className="bg-accent h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(percent, 100)}%` }}></div>
+                                                </div>
+                                            </div>
 
-                                <div className="flex gap-3">
-                                    <button onClick={() => handleEditClick(card)} className="flex-1 py-2.5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
-                                        Detalhes
-                                    </button>
-                                    <button onClick={() => openPaymentModal(card)} className="flex-1 py-2.5 bg-[#0f172a] dark:bg-accent text-white font-bold text-sm rounded-xl hover:opacity-90 transition-colors">
-                                        Pagar Fatura
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        );
+                                            <div className="flex gap-3">
+                                                <button onClick={() => handleEditClick(card)} className="flex-1 py-2.5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
+                                                    Detalhes
+                                                </button>
+                                                <button onClick={() => openPaymentModal(card)} className="flex-1 py-2.5 bg-[#0f172a] dark:bg-accent text-white font-bold text-sm rounded-xl hover:opacity-90 transition-colors">
+                                                    Pagar Fatura
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
                             })
                         )}
                     </div>
