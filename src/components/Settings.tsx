@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon } from 'lucide-react';
+import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+
 
 const Settings: React.FC = () => {
     const { userProfile, updateUserProfile } = useFinance();
@@ -202,6 +203,43 @@ const Settings: React.FC = () => {
                                         onChange={(e) => handleChange('spouseName', e.target.value)}
                                     />
                                 </div>
+                                <div className="row-span-2">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1">Foto do Cônjuge</label>
+                                    <div className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50">
+                                        <div className="w-16 h-16 rounded-full bg-pink-100 overflow-hidden flex-shrink-0 border-2 border-pink-200">
+                                            {formData.spouseAvatar ? (
+                                                <img src={formData.spouseAvatar} alt="Spouse" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-pink-300"><Heart size={24} /></div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/jpg"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            handleChange('spouseAvatar', reader.result as string);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id="spouse-avatar-upload"
+                                            />
+                                            <label
+                                                htmlFor="spouse-avatar-upload"
+                                                className="cursor-pointer inline-flex items-center px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold rounded-lg transition-colors"
+                                            >
+                                                <ImageIcon size={14} className="mr-2" />
+                                                Escolher Foto
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-500 mb-1">CPF do Cônjuge</label>
                                     <input
@@ -212,7 +250,7 @@ const Settings: React.FC = () => {
                                         onChange={(e) => handleChange('spouseCpf', e.target.value)}
                                     />
                                 </div>
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-1">
                                     <label className="block text-xs font-semibold text-gray-500 mb-1">E-mail do Cônjuge</label>
                                     <input
                                         type="email"
@@ -245,15 +283,65 @@ const Settings: React.FC = () => {
                         </div>
 
                         {formData.hasChildren && (
-                            <div className="animate-fade-in">
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Nome dos filhos (separe por vírgula)</label>
-                                <textarea
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-primary"
-                                    rows={3}
-                                    placeholder="Ex: Pedro, Ana, Lucas"
-                                    value={formData.childrenNames}
-                                    onChange={(e) => handleChange('childrenNames', e.target.value)}
-                                ></textarea>
+                            <div className="animate-fade-in space-y-4">
+                                {(formData.children || []).map((child, index) => (
+                                    <div key={child.id || index} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <div className="relative group">
+                                            <div className="w-12 h-12 rounded-full bg-blue-100 overflow-hidden border border-blue-200 flex items-center justify-center text-blue-300">
+                                                {child.avatar ? <img src={child.avatar} alt="Child" className="w-full h-full object-cover" /> : <Baby size={20} />}
+                                            </div>
+                                            <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full">
+                                                <ImageIcon size={16} className="text-white" />
+                                                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            const newChildren = [...(formData.children || [])];
+                                                            newChildren[index] = { ...newChildren[index], avatar: reader.result as string };
+                                                            handleChange('children', newChildren);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }} />
+                                            </label>
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="text"
+                                                className="w-full bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none text-sm font-medium py-1"
+                                                placeholder="Nome do Filho(a)"
+                                                value={child.name}
+                                                onChange={(e) => {
+                                                    const newChildren = [...(formData.children || [])];
+                                                    newChildren[index] = { ...newChildren[index], name: e.target.value };
+                                                    handleChange('children', newChildren);
+                                                }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newChildren = formData.children.filter((_, i) => i !== index);
+                                                handleChange('children', newChildren);
+                                            }}
+                                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newChild = { id: Math.random().toString(36).substr(2, 9), name: '', avatar: '' };
+                                        handleChange('children', [...(formData.children || []), newChild]);
+                                    }}
+                                    className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-bold text-xs hover:border-blue-400 hover:text-blue-500 transition-colors flex items-center justify-center"
+                                >
+                                    <Plus size={16} className="mr-2" />
+                                    Adicionar Filho(a)
+                                </button>
                             </div>
                         )}
                     </div>

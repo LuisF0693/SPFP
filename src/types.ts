@@ -14,17 +14,24 @@ export interface DashboardWidget {
   visible: boolean;
 }
 
+export interface ChildProfile {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
   cpf: string;
   phone: string;
   hasChildren: boolean;
-  childrenNames: string;
+  children: ChildProfile[];
   hasSpouse: boolean;
   spouseName: string;
   spouseCpf: string;
   spouseEmail: string;
+  spouseAvatar?: string;
   dashboardLayout?: DashboardWidget[];
   avatar?: string;
   theme?: 'dark' | 'light';
@@ -60,7 +67,8 @@ export interface Transaction {
   date: string;
   type: TransactionType;
   categoryId: string;
-  spender?: 'ME' | 'SPOUSE'; // Quem fez a compra
+  paid: boolean; // Se foi pago ou não
+  spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
 }
 
 export interface FinanceContextType {

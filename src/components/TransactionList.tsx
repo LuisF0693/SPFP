@@ -23,7 +23,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     // Filter State
-    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PENDING'>('ALL');
+    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PAID' | 'SCHEDULED' | 'LATE'>('ALL');
     const [searchTerm, setSearchTerm] = useState('');
 
     // Modal States
@@ -40,9 +40,15 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase());
 
             let matchesType = true;
+            const today = new Date(); // Current date for comparison with time
+            today.setHours(0, 0, 0, 0);
+            const txDate = new Date(t.date);
+
             if (filterType === 'INCOME') matchesType = t.type === 'INCOME';
             if (filterType === 'EXPENSE') matchesType = t.type === 'EXPENSE';
-            if (filterType === 'PENDING') matchesType = new Date(t.date) > new Date(); // Simple logic for "Pending/Scheduled"
+            if (filterType === 'PAID') matchesType = t.paid;
+            if (filterType === 'SCHEDULED') matchesType = !t.paid && txDate >= today;
+            if (filterType === 'LATE') matchesType = !t.paid && txDate < today;
 
             return matchesDate && matchesSearch && matchesType;
         }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -65,29 +71,53 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         setSelectedYear(newYear);
     };
 
-    const getStatus = (date: string) => {
+    const getStatus = (date: string, paid: boolean) => {
         const d = new Date(date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (d > today) return { label: 'Agendado', color: 'text-yellow-500', icon: Clock };
-        return { label: 'Pago', color: 'text-emerald-500', icon: CheckCircle };
+        if (paid) return { label: 'Pago', color: 'text-emerald-500', icon: CheckCircle };
+        // Se a data for menor que hoje e não foi pago
+        if (d < today) return { label: 'Atrasado', color: 'text-red-500', icon: Clock };
+
+        return { label: 'Agendado', color: 'text-yellow-500', icon: Clock };
     };
 
-    const getSpenderInfo = (spender?: 'ME' | 'SPOUSE') => {
-        if (spender === 'SPOUSE') {
+    const getSpenderInfo = (spenderId?: string) => {
+        if (!spenderId || spenderId === 'ME') {
+            return {
+                name: userProfile.name || 'Eu',
+                avatar: userProfile.avatar,
+                initial: (userProfile.name || 'E')[0],
+                color: 'bg-indigo-500'
+            };
+        }
+        if (spenderId === 'SPOUSE') {
             return {
                 name: userProfile.spouseName || 'Cônjuge',
-                avatar: null, // Could use an image if available
+                avatar: userProfile.spouseAvatar,
                 initial: (userProfile.spouseName || 'C')[0],
                 color: 'bg-pink-500'
             };
         }
+
+        // Find in children
+        const child = (userProfile.children || []).find(c => c.id === spenderId);
+        if (child) {
+            return {
+                name: child.name,
+                avatar: child.avatar,
+                initial: child.name[0] || 'F',
+                color: 'bg-blue-500'
+            };
+        }
+
+        // Fallback
         return {
-            name: userProfile.name || 'Eu',
-            avatar: userProfile.avatar,
-            initial: (userProfile.name || 'E')[0],
-            color: 'bg-indigo-500'
+            name: 'Desconhecido',
+            avatar: null,
+            initial: '?',
+            color: 'bg-gray-500'
         };
     };
 
@@ -211,7 +241,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                 filteredTransactions.map(tx => {
                                     const cat = categories.find(c => c.id === tx.categoryId);
                                     const acc = accounts.find(a => a.id === tx.accountId);
-                                    const status = getStatus(tx.date);
+                                    const status = getStatus(tx.date, tx.paid);
                                     const StatusIcon = status.icon;
                                     const spender = getSpenderInfo(tx.spender);
 

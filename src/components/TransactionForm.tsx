@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction, TransactionType, CategoryGroup, Category } from '../types';
-import { ChevronLeft, ChevronDown, Search, Check, X, CalendarClock, RefreshCw, Sparkles, Plus, Palette, Repeat, CreditCard, CalendarRange } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Search, Check, X, CalendarClock, RefreshCw, Sparkles, Plus, Palette, Repeat, CreditCard, CalendarRange, CheckCircle } from 'lucide-react';
 import { CategoryIcon, AVAILABLE_ICONS } from './CategoryIcon';
 import { formatCurrency, getMonthName } from '../utils';
 
@@ -27,7 +27,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
     const [categoryId, setCategoryId] = useState('');
     const [accountId, setAccountId] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [spender, setSpender] = useState<'ME' | 'SPOUSE'>('ME');
+    const [spender, setSpender] = useState<string>('ME');
+    const [paid, setPaid] = useState(true);
+
+    // Update paid default based on date
+    useEffect(() => {
+        if (!initialData) {
+            const today = new Date().toISOString().split('T')[0];
+            setPaid(date <= today);
+        }
+    }, [date, initialData]);
 
     const [wasCategoryAutoSelected, setWasCategoryAutoSelected] = useState(false);
     const [userManuallyChangedCategory, setUserManuallyChangedCategory] = useState(false);
@@ -61,8 +70,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
             setCategoryId(initialData.categoryId);
             setAccountId(initialData.accountId);
             setUserManuallyChangedCategory(true);
+            setAccountId(initialData.accountId);
+            setUserManuallyChangedCategory(true);
             if (initialData.date) setDate(initialData.date.split('T')[0]);
             if (initialData.spender) setSpender(initialData.spender);
+            setPaid(initialData.paid ?? true);
         } else {
             if (categories.length > 0) setCategoryId(categories[0].id);
             if (accounts.length > 0) setAccountId(accounts[0].id);
@@ -178,7 +190,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                 categoryId,
                 accountId,
                 date: baseDate.toISOString(),
-                spender
+                spender,
+                paid
             };
             if (initialData) updateTransaction({ ...payload, id: initialData.id });
             else addTransaction(payload);
@@ -214,6 +227,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                 <div className="flex bg-gray-100 p-1 rounded-xl">
                     <button type="button" className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${type === 'EXPENSE' ? 'bg-white text-danger shadow-sm' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setType('EXPENSE')}>Saída</button>
                     <button type="button" className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${type === 'INCOME' ? 'bg-white text-success shadow-sm' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setType('INCOME')}>Entrada</button>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                    <button
+                        type="button"
+                        onClick={() => setPaid(!paid)}
+                        className={`flex-1 p-3 rounded-xl border-2 flex items-center justify-center font-bold text-sm transition-all ${paid ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-gray-200 text-gray-400'}`}
+                    >
+                        <CheckCircle size={20} className={`mr-2 ${paid ? 'fill-current' : ''}`} />
+                        {paid ? 'Pago / Recebido' : 'Pendente / Agendado'}
+                    </button>
                 </div>
 
                 <div>
@@ -289,24 +313,50 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                     </div>
                 </div>
 
-                {/* Seletor de Quem Gastou */}
+                {/* Seletor de Quem Gastou (Dinâmico) */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quem gastou?</label>
-                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Quem gastou?</label>
+                    <div className="flex flex-wrap gap-3">
+                        {/* ME */}
                         <button
                             type="button"
                             onClick={() => setSpender('ME')}
-                            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${spender === 'ME' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-full border-2 transition-all ${spender === 'ME' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-transparent bg-gray-100 text-gray-500'}`}
                         >
-                            Eu
+                            <div className="w-6 h-6 rounded-full bg-indigo-200 overflow-hidden">
+                                {useFinance().userProfile.avatar ? <img src={useFinance().userProfile.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-bold text-indigo-600">EU</div>}
+                            </div>
+                            <span className="text-xs font-bold">Eu</span>
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => setSpender('SPOUSE')}
-                            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${spender === 'SPOUSE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Parceiro(a)
-                        </button>
+
+                        {/* SPOUSE */}
+                        {useFinance().userProfile.hasSpouse && (
+                            <button
+                                type="button"
+                                onClick={() => setSpender('SPOUSE')}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-full border-2 transition-all ${spender === 'SPOUSE' ? 'border-pink-500 bg-pink-50 text-pink-700' : 'border-transparent bg-gray-100 text-gray-500'}`}
+                            >
+                                <div className="w-6 h-6 rounded-full bg-pink-200 overflow-hidden">
+                                    {useFinance().userProfile.spouseAvatar ? <img src={useFinance().userProfile.spouseAvatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-bold text-pink-600">C</div>}
+                                </div>
+                                <span className="text-xs font-bold">{useFinance().userProfile.spouseName || 'Cônjuge'}</span>
+                            </button>
+                        )}
+
+                        {/* CHILDREN */}
+                        {(useFinance().userProfile.children || []).map((child: any) => (
+                            <button
+                                key={child.id}
+                                type="button"
+                                onClick={() => setSpender(child.id)}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-full border-2 transition-all ${spender === child.id ? 'border-blue-400 bg-blue-50 text-blue-600' : 'border-transparent bg-gray-100 text-gray-500'}`}
+                            >
+                                <div className="w-6 h-6 rounded-full bg-blue-200 overflow-hidden">
+                                    {child.avatar ? <img src={child.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-bold text-blue-600">{child.name[0]}</div>}
+                                </div>
+                                <span className="text-xs font-bold">{child.name}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
