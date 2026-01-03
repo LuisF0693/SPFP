@@ -27,7 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const mobileNavItems = [
     { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
-    { id: 'add', path: '/transactions/add', icon: PlusCircle, label: 'Novo', isFab: true },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
   ];
@@ -156,14 +155,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               )}
             </div>
-
-            <button
-              onClick={() => navigate('/transactions/add')}
-              className="bg-accent text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-bold hover:bg-blue-600 transition-all flex items-center shadow-[0_0_15px_rgba(59,130,246,0.4)] transform active:scale-95 border border-blue-400/20"
-            >
-              <PlusCircle size={16} className="md:mr-2" />
-              <span className="hidden md:inline">Nova Transação</span>
-            </button>
           </div>
         </header>
 

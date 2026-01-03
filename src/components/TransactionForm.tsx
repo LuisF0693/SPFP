@@ -204,7 +204,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
     const targetYear = targetInvoiceDate.getFullYear();
 
     return (
-        <div className="bg-white min-h-full p-6 pb-24 relative">
+        <div className="bg-white w-full p-6 relative rounded-2xl">
             <div className="flex items-center mb-6">
                 <button onClick={onClose} className="mr-4 p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><ChevronLeft size={24} /></button>
                 <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Editar Transação' : 'Nova Transação'}</h2>
@@ -329,8 +329,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                                     type="button"
                                     onClick={() => setInvoiceOffset(opt.value)}
                                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors border ${invoiceOffset === opt.value
-                                            ? 'bg-primary text-white border-primary shadow-md'
-                                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-100'
+                                        ? 'bg-primary text-white border-primary shadow-md'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-100'
                                         }`}
                                 >
                                     {opt.label}

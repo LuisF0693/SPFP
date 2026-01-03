@@ -3,8 +3,9 @@ import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
     Trash2, Edit2, Upload, Search, Filter, ChevronLeft, ChevronRight,
-    ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock
+    ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock, X
 } from 'lucide-react';
+import TransactionForm from './TransactionForm';
 import { Transaction, Category, CategoryGroup } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
@@ -28,6 +29,8 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     // Modal States
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [showCategoryManager, setShowCategoryManager] = useState(false);
+    const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
     // Filter Logic
     const filteredTransactions = useMemo(() => {
@@ -98,7 +101,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <p className="text-gray-500 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
                 </div>
                 <button
-                    onClick={() => { /* Should trigger add transaction */ }}
+                    onClick={() => {
+                        setEditingTransaction(null);
+                        setIsTransactionModalOpen(true);
+                    }}
                     className="bg-accent hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center"
                 >
                     + Novo Lançamento
@@ -157,8 +163,8 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             key={type}
                             onClick={() => setFilterType(type)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${filterType === type
-                                    ? 'bg-accent text-white'
-                                    : 'bg-[#1e293b] text-gray-400 hover:bg-gray-800'
+                                ? 'bg-accent text-white'
+                                : 'bg-[#1e293b] text-gray-400 hover:bg-gray-800'
                                 }`}
                         >
                             {type === 'ALL' && 'Todos'}
@@ -251,7 +257,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                             </td>
                                             <td className="p-4 text-center">
                                                 <div className="flex justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => onEdit(tx)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"><Edit2 size={14} /></button>
+                                                    <button onClick={() => {
+                                                        setEditingTransaction(tx);
+                                                        setIsTransactionModalOpen(true);
+                                                    }} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"><Edit2 size={14} /></button>
                                                     <button onClick={() => deleteTransaction(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 size={14} /></button>
                                                 </div>
                                             </td>
@@ -306,6 +315,18 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             )}
 
             <ImportExportModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
+
+            {/* Local Transaction Modal */}
+            {isTransactionModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto no-scrollbar rounded-2xl shadow-2xl animate-slide-up">
+                        <TransactionForm
+                            onClose={() => setIsTransactionModalOpen(false)}
+                            initialData={editingTransaction}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
