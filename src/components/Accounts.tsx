@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { BankLogo } from './BankLogo';
 import { CategoryIcon } from './CategoryIcon';
+import { InvoiceDetailsModal } from './InvoiceDetailsModal';
 
 const CARD_COLORS = [
     '#ef4444', // Red
@@ -26,6 +27,7 @@ const Accounts: React.FC = () => {
     const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [activeCardId, setActiveCardId] = useState<string | null>(null);
+    const [viewingInvoiceAccount, setViewingInvoiceAccount] = useState<Account | null>(null);
 
     // Form States
     const [newAccName, setNewAccName] = useState('');
@@ -392,9 +394,11 @@ const Accounts: React.FC = () => {
                                 const percent = limit > 0 ? (used / limit) * 100 : 0;
 
                                 return (
-                                    <div key={card.id} className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row">
+                                    <div key={card.id} className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row group/card">
                                         {/* Card Visual */}
-                                        <div className="w-full md:w-[280px] p-6 lg:p-6 flex flex-col justify-between text-white rounded-[20px] relative overflow-hidden shrink-0 min-h-[160px]"
+                                        <div
+                                            onClick={() => setViewingInvoiceAccount(card)}
+                                            className="w-full md:w-[280px] p-6 lg:p-6 flex flex-col justify-between text-white rounded-[20px] relative overflow-hidden shrink-0 min-h-[160px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300"
                                             style={{ background: card.color || '#0f172a' }}
                                         >
                                             {/* Background Pattern */}
@@ -602,6 +606,15 @@ const Accounts: React.FC = () => {
             <div className="hidden">
                 <Users /> <Heart /> <Wifi />
             </div>
+
+            {/* Invoice Details Modal */}
+            {viewingInvoiceAccount && (
+                <InvoiceDetailsModal
+                    account={viewingInvoiceAccount}
+                    isOpen={!!viewingInvoiceAccount}
+                    onClose={() => setViewingInvoiceAccount(null)}
+                />
+            )}
         </div>
     );
 };
