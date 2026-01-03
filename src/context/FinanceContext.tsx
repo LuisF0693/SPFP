@@ -60,7 +60,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
     return {
-      products: [],
+      accounts: INITIAL_ACCOUNTS,
+      transactions: INITIAL_TRANSACTIONS,
+      categories: INITIAL_CATEGORIES,
+      goals: [],
+      userProfile: INITIAL_PROFILE,
+      lastUpdated: 0
     };
   });
 
