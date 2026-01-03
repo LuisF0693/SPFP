@@ -12,17 +12,20 @@ const Goals: React.FC = () => {
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [filter, setFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
 
+    // Safety check in case goals isn't loaded yet or is undefined
+    const safeGoals = Array.isArray(goals) ? goals : [];
+
     // Calculations
-    const totalAccumulated = goals.reduce((acc, g) => acc + g.currentAmount, 0);
-    const totalTarget = goals.reduce((acc, g) => acc + g.targetAmount, 0);
+    const totalAccumulated = safeGoals.reduce((acc, g) => acc + g.currentAmount, 0);
+    const totalTarget = safeGoals.reduce((acc, g) => acc + g.targetAmount, 0);
     const totalProgress = totalTarget > 0 ? (totalAccumulated / totalTarget) * 100 : 0;
-    const completedGoals = goals.filter(g => g.status === 'COMPLETED' || g.currentAmount >= g.targetAmount).length;
+    const completedGoals = safeGoals.filter(g => g.status === 'COMPLETED' || g.currentAmount >= g.targetAmount).length;
 
     // Sort by closest deadline
-    const sortedGoals = [...goals].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    const sortedGoals = [...safeGoals].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     const nextGoal = sortedGoals.find(g => g.currentAmount < g.targetAmount);
 
-    const filteredGoals = goals.filter(g => {
+    const filteredGoals = safeGoals.filter(g => {
         if (filter === 'ALL') return true;
         const now = new Date();
         const deadline = new Date(g.deadline);

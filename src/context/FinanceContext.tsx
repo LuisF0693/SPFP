@@ -54,7 +54,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const local = localStorage.getItem(STORAGE_KEY);
     if (local) {
       try {
-        return JSON.parse(local);
+        const parsedData = JSON.parse(local);
+        // Validar e garantir que todos os campos existam para evitar crashes
+        return {
+          accounts: Array.isArray(parsedData.accounts) ? parsedData.accounts : INITIAL_ACCOUNTS,
+          transactions: Array.isArray(parsedData.transactions) ? parsedData.transactions : INITIAL_TRANSACTIONS,
+          categories: Array.isArray(parsedData.categories) ? parsedData.categories : INITIAL_CATEGORIES,
+          goals: Array.isArray(parsedData.goals) ? parsedData.goals : [], // Safety check for new field
+          userProfile: parsedData.userProfile || INITIAL_PROFILE,
+          lastUpdated: parsedData.lastUpdated || 0
+        };
       } catch (e) {
         console.error("Erro ao ler cache local", e);
       }
@@ -151,7 +160,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const cloudData = newData.content as GlobalState;
             setState(current => {
               if (cloudData.lastUpdated > current.lastUpdated) {
-                return cloudData;
+                // Ensure goals exists in cloud data structure merge
+                const safeCloudData = {
+                  ...cloudData,
+                  goals: Array.isArray(cloudData.goals) ? cloudData.goals : []
+                };
+                return safeCloudData;
               }
               return current;
             });
