@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -24,9 +24,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   }, [userProfile.theme]);
 
-  const mobileNavItems = [
+  const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
     { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
+    { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
   ];
@@ -35,6 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'dashboard', path: '/', icon: Home, label: 'Dashboard' },
     { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
+    { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
   ];

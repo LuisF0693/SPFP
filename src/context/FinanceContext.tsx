@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget } from '../types';
+import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
 import { supabase } from '../supabase';
@@ -9,6 +9,7 @@ interface GlobalState {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
+  goals: Goal[]; // New
   userProfile: UserProfile;
   lastUpdated: number;
 }
@@ -33,7 +34,7 @@ const DEFAULT_LAYOUT: DashboardWidget[] = [
 
 const INITIAL_PROFILE: UserProfile = {
   name: '', email: '', cpf: '', phone: '',
-  hasChildren: false, childrenNames: '',
+  hasChildren: false, children: [],
   hasSpouse: false, spouseName: '', spouseCpf: '', spouseEmail: '',
   dashboardLayout: DEFAULT_LAYOUT
 };
@@ -59,11 +60,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
     return {
-      accounts: INITIAL_ACCOUNTS,
-      transactions: INITIAL_TRANSACTIONS,
-      categories: INITIAL_CATEGORIES,
-      userProfile: INITIAL_PROFILE,
-      lastUpdated: 0
+      products: [],
     };
   });
 
@@ -245,6 +242,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateCategory = (u: Category) => updateAndSync({ categories: state.categories.map(c => c.id === u.id ? u : c) });
   const deleteCategory = (id: string) => updateAndSync({ categories: state.categories.filter(c => c.id !== id) });
 
+  // Goal Logic
+  const addGoal = (g: Omit<Goal, 'id'>) => updateAndSync({ goals: [...state.goals, { ...g, id: generateId() }] });
+  const updateGoal = (u: Goal) => updateAndSync({ goals: state.goals.map(g => g.id === u.id ? u : g) });
+  const deleteGoal = (id: string) => updateAndSync({ goals: state.goals.filter(g => g.id !== id) });
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -252,8 +254,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       accounts: state.accounts,
       transactions: state.transactions,
       categories: state.categories,
+      goals: state.goals,
       addTransaction, addManyTransactions, updateTransaction, deleteTransaction, deleteTransactions,
       addAccount, updateAccount, deleteAccount, addCategory, updateCategory, deleteCategory,
+      addGoal, updateGoal, deleteGoal,
       getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
       totalBalance: state.accounts.reduce((acc, curr) => acc + curr.balance, 0),
       isSyncing,

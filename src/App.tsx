@@ -11,6 +11,7 @@ import Reports from './components/Reports';
 import Insights from './components/Insights';
 import Settings from './components/Settings';
 import { Login } from './components/Login';
+import Goals from './components/Goals';
 import Loading from './components/ui/Loading';
 import { Transaction } from './types';
 
@@ -81,6 +82,13 @@ const AppContent: React.FC = () => {
       <Route path="/transactions/add" element={
         <PrivateRoute>
           <TransactionForm initialData={transactionToEdit} onClose={handleCloseForm} />
+        </PrivateRoute>
+      } />
+      <Route path="/goals" element={
+        <PrivateRoute>
+          <Layout>
+            <Goals />
+          </Layout>
         </PrivateRoute>
       } />
       <Route path="/reports" element={

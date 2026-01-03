@@ -8,6 +8,9 @@ export type AccountOwner = 'ME' | 'SPOUSE' | 'JOINT';
 export type CategoryGroup = 'FIXED' | 'VARIABLE' | 'INVESTMENT' | 'INCOME';
 
 export type CardNetwork = 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX' | 'OTHER';
+// Exporting CategoryIconName helper type if needed, or just string. 
+// Assuming CategoryIconName matches the keys in CategoryIcon component, roughly:
+export type CategoryIconName = 'cart' | 'travel' | 'home' | 'car' | 'gift' | 'game' | 'health' | 'edu' | 'tech' | string;
 
 export interface DashboardWidget {
   id: string;
@@ -71,6 +74,17 @@ export interface Transaction {
   spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
 }
 
+export interface Goal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string;
+  color: string;
+  icon?: string;
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED';
+}
+
 export interface FinanceContextType {
   userProfile: UserProfile;
   updateUserProfile: (profile: UserProfile) => void;
@@ -88,6 +102,10 @@ export interface FinanceContextType {
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (id: string) => void;
+  goals: Goal[];
+  addGoal: (goal: Omit<Goal, 'id'>) => void;
+  updateGoal: (goal: Goal) => void;
+  deleteGoal: (id: string) => void;
   getAccountBalance: (accountId: string) => number;
   totalBalance: number;
 }
