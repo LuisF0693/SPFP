@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal } from '../types';
+import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
 import { supabase } from '../supabase';
@@ -9,7 +9,8 @@ interface GlobalState {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
-  goals: Goal[]; // New
+  goals: Goal[];
+  investments: InvestmentAsset[];
   userProfile: UserProfile;
   lastUpdated: number;
 }
@@ -61,7 +62,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           accounts: Array.isArray(parsedData.accounts) ? parsedData.accounts : INITIAL_ACCOUNTS,
           transactions: Array.isArray(parsedData.transactions) ? parsedData.transactions : INITIAL_TRANSACTIONS,
           categories: Array.isArray(parsedData.categories) ? parsedData.categories : INITIAL_CATEGORIES,
-          goals: Array.isArray(parsedData.goals) ? parsedData.goals : [], // Safety check for new field
+          goals: Array.isArray(parsedData.goals) ? parsedData.goals : [],
+          investments: Array.isArray(parsedData.investments) ? parsedData.investments : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -74,6 +76,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       transactions: INITIAL_TRANSACTIONS,
       categories: INITIAL_CATEGORIES,
       goals: [],
+      investments: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -164,7 +167,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Ensure goals exists in cloud data structure merge
                 const safeCloudData = {
                   ...cloudData,
-                  goals: Array.isArray(cloudData.goals) ? cloudData.goals : []
+                  goals: Array.isArray(cloudData.goals) ? cloudData.goals : [],
+                  investments: Array.isArray(cloudData.investments) ? cloudData.investments : []
                 };
                 return safeCloudData;
               }
@@ -267,6 +271,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateGoal = (u: Goal) => updateAndSync({ goals: state.goals.map(g => g.id === u.id ? u : g) });
   const deleteGoal = (id: string) => updateAndSync({ goals: state.goals.filter(g => g.id !== id) });
 
+  // Investment Logic
+  const addInvestment = (i: Omit<InvestmentAsset, 'id'>) => updateAndSync({ investments: [...state.investments, { ...i, id: generateId() }] });
+  const updateInvestment = (u: InvestmentAsset) => updateAndSync({ investments: state.investments.map(i => i.id === u.id ? u : i) });
+  const deleteInvestment = (id: string) => updateAndSync({ investments: state.investments.filter(i => i.id !== id) });
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -275,9 +284,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       transactions: state.transactions,
       categories: state.categories,
       goals: state.goals,
+      investments: state.investments,
       addTransaction, addManyTransactions, updateTransaction, deleteTransaction, deleteTransactions,
       addAccount, updateAccount, deleteAccount, addCategory, updateCategory, deleteCategory,
       addGoal, updateGoal, deleteGoal,
+      addInvestment, updateInvestment, deleteInvestment,
       getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
       totalBalance: state.accounts.reduce((acc, curr) => acc + curr.balance, 0),
       isSyncing,

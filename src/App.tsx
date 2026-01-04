@@ -13,6 +13,7 @@ import Settings from './components/Settings';
 import { Login } from './components/Login';
 import Goals from './components/Goals';
 import Loading from './components/ui/Loading';
+import Investments from './components/Investments';
 import { Transaction } from './types';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -88,6 +89,13 @@ const AppContent: React.FC = () => {
         <PrivateRoute>
           <Layout>
             <Goals />
+          </Layout>
+        </PrivateRoute>
+      } />
+      <Route path="/investments" element={
+        <PrivateRoute>
+          <Layout>
+            <Investments />
           </Layout>
         </PrivateRoute>
       } />

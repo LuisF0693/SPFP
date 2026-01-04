@@ -86,6 +86,20 @@ export interface Goal {
   status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED';
 }
 
+export type InvestmentType = 'STOCK' | 'FII' | 'ETF' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
+
+export interface InvestmentAsset {
+  id: string;
+  ticker: string;
+  name: string;
+  quantity: number;
+  averagePrice: number;
+  currentPrice: number;
+  type: InvestmentType;
+  sector?: string;
+  lastUpdate: string;
+}
+
 export interface FinanceContextType {
   userProfile: UserProfile;
   updateUserProfile: (profile: UserProfile) => void;
@@ -107,6 +121,10 @@ export interface FinanceContextType {
   addGoal: (goal: Omit<Goal, 'id'>) => void;
   updateGoal: (goal: Goal) => void;
   deleteGoal: (id: string) => void;
+  investments: InvestmentAsset[];
+  addInvestment: (investment: Omit<InvestmentAsset, 'id'>) => void;
+  updateInvestment: (investment: InvestmentAsset) => void;
+  deleteInvestment: (id: string) => void;
   getAccountBalance: (accountId: string) => number;
   totalBalance: number;
 }
