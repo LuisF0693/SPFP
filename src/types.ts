@@ -101,6 +101,18 @@ export interface InvestmentAsset {
   lastUpdate: string;
 }
 
+export type PatrimonyType = 'REAL_ESTATE' | 'VEHICLE' | 'MILES' | 'DEBT' | 'FINANCIAL' | 'OTHER';
+
+export interface PatrimonyItem {
+  id: string;
+  type: PatrimonyType;
+  name: string;
+  description?: string;
+  value: number;
+  quantity?: number; // Only for MILES
+  acquisitionDate?: string;
+}
+
 export interface FinanceContextType {
   userProfile: UserProfile;
   updateUserProfile: (profile: UserProfile) => void;
@@ -126,6 +138,11 @@ export interface FinanceContextType {
   addInvestment: (investment: Omit<InvestmentAsset, 'id'>) => void;
   updateInvestment: (investment: InvestmentAsset) => void;
   deleteInvestment: (id: string) => void;
+  // Patrimony
+  patrimonyItems: PatrimonyItem[];
+  addPatrimonyItem: (item: Omit<PatrimonyItem, 'id'>) => void;
+  updatePatrimonyItem: (item: PatrimonyItem) => void;
+  deletePatrimonyItem: (id: string) => void;
   getAccountBalance: (accountId: string) => number;
   totalBalance: number;
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset } from '../types';
+import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset, PatrimonyItem } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
 import { supabase } from '../supabase';
@@ -11,6 +11,7 @@ interface GlobalState {
   categories: Category[];
   goals: Goal[];
   investments: InvestmentAsset[];
+  patrimonyItems: PatrimonyItem[];
   userProfile: UserProfile;
   lastUpdated: number;
 }
@@ -65,6 +66,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           categories: Array.isArray(parsedData.categories) ? parsedData.categories : INITIAL_CATEGORIES,
           goals: Array.isArray(parsedData.goals) ? parsedData.goals : [],
           investments: Array.isArray(parsedData.investments) ? parsedData.investments : [],
+          patrimonyItems: Array.isArray(parsedData.patrimonyItems) ? parsedData.patrimonyItems : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -78,6 +80,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       categories: INITIAL_CATEGORIES,
       goals: [],
       investments: [],
+      patrimonyItems: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -277,6 +280,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateInvestment = (u: InvestmentAsset) => updateAndSync({ investments: state.investments.map(i => i.id === u.id ? u : i) });
   const deleteInvestment = (id: string) => updateAndSync({ investments: state.investments.filter(i => i.id !== id) });
 
+  // Patrimony Logic
+  const addPatrimonyItem = (item: Omit<PatrimonyItem, 'id'>) => updateAndSync({ patrimonyItems: [...state.patrimonyItems, { ...item, id: generateId() }] });
+  const updatePatrimonyItem = (item: PatrimonyItem) => updateAndSync({ patrimonyItems: state.patrimonyItems.map(i => i.id === item.id ? item : i) });
+  const deletePatrimonyItem = (id: string) => updateAndSync({ patrimonyItems: state.patrimonyItems.filter(i => i.id !== id) });
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -290,6 +298,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       addAccount, updateAccount, deleteAccount, addCategory, updateCategory, deleteCategory,
       addGoal, updateGoal, deleteGoal,
       addInvestment, updateInvestment, deleteInvestment,
+      patrimonyItems: state.patrimonyItems,
+      addPatrimonyItem, updatePatrimonyItem, deletePatrimonyItem,
       getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
       totalBalance: state.accounts.reduce((acc, curr) => acc + curr.balance, 0),
       isSyncing,

@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -28,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investir', isFab: false },
+    { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
     { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
@@ -38,6 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investimentos' },
+    { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
     { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
