@@ -62,7 +62,9 @@ const Investments: React.FC = () => {
             return acc;
         }, {} as Record<string, number>);
 
-        return Object.entries(grouped).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+        return Object.entries(grouped)
+            .map(([name, value]) => ({ name, value: value as number }))
+            .sort((a, b) => a.value - b.value);
     }, [investments]);
 
     const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1'];
@@ -119,6 +121,14 @@ const Investments: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400">Gerencie sua carteira, acompanhe rentabilidade e evolução.</p>
                 </div>
                 <div className="flex space-x-3">
+                    <button
+                        onClick={handleUpdatePrices}
+                        disabled={isUpdating}
+                        className={`p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors ${isUpdating ? 'animate-spin text-blue-500' : ''}`}
+                        title="Atualizar Cotações (Brapi)"
+                    >
+                        <RefreshCw size={20} />
+                    </button>
                     <button
                         onClick={() => setIsImportExportOpen(true)}
                         className="p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
