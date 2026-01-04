@@ -34,7 +34,7 @@ const Insights: React.FC = () => {
   }, [fetchLatestInsight]);
 
   const tryModels = async (genAI: any, prompt: string) => {
-    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.0-pro"];
+    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash-8b", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.0-pro"];
     let lastError = null;
 
     for (const modelName of models) {
@@ -46,11 +46,12 @@ const Insights: React.FC = () => {
       } catch (err: any) {
         lastError = err;
         const msg = err.message || "";
-        if (msg.includes("404") || msg.includes("not found")) {
-          console.warn(`Model ${modelName} not found, trying next...`);
+        // Continue if model not found OR if quota is exceeded for this specific model
+        if (msg.includes("404") || msg.includes("not found") || msg.includes("429") || msg.includes("quota")) {
+          console.warn(`Model ${modelName} unavailable or quota exceeded, trying next...`);
           continue;
         }
-        throw err; // Re-throw if it's not a 404 (e.g. invalid key)
+        throw err; // Re-throw if it's an invalid key or safety block
       }
     }
     throw lastError;
@@ -74,6 +75,8 @@ const Insights: React.FC = () => {
         setError("Chave API Inválida. Verifique se copiou corretamente do Google AI Studio.");
       } else if (msg.includes("User location is not supported")) {
         setError("Sua localização atual não é suportada pela API do Gemini sem VPN.");
+      } else if (msg.includes("429") || msg.includes("quota")) {
+        setError("Limite de uso excedido no Google. Aguarde alguns minutos e tente novamente.");
       } else if (msg.includes("404") || msg.includes("not found")) {
         setError("Nenhum modelo compatível encontrado. Verifique seu projeto no AI Studio.");
       } else {
