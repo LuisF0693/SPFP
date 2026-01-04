@@ -39,6 +39,7 @@ export interface UserProfile {
   avatar?: string;
   theme?: 'dark' | 'light';
   monthlySavingsTarget?: number;
+  apiToken?: string; // Brapi or other API token
 }
 
 export interface Account {

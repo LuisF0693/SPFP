@@ -7,12 +7,45 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAx
 import InvestmentForm from './InvestmentForm';
 import InvestmentImportExport from './InvestmentImportExport';
 
+import { MarketDataService } from '../services/MarketDataService';
+import { RefreshCw } from 'lucide-react';
+
 const Investments: React.FC = () => {
-    const { investments, deleteInvestment } = useFinance();
+    const { investments, deleteInvestment, updateInvestment, userProfile } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isImportExportOpen, setIsImportExportOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<InvestmentAsset | null>(null);
     const [filterType, setFilterType] = useState<string>('ALL');
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleUpdatePrices = async () => {
+        if (investments.length === 0) return;
+        setIsUpdating(true);
+        try {
+            const tickers = investments.map(i => i.ticker);
+            const quotes = await MarketDataService.getQuotes(tickers, userProfile.apiToken || '');
+
+            let updatedCount = 0;
+            quotes.forEach(quote => {
+                const assetsToUpdate = investments.filter(i => i.ticker === quote.symbol);
+                assetsToUpdate.forEach(asset => {
+                    updateInvestment({
+                        ...asset,
+                        currentPrice: quote.regularMarketPrice,
+                        lastUpdate: new Date().toISOString()
+                    });
+                    updatedCount++;
+                });
+            });
+            alert(`${updatedCount} ativos atualizados com sucesso!`);
+        } catch (error) {
+            alert('Erro ao atualizar cotações. Verifique seu token em Configurações.');
+            console.error(error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
 
     // Calculations
     const totalPatrimony = useMemo(() => investments.reduce((acc, i) => acc + (i.quantity * i.currentPrice), 0), [investments]);

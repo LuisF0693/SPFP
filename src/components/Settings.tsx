@@ -346,6 +346,26 @@ const Settings: React.FC = () => {
                         )}
                     </div>
 
+                    <div className="bg-white dark:bg-black p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mr-3 text-sm">API</span>
+                            Integrações
+                        </h3>
+                        <div className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Brapi (Cotações)</label>
+                                <input
+                                    type="password"
+                                    value={formData.apiToken || ''}
+                                    onChange={(e) => handleChange('apiToken', e.target.value)}
+                                    placeholder="Cole seu token da brapi.dev aqui"
+                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Necessário para atualizar cotações de ações em tempo real via Brapi.dev.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex justify-end">
                         <button
                             type="submit"
