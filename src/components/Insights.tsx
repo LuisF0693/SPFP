@@ -38,7 +38,7 @@ const Insights: React.FC = () => {
     setTestStatus('testing');
     try {
       const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
       await model.generateContent("Olá, teste de conexão.");
       setTestStatus('success');
       setTimeout(() => setTestStatus('idle'), 3000);
@@ -50,6 +50,8 @@ const Insights: React.FC = () => {
         setError("Chave API Inválida. Verifique se copiou corretamente do Google AI Studio.");
       } else if (msg.includes("User location is not supported")) {
         setError("Sua localização atual não é suportada pela API do Gemini sem VPN.");
+      } else if (msg.includes("404") || msg.includes("not found")) {
+        setError("Modelo 'gemini-1.5-flash' não encontrado. Tente gerar uma nova chave ou verifique se sua conta tem acesso ao Gemini 1.5.");
       } else {
         setError(`Falha no teste: ${msg}`);
       }
@@ -109,7 +111,7 @@ const Insights: React.FC = () => {
             `;
 
       const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -126,12 +128,15 @@ const Insights: React.FC = () => {
 
     } catch (err: any) {
       console.error("AI Generation Error:", err);
-      if (err.message?.includes('API_KEY_INVALID')) {
+      const msg = err.message || "";
+      if (msg.includes('API_KEY_INVALID')) {
         setError("Sua API Key do Gemini parece inválida. Verifique em Configurações.");
-      } else if (err.message?.includes('SAFETY')) {
+      } else if (msg.includes('SAFETY')) {
         setError("A análise foi bloqueada pelos filtros de segurança da IA. Tente gastar de forma mais civilizada! Brincadeira, tente novamente em instantes.");
+      } else if (msg.includes("404") || msg.includes("not found")) {
+        setError("Modelo 'gemini-1.5-flash-latest' não encontrado. Verifique sua conta no Google AI Studio ou tente mais tarde.");
       } else {
-        setError(`Erro: ${err.message || "Falha ao processar análise. Verifique sua conexão."}`);
+        setError(`Erro: ${msg || "Falha ao processar análise. Verifique sua conexão."}`);
       }
     } finally {
       setLoading(false);
