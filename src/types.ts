@@ -40,6 +40,7 @@ export interface UserProfile {
   theme?: 'dark' | 'light';
   monthlySavingsTarget?: number;
   apiToken?: string; // Brapi or other API token
+  geminiToken?: string; // Google Gemini API token
 }
 
 export interface Account {

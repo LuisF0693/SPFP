@@ -40,7 +40,8 @@ const INITIAL_PROFILE: UserProfile = {
   hasSpouse: false, spouseName: '', spouseCpf: '', spouseEmail: '',
   dashboardLayout: DEFAULT_LAYOUT,
   monthlySavingsTarget: 0,
-  apiToken: ''
+  apiToken: '',
+  geminiToken: ''
 };
 
 // Helper to access user metadata properly (Supabase stores display_name in user_metadata)

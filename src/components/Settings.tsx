@@ -363,6 +363,17 @@ const Settings: React.FC = () => {
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Necessário para atualizar cotações de ações em tempo real via Brapi.dev.</p>
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Google Gemini (Insights)</label>
+                                <input
+                                    type="password"
+                                    value={formData.geminiToken || ''}
+                                    onChange={(e) => handleChange('geminiToken', e.target.value)}
+                                    placeholder="Cole sua API Key do Google AI Studio aqui"
+                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Gere sua chave gratuita em <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google AI Studio</a>.</p>
+                            </div>
                         </div>
                     </div>
 
