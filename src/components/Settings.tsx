@@ -348,31 +348,29 @@ const Settings: React.FC = () => {
 
                     <div className="bg-white dark:bg-black p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                            <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mr-3 text-sm">API</span>
-                            Integrações
+                            <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mr-3 text-sm">💡</span>
+                            Inteligência Artificial & Dados
                         </h3>
                         <div className="grid grid-cols-1 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Brapi (Cotações)</label>
-                                <input
-                                    type="password"
-                                    value={formData.apiToken || ''}
-                                    onChange={(e) => handleChange('apiToken', e.target.value)}
-                                    placeholder="Cole seu token da brapi.dev aqui"
-                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">Necessário para atualizar cotações de ações em tempo real via Brapi.dev.</p>
+                            <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
+                                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Cotações de Investimentos</h4>
+                                <p className="text-xs text-gray-500">
+                                    Utilizando **Yahoo Finance** (Sem necessidade de Token).
+                                </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Google Gemini (Insights)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Google Gemini (A.I. Insights)</label>
                                 <input
                                     type="password"
                                     value={formData.geminiToken || ''}
                                     onChange={(e) => handleChange('geminiToken', e.target.value)}
                                     placeholder="Cole sua API Key do Google AI Studio aqui"
-                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100"
+                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 font-mono text-sm"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Gere sua chave gratuita em <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google AI Studio</a>.</p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Gere sua chave gratuita em <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">Google AI Studio</a>.
+                                    Esta chave é necessária para a aba de Insights gerar análises da sua carteira.
+                                </p>
                             </div>
                         </div>
                     </div>

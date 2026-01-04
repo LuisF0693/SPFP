@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, Lightbulb, AlertCircle, Clock, RefreshCw, Loader2, Sparkles, BrainCircuit, Key } from 'lucide-react';
+import { TrendingUp, Lightbulb, AlertCircle, Clock, RefreshCw, Loader2, Sparkles, BrainCircuit, Key, CheckCircle2 } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { saveAIInteraction, getAIHistory } from '../services/aiHistoryService';
 import { formatCurrency } from '../utils';
@@ -12,6 +12,7 @@ const Insights: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [insight, setInsight] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
   const hasData = transactions.length > 0;
   const hasToken = !!userProfile.geminiToken;
@@ -19,7 +20,7 @@ const Insights: React.FC = () => {
   const fetchLatestInsight = useCallback(async () => {
     if (!user) return;
     try {
-      const history = await getAIHistory(user.id); // Use user.id from AuthContext
+      const history = await getAIHistory(user.id);
       if (history.length > 0) {
         setInsight(history[0].response);
       }
@@ -31,6 +32,22 @@ const Insights: React.FC = () => {
   useEffect(() => {
     fetchLatestInsight();
   }, [fetchLatestInsight]);
+
+  const testConnection = async () => {
+    if (!hasToken) return;
+    setTestStatus('testing');
+    try {
+      const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      await model.generateContent("Olá, teste de conexão.");
+      setTestStatus('success');
+      setTimeout(() => setTestStatus('idle'), 3000);
+    } catch (err) {
+      console.error("Connection test failed", err);
+      setTestStatus('error');
+      setError("Falha no teste de conexão. Verifique se sua API Key é válida.");
+    }
+  };
 
   const generateInsights = async () => {
     if (!user || !hasData || !hasToken) return;
@@ -84,7 +101,6 @@ const Insights: React.FC = () => {
                 Não mencione que você é uma IA, aja como o consultor.
             `;
 
-      // Initialization using user provided token
       const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -92,10 +108,12 @@ const Insights: React.FC = () => {
       const response = await result.response;
       const resultText = response.text();
 
+      if (!resultText) throw new Error("A IA não retornou texto.");
+
       setInsight(resultText);
 
-      // Persist the interaction
-      await saveAIInteraction(user.id, "Financial Insights", resultText, {
+      // Persist
+      await saveAIInteraction(user.id, "Insights Financeiros", resultText, {
         summary: { income, expense, balance: totalBalance }
       });
 
@@ -103,8 +121,10 @@ const Insights: React.FC = () => {
       console.error("AI Generation Error:", err);
       if (err.message?.includes('API_KEY_INVALID')) {
         setError("Sua API Key do Gemini parece inválida. Verifique em Configurações.");
+      } else if (err.message?.includes('SAFETY')) {
+        setError("A análise foi bloqueada pelos filtros de segurança da IA. Tente gastar de forma mais civilizada! Brincadeira, tente novamente em instantes.");
       } else {
-        setError("Falha ao processar análise. Verifique sua conexão ou a validade da sua API Key.");
+        setError(`Erro: ${err.message || "Falha ao processar análise. Verifique sua conexão."}`);
       }
     } finally {
       setLoading(false);
@@ -126,7 +146,7 @@ const Insights: React.FC = () => {
   }
 
   return (
-    <div className="p-5 md:p-0 space-y-6 animate-fade-in pb-20">
+    <div className="p-5 md:p-10 space-y-6 animate-fade-in pb-20 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
         <div>
@@ -134,9 +154,24 @@ const Insights: React.FC = () => {
             <BrainCircuit className="text-blue-600 dark:text-blue-500 mr-3" size={32} />
             Consultoria Visão 360
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Análise estratégica baseada em inteligência artificial.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Análise estratégica baseada em Inteligência Artificial.</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-3">
+          {hasToken && (
+            <button
+              onClick={testConnection}
+              disabled={testStatus === 'testing'}
+              className={`px-4 py-2 border rounded-xl font-bold text-xs flex items-center transition-all ${testStatus === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                  testStatus === 'error' ? 'bg-red-50 text-red-600 border-red-200' :
+                    'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50'
+                }`}
+            >
+              {testStatus === 'testing' ? <Loader2 size={14} className="mr-2 animate-spin" /> :
+                testStatus === 'success' ? <CheckCircle2 size={14} className="mr-2" /> :
+                  <RefreshCw size={14} className="mr-2" />}
+              Testar Conexão
+            </button>
+          )}
           <button
             onClick={generateInsights}
             disabled={loading || !hasToken}
@@ -153,21 +188,14 @@ const Insights: React.FC = () => {
       </div>
 
       {!hasToken && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 p-6 rounded-2xl flex flex-col md:flex-row items-center animate-fade-in">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 p-6 rounded-2xl flex flex-col md:flex-row items-center animate-fade-in shadow-sm">
           <Key className="text-amber-500 mr-4 mb-4 md:mb-0" size={32} />
           <div className="flex-1 text-center md:text-left">
             <h3 className="text-amber-900 dark:text-amber-200 font-bold">API Key Necessária</h3>
             <p className="text-amber-800 dark:text-amber-300 text-sm">
-              Para gerar insights, configure sua chave do Google Gemini em <strong>Configurações</strong>.
+              Configure sua chave do **Google Gemini** em **Configurações** para desbloquear esta funcionalidade.
             </p>
           </div>
-          <a
-            href="/settings"
-            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/settings'); window.dispatchEvent(new PopStateEvent('popstate')); }}
-            className="mt-4 md:mt-0 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 transition-colors"
-          >
-            Ir para Configurações
-          </a>
         </div>
       )}
 
@@ -178,37 +206,39 @@ const Insights: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* Main Insight Column */}
         <div className="lg:col-span-2 space-y-6">
 
           {loading ? (
-            <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 p-12 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+            <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 p-12 rounded-3xl shadow-sm flex flex-col items-center justify-center text-center space-y-4">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin"></div>
-                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500 animate-pulse" size={24} />
+                <div className="w-20 h-20 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin"></div>
+                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500 animate-pulse" size={32} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white">Processando sua carteira...</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">O Gemini está analisando seus hábitos financeiros.</p>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Processando sua carteira...</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">A inteligência está criando sua consultoria 360.</p>
               </div>
             </div>
           ) : insight ? (
-            <div className="bg-white dark:bg-white/5 p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm animate-fade-in">
-              <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert max-w-none">
-                {insight}
+            <div className="bg-white dark:bg-white/5 p-8 md:p-10 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm animate-fade-in">
+              <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                {insight.split('\n').map((line, i) => (
+                  <p key={i} className="mb-4 last:mb-0">{line}</p>
+                ))}
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-100 dark:border-blue-800/30 p-8 rounded-2xl shadow-sm flex items-center space-x-6">
-              <div className="p-4 bg-white dark:bg-white/10 rounded-2xl shadow-sm">
-                <Lightbulb className="text-blue-600 dark:text-blue-400" size={40} />
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-100 dark:border-blue-800/30 p-10 rounded-3xl shadow-sm flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
+              <div className="p-6 bg-white dark:bg-white/10 rounded-3xl shadow-md transform rotate-3">
+                <Lightbulb className="text-blue-600 dark:text-blue-400" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-2">Desbloqueie sua Saúde Financeira</h3>
-                <p className="text-blue-800/70 dark:text-blue-300/70 text-sm leading-relaxed">
-                  Nossa IA analisa seus gastos por categoria, evolução patrimonial e perfil familiar para entregar as melhores estratégias de economia.
+                <h3 className="text-2xl font-black text-blue-900 dark:text-blue-100 mb-3 underline decoration-blue-500/30">Análise Financeira Avançada</h3>
+                <p className="text-blue-800/70 dark:text-blue-300/70 text-base leading-relaxed">
+                  Nossa IA processa seu histórico, saldo e perfil familiar para sugerir investimentos, cortes de gastos e o melhor caminho para sua independência.
                 </p>
               </div>
             </div>
@@ -218,30 +248,36 @@ const Insights: React.FC = () => {
 
         {/* Sidebar Status Column */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm sticky top-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm sticky top-10">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
               <TrendingUp size={20} className="mr-2 text-blue-600 dark:text-blue-400" />
-              Resumo Atual
+              Status da Análise
             </h3>
 
-            <div className="space-y-3">
-              <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 tracking-wider">Total em Contas</p>
-                <p className="text-lg font-black text-gray-800 dark:text-white">
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+                <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 tracking-widest">Saldo Monitorado</p>
+                <p className="text-xl font-black text-gray-800 dark:text-white">
                   {formatCurrency(totalBalance)}
                 </p>
               </div>
-              <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 tracking-wider">Registros no Mês</p>
-                <p className="text-lg font-black text-gray-800 dark:text-white">
-                  {transactions.filter(t => new Date(t.date).getMonth() === new Date().getMonth()).length} transações
+              <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+                <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 tracking-widest">Atividade Recente</p>
+                <p className="text-xl font-black text-gray-800 dark:text-white">
+                  {transactions.filter(t => new Date(t.date).getMonth() === new Date().getMonth()).length} lançamentos
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/10 flex items-center justify-between text-[10px] text-gray-400">
-              <span className="flex items-center font-bold"><Clock size={12} className="mr-1" /> IA ATIVA</span>
-              <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-bold uppercase tracking-tighter">Gemini 1.5 Flash</span>
+            <div className="mt-10 pt-6 border-t border-gray-100 dark:border-white/10 flex flex-col space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className="text-gray-400 uppercase">Motor de IA</span>
+                <span className="text-blue-600 dark:text-blue-400">GEMINI 1.5 FLASH</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className="text-gray-400 uppercase">Provider</span>
+                <span className="text-gray-600 dark:text-gray-300">Google AI Studio</span>
+              </div>
             </div>
           </div>
         </div>

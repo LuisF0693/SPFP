@@ -23,7 +23,7 @@ const Investments: React.FC = () => {
         setIsUpdating(true);
         try {
             const tickers = investments.map(i => i.ticker);
-            const quotes = await MarketDataService.getQuotes(tickers, userProfile.apiToken || '');
+            const quotes = await MarketDataService.getQuotes(tickers);
 
             let updatedCount = 0;
             quotes.forEach(quote => {
@@ -37,9 +37,9 @@ const Investments: React.FC = () => {
                     updatedCount++;
                 });
             });
-            alert(`${updatedCount} ativos atualizados com sucesso!`);
+            alert(`${updatedCount} ativos atualizados via Yahoo Finance!`);
         } catch (error) {
-            alert('Erro ao atualizar cotações. Verifique seu token em Configurações.');
+            alert('Erro ao atualizar cotações via Yahoo Finance. Tente novamente em instantes.');
             console.error(error);
         } finally {
             setIsUpdating(false);
