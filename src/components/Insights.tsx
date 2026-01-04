@@ -42,10 +42,17 @@ const Insights: React.FC = () => {
       await model.generateContent("Olá, teste de conexão.");
       setTestStatus('success');
       setTimeout(() => setTestStatus('idle'), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Connection test failed", err);
       setTestStatus('error');
-      setError("Falha no teste de conexão. Verifique se sua API Key é válida.");
+      const msg = err.message || "Erro desconhecido";
+      if (msg.includes("API_KEY_INVALID")) {
+        setError("Chave API Inválida. Verifique se copiou corretamente do Google AI Studio.");
+      } else if (msg.includes("User location is not supported")) {
+        setError("Sua localização atual não é suportada pela API do Gemini sem VPN.");
+      } else {
+        setError(`Falha no teste: ${msg}`);
+      }
     }
   };
 
@@ -162,8 +169,8 @@ const Insights: React.FC = () => {
               onClick={testConnection}
               disabled={testStatus === 'testing'}
               className={`px-4 py-2 border rounded-xl font-bold text-xs flex items-center transition-all ${testStatus === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                  testStatus === 'error' ? 'bg-red-50 text-red-600 border-red-200' :
-                    'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50'
+                testStatus === 'error' ? 'bg-red-50 text-red-600 border-red-200' :
+                  'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50'
                 }`}
             >
               {testStatus === 'testing' ? <Loader2 size={14} className="mr-2 animate-spin" /> :

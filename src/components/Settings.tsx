@@ -13,7 +13,12 @@ const Settings: React.FC = () => {
     }, [userProfile]);
 
     const handleChange = (field: keyof typeof userProfile, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        let finalValue = value;
+        // Trim tokens to prevent copy-paste errors
+        if (typeof value === 'string' && (field === 'apiToken' || field === 'geminiToken')) {
+            finalValue = value.trim();
+        }
+        setFormData(prev => ({ ...prev, [field]: finalValue }));
     };
 
     const handleSubmitProfile = (e: React.FormEvent) => {
