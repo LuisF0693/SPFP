@@ -34,8 +34,18 @@ const Insights: React.FC = () => {
   }, [fetchLatestInsight]);
 
   const tryModels = async (genAI: any, prompt: string) => {
-    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash-8b", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.0-pro"];
-    let lastError = null;
+    const models = [
+      "gemini-1.5-flash",
+      "gemini-1.5-flash-latest",
+      "gemini-1.5-flash-001",
+      "gemini-1.5-flash-002",
+      "gemini-1.5-flash-8b",
+      "gemini-2.0-flash-exp",
+      "gemini-1.5-pro",
+      "gemini-1.0-pro",
+      "gemini-pro"
+    ];
+    let errors: string[] = [];
 
     for (const modelName of models) {
       try {
@@ -44,17 +54,17 @@ const Insights: React.FC = () => {
         const response = await result.response;
         return { text: response.text(), modelName };
       } catch (err: any) {
-        lastError = err;
-        const msg = err.message || "";
-        // Continue if model not found OR if quota is exceeded for this specific model
+        const msg = err.message || "Erro desconhecido";
+        errors.push(`${modelName}: ${msg}`);
+
         if (msg.includes("404") || msg.includes("not found") || msg.includes("429") || msg.includes("quota")) {
-          console.warn(`Model ${modelName} unavailable or quota exceeded, trying next...`);
+          console.warn(`Model ${modelName} unavailable, trying next...`);
           continue;
         }
-        throw err; // Re-throw if it's an invalid key or safety block
+        throw err; // Key or safety
       }
     }
-    throw lastError;
+    throw new Error(`Nenhum modelo disponível. Detalhes:\n${errors.slice(0, 3).join('\n')}`);
   };
 
   const testConnection = async () => {
@@ -62,25 +72,24 @@ const Insights: React.FC = () => {
     setTestStatus('testing');
     setError(null);
     try {
-      const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
-      const { modelName } = await tryModels(genAI, "Olá, teste de conexão. Responda apenas OK.");
+      const cleanToken = userProfile.geminiToken!.trim();
+      const genAI = new GoogleGenerativeAI(cleanToken);
+      const { modelName } = await tryModels(genAI, "Teste de conexão. Responda OK.");
       setTestStatus('success');
-      console.log(`Connection success using model: ${modelName}`);
+      console.log(`Connection success with: ${modelName}`);
       setTimeout(() => setTestStatus('idle'), 3000);
     } catch (err: any) {
       console.error("Connection test failed", err);
       setTestStatus('error');
-      const msg = err.message || "Erro desconhecido";
+      const msg = err.message || "";
       if (msg.includes("API_KEY_INVALID")) {
-        setError("Chave API Inválida. Verifique se copiou corretamente do Google AI Studio.");
+        setError("Chave API Inválida. Verifique em Configurações.");
       } else if (msg.includes("User location is not supported")) {
-        setError("Sua localização atual não é suportada pela API do Gemini sem VPN.");
+        setError("Sua localização (Brasil) as vezes requer VPN para certos modelos do Gemini no AI Studio. Tente criar uma nova chave em outro projeto.");
       } else if (msg.includes("429") || msg.includes("quota")) {
-        setError("Limite de uso excedido no Google. Aguarde alguns minutos e tente novamente.");
-      } else if (msg.includes("404") || msg.includes("not found")) {
-        setError("Nenhum modelo compatível encontrado. Verifique seu projeto no AI Studio.");
+        setError("Cota excedida. O Google bloqueou requisições por alguns minutos para sua chave.");
       } else {
-        setError(`Falha crítica: ${msg}`);
+        setError(`Erro no Google: ${msg.split('\n')[0]}`);
       }
     }
   };
@@ -137,7 +146,8 @@ const Insights: React.FC = () => {
                 Não mencione que você é uma IA, aja como o consultor.
             `;
 
-      const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
+      const cleanToken = userProfile.geminiToken!.trim();
+      const genAI = new GoogleGenerativeAI(cleanToken);
       const { text, modelName } = await tryModels(genAI, prompt);
 
       if (!text) throw new Error("A IA não retornou texto.");
@@ -158,10 +168,8 @@ const Insights: React.FC = () => {
         setError("Sua API Key do Gemini parece inválida. Verifique em Configurações.");
       } else if (msg.includes('SAFETY')) {
         setError("A análise foi bloqueada pelos filtros de segurança da IA. Tente gastar de forma mais civilizada!");
-      } else if (msg.includes("404") || msg.includes("not found")) {
-        setError("Nenhum modelo de IA disponível para sua chave. Crie um novo projeto no Google AI Studio (Generative Language Client).");
       } else {
-        setError(`Erro: ${msg || "Falha ao processar análise. Verifique sua conexão."}`);
+        setError(`Erro: ${msg.split('\n')[0]}`);
       }
     } finally {
       setLoading(false);
@@ -237,9 +245,21 @@ const Insights: React.FC = () => {
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 p-4 rounded-xl flex items-center text-red-600 dark:text-red-400 text-sm">
-          <AlertCircle size={20} className="mr-3 shrink-0" />
-          {error}
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 p-5 rounded-2xl flex flex-col gap-3 shadow-sm animate-fade-in">
+          <div className="flex items-center text-red-600 dark:text-red-400 text-sm font-medium">
+            <AlertCircle size={20} className="mr-3 shrink-0" />
+            {error}
+          </div>
+          {(error.includes('Google') || error.includes('modelo') || error.includes('Nenhum')) && (
+            <div className="mt-2 p-4 bg-white/50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-500/20">
+              <p className="text-xs font-bold text-red-700 dark:text-red-300 uppercase mb-1 flex items-center gap-1">
+                Dica de Solução:
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-200/80 leading-relaxed">
+                Se o erro de modelo persistir, vá ao <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold hover:text-red-500">Google AI Studio</a>, clique em <b>"Create API key in NEW project"</b> no menu lateral e use essa nova chave. Chaves em projetos antigos as vezes perdem acesso aos modelos Flash.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
