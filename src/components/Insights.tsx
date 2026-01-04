@@ -33,14 +33,38 @@ const Insights: React.FC = () => {
     fetchLatestInsight();
   }, [fetchLatestInsight]);
 
+  const tryModels = async (genAI: any, prompt: string) => {
+    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.0-pro"];
+    let lastError = null;
+
+    for (const modelName of models) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return { text: response.text(), modelName };
+      } catch (err: any) {
+        lastError = err;
+        const msg = err.message || "";
+        if (msg.includes("404") || msg.includes("not found")) {
+          console.warn(`Model ${modelName} not found, trying next...`);
+          continue;
+        }
+        throw err; // Re-throw if it's not a 404 (e.g. invalid key)
+      }
+    }
+    throw lastError;
+  };
+
   const testConnection = async () => {
     if (!hasToken) return;
     setTestStatus('testing');
+    setError(null);
     try {
       const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-      await model.generateContent("Olá, teste de conexão.");
+      const { modelName } = await tryModels(genAI, "Olá, teste de conexão. Responda apenas OK.");
       setTestStatus('success');
+      console.log(`Connection success using model: ${modelName}`);
       setTimeout(() => setTestStatus('idle'), 3000);
     } catch (err: any) {
       console.error("Connection test failed", err);
@@ -51,9 +75,9 @@ const Insights: React.FC = () => {
       } else if (msg.includes("User location is not supported")) {
         setError("Sua localização atual não é suportada pela API do Gemini sem VPN.");
       } else if (msg.includes("404") || msg.includes("not found")) {
-        setError("Modelo 'gemini-1.5-flash' não encontrado. Tente gerar uma nova chave ou verifique se sua conta tem acesso ao Gemini 1.5.");
+        setError("Nenhum modelo compatível encontrado. Verifique seu projeto no AI Studio.");
       } else {
-        setError(`Falha no teste: ${msg}`);
+        setError(`Falha crítica: ${msg}`);
       }
     }
   };
@@ -111,19 +135,17 @@ const Insights: React.FC = () => {
             `;
 
       const genAI = new GoogleGenerativeAI(userProfile.geminiToken!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+      const { text, modelName } = await tryModels(genAI, prompt);
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const resultText = response.text();
+      if (!text) throw new Error("A IA não retornou texto.");
 
-      if (!resultText) throw new Error("A IA não retornou texto.");
-
-      setInsight(resultText);
+      setInsight(text);
+      console.log(`Insight generated using model: ${modelName}`);
 
       // Persist
-      await saveAIInteraction(user.id, "Insights Financeiros", resultText, {
-        summary: { income, expense, balance: totalBalance }
+      await saveAIInteraction(user.id, "Insights Financeiros", text, {
+        summary: { income, expense, balance: totalBalance },
+        ai_model: modelName
       });
 
     } catch (err: any) {
@@ -132,9 +154,9 @@ const Insights: React.FC = () => {
       if (msg.includes('API_KEY_INVALID')) {
         setError("Sua API Key do Gemini parece inválida. Verifique em Configurações.");
       } else if (msg.includes('SAFETY')) {
-        setError("A análise foi bloqueada pelos filtros de segurança da IA. Tente gastar de forma mais civilizada! Brincadeira, tente novamente em instantes.");
+        setError("A análise foi bloqueada pelos filtros de segurança da IA. Tente gastar de forma mais civilizada!");
       } else if (msg.includes("404") || msg.includes("not found")) {
-        setError("Modelo 'gemini-1.5-flash-latest' não encontrado. Verifique sua conta no Google AI Studio ou tente mais tarde.");
+        setError("Nenhum modelo de IA disponível para sua chave. Crie um novo projeto no Google AI Studio (Generative Language Client).");
       } else {
         setError(`Erro: ${msg || "Falha ao processar análise. Verifique sua conexão."}`);
       }
