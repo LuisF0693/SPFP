@@ -29,7 +29,7 @@ export interface FinanceContextData extends FinanceContextType {
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
 
-const STORAGE_KEY = 'visao360_v2_data';
+const getStorageKey = (userId?: string) => userId ? `visao360_v2_data_${userId}` : 'visao360_v2_data';
 
 const DEFAULT_LAYOUT: DashboardWidget[] = [
   { id: 'upcoming_bills', visible: true },
@@ -64,12 +64,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
   const navigate = useNavigate();
 
-  const [state, setState] = useState<GlobalState>(() => {
-    const local = localStorage.getItem(STORAGE_KEY);
+  const getInitialState = useCallback((userId?: string): GlobalState => {
+    const key = getStorageKey(userId);
+    const local = localStorage.getItem(key);
     if (local) {
       try {
         const parsedData = JSON.parse(local);
-        // Validar e garantir que todos os campos existam para evitar crashes
         return {
           accounts: Array.isArray(parsedData.accounts) ? parsedData.accounts : INITIAL_ACCOUNTS,
           transactions: Array.isArray(parsedData.transactions) ? parsedData.transactions : INITIAL_TRANSACTIONS,
@@ -94,11 +94,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
-  });
+  }, []);
+
+  const [state, setState] = useState<GlobalState>(() => getInitialState());
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (user?.id) {
+      localStorage.setItem(getStorageKey(user.id), JSON.stringify(state));
+    }
+  }, [state, user?.id]);
 
   const saveToCloud = useCallback(async (newState: GlobalState) => {
     if (!user || !isInitialLoadComplete) return;
@@ -137,8 +141,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     if (!user) {
       setIsInitialLoadComplete(false);
+      setState(getInitialState()); // Reset to default/non-user state
       return;
     }
+
+    // Carregar dados iniciais do localStorage do usuário antes mesmo do fetch da nuvem
+    // Isso evita o flash de dados do usuário anterior
+    setState(getInitialState(user.id));
 
     setIsSyncing(true);
 
