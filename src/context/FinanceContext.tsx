@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset, PatrimonyItem } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
@@ -59,7 +60,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isSyncing, setIsSyncing] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState(false);
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
   const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
+  const navigate = useNavigate();
 
   const [state, setState] = useState<GlobalState>(() => {
     const local = localStorage.getItem(STORAGE_KEY);
@@ -98,7 +101,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [state]);
 
   const saveToCloud = useCallback(async (newState: GlobalState) => {
-    if (!user || !isInitialLoadComplete || isImpersonating) return;
+    if (!user || !isInitialLoadComplete) return;
+
+    // Se estiver personificando, salva no ID do cliente, não no do admin
+    const targetUserId = isImpersonating ? impersonatedUserId : user.id;
+    if (!targetUserId) return;
 
     setIsSyncing(true);
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -113,7 +120,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const { error } = await supabase
           .from('user_data')
           .upsert({
-            user_id: user.id,
+            user_id: targetUserId,
             content: dataToSave,
             last_updated: dataToSave.lastUpdated
           });
@@ -318,7 +325,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
         setState(data.content as GlobalState);
         setIsImpersonating(true);
+        setImpersonatedUserId(userId);
         window.scrollTo(0, 0);
+        navigate('/'); // Redireciona para o Dashboard para ver os dados
       }
     } catch (e) {
       console.error("Erro ao carregar dados do cliente:", e);
@@ -332,6 +341,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setState(adminOriginalState);
       setAdminOriginalState(null);
       setIsImpersonating(false);
+      setImpersonatedUserId(null);
+      navigate('/admin'); // Volta para o painel admin
     }
   };
 
