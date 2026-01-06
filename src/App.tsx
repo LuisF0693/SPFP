@@ -15,12 +15,20 @@ import Goals from './components/Goals';
 import Loading from './components/ui/Loading';
 import Investments from './components/Investments';
 import Patrimony from './components/Patrimony';
+import AdminCRM from './components/AdminCRM';
 import { Transaction } from './types';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" />;
+  return <>{children}</>;
+};
+
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading, isAdmin } = useAuth();
+  if (loading) return <Loading />;
+  if (!user || !isAdmin) return <Navigate to="/" />;
   return <>{children}</>;
 };
 
@@ -127,6 +135,13 @@ const AppContent: React.FC = () => {
             <Settings />
           </Layout>
         </PrivateRoute>
+      } />
+      <Route path="/admin" element={
+        <AdminRoute>
+          <Layout>
+            <AdminCRM />
+          </Layout>
+        </AdminRoute>
       } />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

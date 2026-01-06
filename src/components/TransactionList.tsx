@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
-    Trash2, Edit2, Upload, Search, Filter, ChevronLeft, ChevronRight,
+    Trash2, Edit2, Upload, Download, Search, Filter, ChevronLeft, ChevronRight,
     ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock, X
 } from 'lucide-react';
 import TransactionForm from './TransactionForm';
@@ -31,6 +31,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const [showCategoryManager, setShowCategoryManager] = useState(false);
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+    const [activeTabModal, setActiveTabModal] = useState<'import' | 'export'>('import');
 
     // Filter Logic
     const filteredTransactions = useMemo(() => {
@@ -130,15 +131,39 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Lançamentos</h2>
                     <p className="text-gray-500 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingTransaction(null);
-                        setIsTransactionModalOpen(true);
-                    }}
-                    className="bg-accent hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center"
-                >
-                    + Novo Lançamento
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            setActiveTabModal('import');
+                            setIsImportModalOpen(true);
+                        }}
+                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
+                        title="Importar CSV/PDF"
+                    >
+                        <Upload size={20} />
+                        <span className="hidden sm:inline">Importar</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTabModal('export');
+                            setIsImportModalOpen(true);
+                        }}
+                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
+                        title="Exportar CSV/PDF"
+                    >
+                        <Download size={20} />
+                        <span className="hidden sm:inline">Exportar</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditingTransaction(null);
+                            setIsTransactionModalOpen(true);
+                        }}
+                        className="bg-accent hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center"
+                    >
+                        + Novo Lançamento
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -344,7 +369,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                 </div>
             )}
 
-            <ImportExportModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
+            <ImportExportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                initialTab={activeTabModal}
+            />
 
             {/* Local Transaction Modal */}
             {isTransactionModalOpen && (

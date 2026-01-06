@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -11,8 +11,8 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { userProfile, isSyncing } = useFinance();
-  const { logout } = useAuth();
+  const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useFinance();
+  const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,6 +45,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
   ];
 
+  const adminNavItems = [
+    { id: 'admin', path: '/admin', icon: ShieldCheck, label: 'Painel Admin' },
+  ];
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Tem certeza que deseja sair da sua conta?')) {
@@ -56,7 +60,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const currentPath = location.pathname;
     if (currentPath === '/' || currentPath === '/dashboard') return 'Visão Geral';
     if (currentPath === '/settings') return 'Configurações';
-    const item = desktopNavItems.find(i => i.path === currentPath);
+    if (currentPath === '/admin') return 'Painel Administrativo';
+    const item = [...desktopNavItems, ...adminNavItems].find(i => i.path === currentPath);
     return item ? item.label : 'Visão Geral';
   };
 
@@ -111,6 +116,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </NavLink>
             );
           })}
+
+          {isAdmin && (
+            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
+              <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Administração</p>
+              {adminNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
+                      ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      }`}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={22} className={`mr-3 ${isActive ? 'text-accent drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                        <span className="font-medium text-base">{item.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-black">
@@ -161,6 +192,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               )}
             </div>
+
+            {isImpersonating && (
+              <button
+                onClick={stopImpersonating}
+                className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-red-500/20 transition-all active:scale-95"
+              >
+                <X size={16} />
+                <span className="hidden sm:inline">Sair da Visualização</span>
+                <span className="sm:hidden">Sair</span>
+              </button>
+            )}
           </div>
         </header>
 

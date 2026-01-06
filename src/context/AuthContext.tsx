@@ -10,7 +10,10 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  isAdmin: boolean;
 }
+
+const ADMIN_EMAILS = ['nando062218@gmail.com'];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -18,19 +21,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setIsAdmin(currentUser ? ADMIN_EMAILS.includes(currentUser.email || '') : false);
       setLoading(false);
     });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setIsAdmin(currentUser ? ADMIN_EMAILS.includes(currentUser.email || '') : false);
       setLoading(false);
     });
 
@@ -93,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signInWithEmail, registerWithEmail, logout }}>
+    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signInWithEmail, registerWithEmail, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

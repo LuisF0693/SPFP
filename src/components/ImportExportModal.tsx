@@ -10,11 +10,12 @@ import { generateId, formatDate, formatCurrency } from '../utils';
 interface ImportExportModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialTab?: 'import' | 'export';
 }
 
-export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, onClose }) => {
+export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, onClose, initialTab = 'import' }) => {
     const { transactions, addManyTransactions, categories } = useFinance();
-    const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
+    const [activeTab, setActiveTab] = useState<'import' | 'export'>(initialTab);
     const [isProcessing, setIsProcessing] = useState(false);
     const [previewData, setPreviewData] = useState<Partial<Transaction>[]>([]);
     const [importSource, setImportSource] = useState<'csv' | 'pdf' | null>(null);

@@ -20,6 +20,10 @@ export interface FinanceContextData extends FinanceContextType {
   isSyncing: boolean;
   isInitialLoadComplete: boolean;
   addCategory: (category: Omit<Category, 'id'>) => string;
+  isImpersonating: boolean;
+  stopImpersonating: () => void;
+  loadClientData: (userId: string) => Promise<void>;
+  fetchAllUserData: () => Promise<any[]>;
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
@@ -54,6 +58,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const syncTimeoutRef = useRef<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
 
   const [state, setState] = useState<GlobalState>(() => {
     const local = localStorage.getItem(STORAGE_KEY);
@@ -92,7 +98,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [state]);
 
   const saveToCloud = useCallback(async (newState: GlobalState) => {
-    if (!user || !isInitialLoadComplete) return;
+    if (!user || !isInitialLoadComplete || isImpersonating) return;
 
     setIsSyncing(true);
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -286,6 +292,49 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updatePatrimonyItem = (item: PatrimonyItem) => updateAndSync({ patrimonyItems: state.patrimonyItems.map(i => i.id === item.id ? item : i) });
   const deletePatrimonyItem = (id: string) => updateAndSync({ patrimonyItems: state.patrimonyItems.filter(i => i.id !== id) });
 
+  // Admin Methods
+  const fetchAllUserData = async () => {
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('user_id, content, last_updated');
+    if (error) throw error;
+    return data || [];
+  };
+
+  const loadClientData = async (userId: string) => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('content')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) throw error;
+      if (data && data.content) {
+        // Backup original state before impersonating
+        if (!isImpersonating) {
+          setAdminOriginalState(state);
+        }
+        setState(data.content as GlobalState);
+        setIsImpersonating(true);
+        window.scrollTo(0, 0);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar dados do cliente:", e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const stopImpersonating = () => {
+    if (adminOriginalState) {
+      setState(adminOriginalState);
+      setAdminOriginalState(null);
+      setIsImpersonating(false);
+    }
+  };
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -304,7 +353,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
       totalBalance: state.accounts.reduce((acc, curr) => acc + curr.balance, 0),
       isSyncing,
-      isInitialLoadComplete
+      isInitialLoadComplete,
+      isImpersonating,
+      stopImpersonating,
+      loadClientData,
+      fetchAllUserData
     }}>
       {children}
     </FinanceContext.Provider>
