@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Download, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
-import { exportTransactionsToCSV, parseCSV } from '../services/csvService';
-import { extractTextFromPDF, generatePDFReport } from '../services/pdfService';
+import { exportTransactionsToCSV, parseCSV, parseCSVWithAI } from '../services/csvService';
+import { extractTextFromPDF, generatePDFReport, parsePDF } from '../services/pdfService';
 import { parseBankStatementWithAI } from '../services/geminiService';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction } from '../types';
@@ -20,6 +20,9 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
     const [previewData, setPreviewData] = useState<Partial<Transaction>[]>([]);
     const [importSource, setImportSource] = useState<'csv' | 'pdf' | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [parsingMode, setParsingMode] = useState<'ai' | 'rules' | null>(null);
+
+    const { userProfile } = useFinance();
 
     if (!isOpen) return null;
 
@@ -35,31 +38,57 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
             if (file.name.endsWith('.csv')) {
                 setImportSource('csv');
                 const text = await file.text();
-                const parsed = parseCSV(text);
-                setPreviewData(parsed);
+
+                const hasToken = !!userProfile.geminiToken;
+                setParsingMode(hasToken ? 'ai' : 'rules');
+
+                const parsed = await parseCSVWithAI(text, userProfile.geminiToken);
+
+                if (!parsed || parsed.length === 0) {
+                    throw new Error("Não foi possível encontrar transações neste arquivo CSV.");
+                }
+
+                // Standardize CSV preview data if needed
+                const structuredTransactions = parsed.map((t: any) => ({
+                    id: t.id || generateId(),
+                    date: t.date || new Date().toISOString().split('T')[0],
+                    description: t.description || 'Sem descrição',
+                    value: Math.abs(t.value || 0),
+                    type: t.type || (t.value < 0 ? 'EXPENSE' : 'INCOME'),
+                    categoryId: t.categoryId || 'uncategorized',
+                    accountId: 'default'
+                }));
+
+                setPreviewData(structuredTransactions);
             } else if (file.name.endsWith('.pdf')) {
                 setImportSource('pdf');
-                // AI Flow
-                const text = await extractTextFromPDF(file);
-                const aiParsed = await parseBankStatementWithAI(text);
+
+                const hasToken = !!userProfile.geminiToken;
+                setParsingMode(hasToken ? 'ai' : 'rules');
+
+                const aiParsed = await parsePDF(file, userProfile.geminiToken);
+
+                if (!aiParsed || aiParsed.length === 0) {
+                    throw new Error("Não foi possível encontrar transações neste arquivo.");
+                }
 
                 // Enhance AI data with IDs and defaults
                 const structuredTransactions = aiParsed.map((t: any) => ({
                     id: generateId(),
-                    date: t.date,
-                    description: t.description,
-                    value: Math.abs(t.value), // Ensure value is positive for internal logic usually, stored with type
+                    date: t.date || new Date().toISOString().split('T')[0],
+                    description: t.description || 'Sem descrição',
+                    value: Math.abs(t.value || 0),
                     type: t.type || (t.value < 0 ? 'EXPENSE' : 'INCOME'),
                     categoryId: t.categoryId || 'uncategorized',
-                    accountId: 'default' // Would selection in UI
+                    accountId: 'default'
                 }));
                 setPreviewData(structuredTransactions);
             } else {
                 setError('Formato não suportado. Use CSV ou PDF.');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError('Erro ao processar arquivo. Verifique se o formato é válido ou se a API Key está configurada.');
+            setError(err.message || 'Erro ao processar arquivo. Verifique se o formato é válido.');
         } finally {
             setIsProcessing(false);
         }
@@ -143,11 +172,20 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                             ) : (
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                                            Revisar {previewData.length} transações
-                                        </h3>
+                                        <div className="flex flex-col">
+                                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 italic">
+                                                Revisar {previewData.length} transações
+                                            </h3>
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full w-fit mt-1 ${parsingMode === 'ai' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {parsingMode === 'ai' ? '✨ Processado com IA' : importSource === 'csv' ? '📋 CSV Processado' : '📋 Processado com Regras (Offline)'}
+                                            </span>
+                                        </div>
                                         <button
-                                            onClick={() => setPreviewData([])}
+                                            onClick={() => {
+                                                setPreviewData([]);
+                                                setParsingMode(null);
+                                            }}
                                             className="text-sm text-red-500 hover:underline"
                                         >
                                             Cancelar

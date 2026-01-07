@@ -83,7 +83,7 @@ const Dashboard: React.FC = () => {
   ).map(([catId, value]) => {
     const cat = categories.find(c => c.id === catId);
     return { name: cat?.name || 'Outros', value, color: cat?.color || '#94a3b8' };
-  }).sort((a, b) => b.value - a.value).slice(0, 5);
+  }).sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0)).slice(0, 5);
 
   const renderCustomLegend = (props: any) => {
     const { payload } = props;

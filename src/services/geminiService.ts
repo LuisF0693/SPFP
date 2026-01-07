@@ -1,16 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+// Fallback to Env if needed, but primary comes from UserProfile
+const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-// Initialize the API client
-const genAI = new GoogleGenerativeAI(API_KEY);
+export const parseBankStatementWithAI = async (text: string, customApiKey?: string): Promise<any> => {
+    const apiKey = (customApiKey || DEFAULT_API_KEY).trim();
 
-export const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-export const parseBankStatementWithAI = async (text: string): Promise<any> => {
-    if (!API_KEY) {
-        throw new Error("Gemini API Key not found. Please set VITE_GEMINI_API_KEY in .env.local");
+    if (!apiKey) {
+        throw new Error("Gemini API Key missing");
     }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // Model fallback list
+    const models = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro"
+    ];
 
     const prompt = `
     Analyze the following text extracted from a bank statement (PDF) or financial document.
@@ -30,17 +37,27 @@ export const parseBankStatementWithAI = async (text: string): Promise<any> => {
     ${text.substring(0, 30000)} // Limit context if necessary
   `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const textResponse = response.text();
 
-        // Clean up potential markdown formatting
-        const cleanedJson = textResponse.replace(/^```json/, '').replace(/```$/, '').trim();
+    let lastError: any = null;
 
-        return JSON.parse(cleanedJson);
-    } catch (error) {
-        console.error("Error parsing with Gemini:", error);
-        throw new Error("Failed to parse transactions with AI.");
+    for (const modelName of models) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const textResponse = response.text();
+
+            // Clean up potential markdown formatting
+            const cleanedJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleanedJson);
+        } catch (error: any) {
+            console.warn(`Failed with ${modelName}:`, error.message);
+            lastError = error;
+            // Continue to next model if it's a model-not-found or quota error
+            if (error.message?.includes('404') || error.message?.includes('429')) continue;
+            throw error; // If it's an auth error, stop
+        }
     }
+
+    throw lastError || new Error("Failed to parse transactions with AI.");
 };
