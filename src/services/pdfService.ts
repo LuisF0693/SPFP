@@ -1,4 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Transaction, Category } from '../types';
@@ -6,8 +7,8 @@ import { formatCurrency, formatDate, generateId } from '../utils';
 import { parseBankStatementWithAI } from './geminiService';
 
 // Initialize PDF.js worker
-// Using CDN for simplicity in this environment to avoid complex Vite build config issues with workers
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Using local bundled worker via Vite to avoid external CDN issues
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
