@@ -21,6 +21,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
     const [importSource, setImportSource] = useState<'csv' | 'pdf' | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [parsingMode, setParsingMode] = useState<'ai' | 'rules' | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     const { userProfile } = useFinance();
 
@@ -56,7 +57,9 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                     value: Math.abs(t.value || 0),
                     type: t.type || (t.value < 0 ? 'EXPENSE' : 'INCOME'),
                     categoryId: t.categoryId || 'uncategorized',
-                    accountId: 'default'
+                    accountId: 'default',
+                    paid: false,
+                    spender: 'ME'
                 }));
 
                 setPreviewData(structuredTransactions);
@@ -80,7 +83,9 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                     value: Math.abs(t.value || 0),
                     type: t.type || (t.value < 0 ? 'EXPENSE' : 'INCOME'),
                     categoryId: t.categoryId || 'uncategorized',
-                    accountId: 'default'
+                    accountId: 'default',
+                    paid: false,
+                    spender: 'ME'
                 }));
                 setPreviewData(structuredTransactions);
             } else {
@@ -94,12 +99,50 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
         }
     };
 
+    const toggleSelectAll = () => {
+        if (selectedIds.size === previewData.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(previewData.map(t => t.id as string)));
+        }
+    };
+
+    const toggleSelectItem = (id: string) => {
+        const next = new Set(selectedIds);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        setSelectedIds(next);
+    };
+
+    const updatePreviewItem = (id: string, updates: Partial<Transaction>) => {
+        setPreviewData(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    };
+
+    const importSingle = (id: string) => {
+        const item = previewData.find(t => t.id === id);
+        if (item) {
+            // @ts-ignore
+            addManyTransactions([item as Transaction]);
+            setPreviewData(prev => prev.filter(t => t.id !== id));
+            const nextSelected = new Set(selectedIds);
+            nextSelected.delete(id);
+            setSelectedIds(nextSelected);
+        }
+    };
+
     const confirmImport = () => {
-        if (previewData.length > 0) {
+        const selectedItems = previewData.filter(t => selectedIds.has(t.id as string));
+        if (selectedItems.length > 0) {
             // @ts-ignore - Partial vs transaction strict match
-            addManyTransactions(previewData as Transaction[]);
-            onClose();
-            // Optional: Show success toast
+            addManyTransactions(selectedItems as Transaction[]);
+            setPreviewData(prev => prev.filter(t => !selectedIds.has(t.id as string)));
+            setSelectedIds(new Set());
+            if (previewData.length === selectedItems.length) {
+                onClose();
+            }
         }
     };
 
@@ -192,22 +235,84 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                                         </button>
                                     </div>
 
-                                    <div className="max-h-[250px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="bg-gray-50 dark:bg-gray-800 text-gray-500 sticky top-0">
+                                    <div className="max-h-[350px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                                        <table className="w-full text-xs text-left">
+                                            <thead className="bg-gray-50 dark:bg-gray-800 text-gray-500 sticky top-0 z-10">
                                                 <tr>
-                                                    <th className="p-3 font-medium">Data</th>
-                                                    <th className="p-3 font-medium">Descrição</th>
-                                                    <th className="p-3 font-medium text-right">Valor</th>
+                                                    <th className="p-2 w-10 text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={previewData.length > 0 && selectedIds.size === previewData.length}
+                                                            onChange={toggleSelectAll}
+                                                            className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                        />
+                                                    </th>
+                                                    <th className="p-2 font-medium w-24">Data</th>
+                                                    <th className="p-2 font-medium">Descrição</th>
+                                                    <th className="p-2 font-medium w-32">Categoria</th>
+                                                    <th className="p-2 font-medium text-right w-24">Valor</th>
+                                                    <th className="p-2 w-10"></th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                                {previewData.map((t, idx) => (
-                                                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                        <td className="p-3 text-gray-600 dark:text-gray-300">{formatDate(t.date || '')}</td>
-                                                        <td className="p-3 text-gray-900 dark:text-white font-medium">{t.description}</td>
-                                                        <td className={`p-3 text-right font-bold ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-red-500'}`}>
-                                                            {formatCurrency(t.value || 0)}
+                                                {previewData.map((t) => (
+                                                    <tr key={t.id} className={`${selectedIds.has(t.id as string) ? 'bg-emerald-50/30 dark:bg-emerald-900/10' : ''} hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors`}>
+                                                        <td className="p-2 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedIds.has(t.id as string)}
+                                                                onChange={() => toggleSelectItem(t.id as string)}
+                                                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                            />
+                                                        </td>
+                                                        <td className="p-2">
+                                                            <input
+                                                                type="date"
+                                                                value={t.date}
+                                                                onChange={(e) => updatePreviewItem(t.id as string, { date: e.target.value })}
+                                                                className="w-full bg-transparent border-none p-0 text-gray-600 dark:text-gray-300 focus:ring-0 text-xs"
+                                                            />
+                                                        </td>
+                                                        <td className="p-2">
+                                                            <input
+                                                                type="text"
+                                                                value={t.description}
+                                                                onChange={(e) => updatePreviewItem(t.id as string, { description: e.target.value })}
+                                                                className="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white font-medium focus:ring-0 text-xs"
+                                                            />
+                                                        </td>
+                                                        <td className="p-2">
+                                                            <select
+                                                                value={t.categoryId}
+                                                                onChange={(e) => updatePreviewItem(t.id as string, { categoryId: e.target.value })}
+                                                                className="w-full bg-transparent border-none p-0 text-gray-600 dark:text-gray-400 focus:ring-0 text-xs"
+                                                            >
+                                                                <option value="uncategorized">Sem Categoria</option>
+                                                                {categories.map(cat => (
+                                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </td>
+                                                        <td className={`p-2 text-right font-bold ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-red-500'}`}>
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <span>{t.type === 'INCOME' ? '+' : '-'}</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={t.value}
+                                                                    onChange={(e) => updatePreviewItem(t.id as string, { value: parseFloat(e.target.value) || 0 })}
+                                                                    className="w-20 bg-transparent border-none p-0 text-right focus:ring-0 text-xs font-bold"
+                                                                    step="0.01"
+                                                                />
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 text-center">
+                                                            <button
+                                                                onClick={() => importSingle(t.id as string)}
+                                                                className="p-1 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-full transition-colors"
+                                                                title="Adicionar apenas este"
+                                                            >
+                                                                <Check className="w-4 h-4" />
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -217,10 +322,13 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
 
                                     <button
                                         onClick={confirmImport}
-                                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 dark:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                                        disabled={selectedIds.size === 0}
+                                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:scale-100 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 dark:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
                                     >
                                         <Check className="w-5 h-5" />
-                                        Confirmar Importação
+                                        {selectedIds.size > 0
+                                            ? `Importar ${selectedIds.size} selecionados`
+                                            : 'Selecione itens para importar'}
                                     </button>
                                 </div>
                             )}
