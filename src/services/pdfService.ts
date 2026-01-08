@@ -58,58 +58,99 @@ export const parseBankStatementRules = (text: string): any[] => {
     const lines = text.split('\n');
     const transactions: any[] = [];
 
-    // Regex patterns for common Brazilian bank formats and general formats
-    // Date: DD/MM/YYYY or DD/MM or YYYY-MM-DD
-    const dateRegex = /(\d{2}\/\d{2}(\/\d{4})?|\d{4}-\d{2}-\d{2})/g;
+    // Mapeamento de meses em português
+    const monthMap: { [key: string]: string } = {
+        'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
+        'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
+        'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+    };
 
-    // Improved Value Regex: 
-    // Matches 1.234,56 or 1,234.56 or 1234,56 or 1234.56
-    // Handles optional negative sign
-    const valueRegex = /(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d{1,3}(?:,\d{3})*\.\d{2}|-?\d+[\.,]\d{2})/g;
+    // Regex para diferentes formatos de data
+    const standardDateRegex = /(\d{2}\/\d{2}(?:\/\d{4})?|\d{4}-\d{2}-\d{2})/;
+    const extendedDateRegex = /(\d{1,2})\s+de\s+([a-zA-ZçÇ]+)\s+de\s+(\d{4})/i;
 
-    lines.forEach((line, index) => {
-        if (!line.trim()) return;
+    // Regex de Valor melhorado: Suporta -R$ 1.234,56, R$ 1.234,56 ou 1.234,56
+    const valueRegex = /(-?\s*R\$\s*[\d\.,]+|-?[\d\.]+,\d{2}|-?[\d,]+\.\d{2})/g;
 
-        const dateMatches = [...line.matchAll(dateRegex)];
-        const valueMatches = [...line.matchAll(valueRegex)];
+    let currentDate: string | null = null;
 
-        if (dateMatches.length > 0 && valueMatches.length > 0) {
-            const dateStr = dateMatches[0][0];
+    lines.forEach((line) => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
 
-            // Take the last value found on the line (often the transaction value)
-            const lastValueMatch = valueMatches[valueMatches.length - 1][0];
+        // 1. Tenta encontrar um cabeçalho de data por extenso (ex: "7 de Dezembro de 2025")
+        const extendedMatch = trimmedLine.match(extendedDateRegex);
+        if (extendedMatch) {
+            const day = extendedMatch[1].padStart(2, '0');
+            const monthName = extendedMatch[2].toLowerCase();
+            const year = extendedMatch[3];
+            const month = monthMap[monthName];
+            if (month) {
+                currentDate = `${year}-${month}-${day}`;
+                return; // Pula o processamento desta linha como transação
+            }
+        }
 
-            // Normalize value: remove thousand separators and use dot as decimal
-            let cleanValueStr = lastValueMatch;
+        // 2. Tenta encontrar uma data padrão na linha (ex: "06/01/2026")
+        const standardMatch = trimmedLine.match(standardDateRegex);
+        if (standardMatch) {
+            const dateStr = standardMatch[0];
+            currentDate = dateStr.includes('/') && dateStr.split('/').length === 2
+                ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}`
+                : dateStr.includes('/') ? dateStr.split('/').reverse().join('-') : dateStr;
+        }
+
+        // 3. Procura por valores na linha
+        const valueMatches = [...trimmedLine.matchAll(valueRegex)];
+
+        // Filtra linhas de saldo ou metadados
+        if (trimmedLine.includes('Saldo do dia') || trimmedLine.includes('Saldo total') || trimmedLine.includes('Saldo disponível') || trimmedLine.includes('Saldo por transação')) {
+            return;
+        }
+
+        if (valueMatches.length > 0 && currentDate) {
+            // Em extratos do Inter, o primeiro valor é a transação, o segundo costuma ser o saldo após ela.
+            // Pegamos o primeiro valor (mais provável ser a transação).
+            let lastValueMatch = valueMatches[0][0];
+
+            // Limpa a string do valor
+            let cleanValueStr = lastValueMatch
+                .replace(/R\$/g, '')
+                .replace(/\s/g, '');
+
+            // Normalização de decimais
             if (cleanValueStr.includes(',') && cleanValueStr.includes('.')) {
-                // Determine format based on last occurrence
                 if (cleanValueStr.lastIndexOf(',') > cleanValueStr.lastIndexOf('.')) {
-                    // 1.234,56 format
                     cleanValueStr = cleanValueStr.replace(/\./g, '').replace(',', '.');
                 } else {
-                    // 1,234.56 format
                     cleanValueStr = cleanValueStr.replace(/,/g, '');
                 }
             } else {
-                // Single separator case, assume it's decimal if it's near the end
                 cleanValueStr = cleanValueStr.replace(',', '.');
             }
 
             const value = parseFloat(cleanValueStr);
 
-            let description = line
-                .replace(dateStr, '')
-                .replace(lastValueMatch, '')
-                .replace(/R\$/g, '')
+            // Descrição é o que vem antes do valor ou o que sobrar
+            let description = trimmedLine
+                .split(lastValueMatch)[0] // Pega tudo antes do valor
+                .replace(currentDate, '')
+                .replace(extendedDateRegex, '')
+                .replace(standardDateRegex, '')
+                .replace(/Pix enviado:|Pix recebido:|Compra no debito:|Pix enviado devolvido:/g, '')
+                .replace(/"/g, '')
                 .replace(/\s+/g, ' ')
                 .trim();
 
-            if (description && !isNaN(value)) {
+            if (!description) {
+                // Se falhar o split, tenta pegar o resto da linha removendo o valor
+                description = trimmedLine.replace(lastValueMatch, '').substring(0, 50).trim();
+            }
+
+            if (!isNaN(value) && Math.abs(value) > 0) {
                 transactions.push({
-                    date: dateStr.includes('/') && dateStr.split('/').length === 2
-                        ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}`
-                        : dateStr.includes('/') ? dateStr.split('/').reverse().join('-') : dateStr,
-                    description: description.substring(0, 50),
+                    date: currentDate,
+                    description: description.substring(0, 50) || 'Transação Importada',
                     value: value,
                     type: value < 0 ? 'EXPENSE' : 'INCOME',
                     categoryId: 'uncategorized'
