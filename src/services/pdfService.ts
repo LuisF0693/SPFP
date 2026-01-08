@@ -18,7 +18,32 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        const items = textContent.items as any[];
+
+        // Group items by their vertical position (Y coordinate) with some tolerance
+        const rows: { y: number, items: any[] }[] = [];
+
+        items.forEach(item => {
+            const y = item.transform[5];
+            let row = rows.find(r => Math.abs(r.y - y) < 3); // 3 units tolerance for Y-alignment
+            if (!row) {
+                row = { y, items: [] };
+                rows.push(row);
+            }
+            row.items.push(item);
+        });
+
+        // Sort rows from top to bottom (Y descending)
+        rows.sort((a, b) => b.y - a.y);
+
+        const pageText = rows.map(row => {
+            // Sort items within each row from left to right (X ascending)
+            return row.items
+                .sort((a, b) => a.transform[4] - b.transform[4])
+                .map(item => item.str)
+                .join(' ');
+        }).join('\n');
+
         fullText += pageText + '\n';
     }
 
@@ -31,29 +56,43 @@ export const parseBankStatementRules = (text: string): any[] => {
 
     // Regex patterns for common Brazilian bank formats
     // Date: DD/MM/YYYY or DD/MM
-    const dateRegex = /(\d{2}\/\d{2}(\/\d{4})?)/;
+    const dateRegex = /(\d{2}\/\d{2}(\/\d{4})?)/g;
     // Value: 1.234,56 or -1.234,56 or 1234.56
-    const valueRegex = /(-?\d{1,3}(\.\d{3})*,\d{2}|-?\d+[\.,]\d{2})/;
+    const valueRegex = /(-?\d{1,3}(\.\d{3})*,\d{2}|-?\d+[\.,]\d{2})/g;
 
     lines.forEach(line => {
         if (!line.trim()) return;
 
-        const dateMatch = line.match(dateRegex);
-        const valueMatch = line.match(valueRegex);
+        // Re-run regex for each line using matchAll to handle multiple potential matches
+        // though usually we want one transaction per line.
+        const dateMatches = [...line.matchAll(dateRegex)];
+        const valueMatches = [...line.matchAll(valueRegex)];
 
-        if (dateMatch && valueMatch) {
-            const dateStr = dateMatch[0];
-            const valueStr = valueMatch[0].replace(/\./g, '').replace(',', '.');
+        if (dateMatches.length > 0 && valueMatches.length > 0) {
+            // Take the first date found on the line
+            const dateStr = dateMatches[0][0];
+
+            // Take the last value found on the line (often the transaction value, 
+            // after headers or balance columns if they exist on same line)
+            const lastValueMatch = valueMatches[valueMatches.length - 1][0];
+            const valueStr = lastValueMatch.replace(/\./g, '').replace(',', '.');
             const value = parseFloat(valueStr);
 
             // Description is usually what's left after removing date and value
+            // We use the specific matches found to avoid over-replacing
             let description = line
-                .replace(dateRegex, '')
-                .replace(valueRegex, '')
+                .replace(dateStr, '')
+                .replace(lastValueMatch, '')
                 .replace(/R\$/g, '')
+                .replace(/\s+/g, ' ')
                 .trim();
 
             if (description && !isNaN(value)) {
+                // If the description is just another date or value, skip it
+                if (description.match(dateRegex) || description.match(valueRegex)) {
+                    // Possible balance line or multi-column line, skip for safety unless specific
+                }
+
                 transactions.push({
                     date: dateStr.includes('/') && dateStr.split('/').length === 2
                         ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}` // DD/MM to YYYY-MM-DD

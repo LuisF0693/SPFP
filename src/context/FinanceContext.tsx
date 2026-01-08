@@ -62,6 +62,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
   const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
+  const stateUserIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
   const getInitialState = useCallback((userId?: string): GlobalState => {
@@ -99,7 +100,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [state, setState] = useState<GlobalState>(() => getInitialState());
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && stateUserIdRef.current === user.id) {
       localStorage.setItem(getStorageKey(user.id), JSON.stringify(state));
     }
   }, [state, user?.id]);
@@ -109,7 +110,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Se estiver personificando, salva no ID do cliente, não no do admin
     const targetUserId = isImpersonating ? impersonatedUserId : user.id;
-    if (!targetUserId) return;
+    // CAPTURA: O targetUserId deve ser fixado agora para o timeout não usar o estado futuro do isImpersonating
+    const finalTargetUserId = targetUserId;
+
+    if (!finalTargetUserId) return;
 
     setIsSyncing(true);
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -124,7 +128,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const { error } = await supabase
           .from('user_data')
           .upsert({
-            user_id: targetUserId,
+            user_id: finalTargetUserId,
             content: dataToSave,
             last_updated: dataToSave.lastUpdated
           });
@@ -136,18 +140,24 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsSyncing(false);
       }
     }, 1500);
-  }, [user, isInitialLoadComplete]);
+  }, [user, isInitialLoadComplete, isImpersonating, impersonatedUserId]);
 
   useEffect(() => {
     if (!user) {
       setIsInitialLoadComplete(false);
+      stateUserIdRef.current = null;
       setState(getInitialState()); // Reset to default/non-user state
       return;
     }
 
+    // Importante: Marcar que o load começou para este usuário
+    setIsInitialLoadComplete(false);
+
     // Carregar dados iniciais do localStorage do usuário antes mesmo do fetch da nuvem
     // Isso evita o flash de dados do usuário anterior
-    setState(getInitialState(user.id));
+    const initialState = getInitialState(user.id);
+    stateUserIdRef.current = user.id;
+    setState(initialState);
 
     setIsSyncing(true);
 
@@ -333,6 +343,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setAdminOriginalState(state);
         }
         setState(data.content as GlobalState);
+        stateUserIdRef.current = userId; // Vincula o estado ao ID do personificado
         setIsImpersonating(true);
         setImpersonatedUserId(userId);
         window.scrollTo(0, 0);
@@ -346,8 +357,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const stopImpersonating = () => {
-    if (adminOriginalState) {
+    if (adminOriginalState && user) {
       setState(adminOriginalState);
+      stateUserIdRef.current = user.id; // Volta para o ID do admin original
       setAdminOriginalState(null);
       setIsImpersonating(false);
       setImpersonatedUserId(null);

@@ -34,21 +34,21 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
-  const { userProfile, updateUserProfile, isInitialLoadComplete } = useFinance();
+  const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useFinance();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Sincroniza dados do usuário autenticado apenas APÓS o carregamento inicial da nuvem
   useEffect(() => {
-    if (user && isInitialLoadComplete && !userProfile.email) {
+    if (user && isInitialLoadComplete && !isImpersonating && !userProfile.email) {
       updateUserProfile({
         ...userProfile,
         name: user.user_metadata?.display_name || user.user_metadata?.full_name || 'Usuário',
         email: user.email || ''
       });
     }
-  }, [user, isInitialLoadComplete, userProfile.email, updateUserProfile]);
+  }, [user, isInitialLoadComplete, isImpersonating, userProfile.email, updateUserProfile]);
 
   if (user && !isInitialLoadComplete) {
     return <Loading />;
