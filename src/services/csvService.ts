@@ -63,13 +63,31 @@ export const parseCSV = (csvText: string): Partial<Transaction>[] => {
     if (headerIndex !== -1) {
       date = columns[dateIdx] || '';
       description = columns[descIdx] || '';
-      const valStr = (columns[valueIdx] || '0').replace(/\./g, '').replace(',', '.');
+
+      let valStr = (columns[valueIdx] || '0');
+
+      // Normalização robusta de números
+      if (valStr.includes(',') && valStr.includes('.')) {
+        // Formato com milhar e decimal: 1.234,56 ou 1,234.56
+        if (valStr.lastIndexOf(',') > valStr.lastIndexOf('.')) {
+          // 1.234,56 -> 1234.56
+          valStr = valStr.replace(/\./g, '').replace(',', '.');
+        } else {
+          // 1,234.56 -> 1234.56
+          valStr = valStr.replace(/,/g, '');
+        }
+      } else {
+        // Formato com apenas um separador: 1234,56 ou 1234.56
+        valStr = valStr.replace(',', '.');
+      }
+
       value = parseFloat(valStr);
     } else if (columns.length >= 3) {
-      // Fallback to position
+      // Fallback por posição
       date = columns[0];
       description = columns[1];
-      value = parseFloat(columns[2].replace(',', '.'));
+      const valStr = columns[2].replace(',', '.');
+      value = parseFloat(valStr);
     }
 
     if (date && !isNaN(value)) {
@@ -85,6 +103,7 @@ export const parseCSV = (csvText: string): Partial<Transaction>[] => {
     }
   });
 
+  console.log(`CSV: Encontradas ${transactions.length} transações.`);
   return transactions;
 };
 

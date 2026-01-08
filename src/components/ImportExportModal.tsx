@@ -92,8 +92,14 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                 setError('Formato não suportado. Use CSV ou PDF.');
             }
         } catch (err: any) {
-            console.error(err);
-            setError(err.message || 'Erro ao processar arquivo. Verifique se o formato é válido.');
+            console.error("Erro no processamento:", err);
+            if (err.message.includes('PDF')) {
+                setError(`Erro no PDF: ${err.message}`);
+            } else if (err.message.includes('CSV')) {
+                setError(`Erro no CSV: ${err.message}`);
+            } else {
+                setError(err.message || 'Erro ao processar arquivo. Verifique se o formato é válido.');
+            }
         } finally {
             setIsProcessing(false);
         }

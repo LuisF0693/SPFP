@@ -47,6 +47,10 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
         fullText += pageText + '\n';
     }
 
+    console.log("--- TEXTO EXTRAÍDO DO PDF ---");
+    console.log(fullText);
+    console.log("----------------------------");
+
     return fullText;
 };
 
@@ -54,32 +58,45 @@ export const parseBankStatementRules = (text: string): any[] => {
     const lines = text.split('\n');
     const transactions: any[] = [];
 
-    // Regex patterns for common Brazilian bank formats
-    // Date: DD/MM/YYYY or DD/MM
-    const dateRegex = /(\d{2}\/\d{2}(\/\d{4})?)/g;
-    // Value: 1.234,56 or -1.234,56 or 1234.56
-    const valueRegex = /(-?\d{1,3}(\.\d{3})*,\d{2}|-?\d+[\.,]\d{2})/g;
+    // Regex patterns for common Brazilian bank formats and general formats
+    // Date: DD/MM/YYYY or DD/MM or YYYY-MM-DD
+    const dateRegex = /(\d{2}\/\d{2}(\/\d{4})?|\d{4}-\d{2}-\d{2})/g;
 
-    lines.forEach(line => {
+    // Improved Value Regex: 
+    // Matches 1.234,56 or 1,234.56 or 1234,56 or 1234.56
+    // Handles optional negative sign
+    const valueRegex = /(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d{1,3}(?:,\d{3})*\.\d{2}|-?\d+[\.,]\d{2})/g;
+
+    lines.forEach((line, index) => {
         if (!line.trim()) return;
 
-        // Re-run regex for each line using matchAll to handle multiple potential matches
-        // though usually we want one transaction per line.
         const dateMatches = [...line.matchAll(dateRegex)];
         const valueMatches = [...line.matchAll(valueRegex)];
 
         if (dateMatches.length > 0 && valueMatches.length > 0) {
-            // Take the first date found on the line
             const dateStr = dateMatches[0][0];
 
-            // Take the last value found on the line (often the transaction value, 
-            // after headers or balance columns if they exist on same line)
+            // Take the last value found on the line (often the transaction value)
             const lastValueMatch = valueMatches[valueMatches.length - 1][0];
-            const valueStr = lastValueMatch.replace(/\./g, '').replace(',', '.');
-            const value = parseFloat(valueStr);
 
-            // Description is usually what's left after removing date and value
-            // We use the specific matches found to avoid over-replacing
+            // Normalize value: remove thousand separators and use dot as decimal
+            let cleanValueStr = lastValueMatch;
+            if (cleanValueStr.includes(',') && cleanValueStr.includes('.')) {
+                // Determine format based on last occurrence
+                if (cleanValueStr.lastIndexOf(',') > cleanValueStr.lastIndexOf('.')) {
+                    // 1.234,56 format
+                    cleanValueStr = cleanValueStr.replace(/\./g, '').replace(',', '.');
+                } else {
+                    // 1,234.56 format
+                    cleanValueStr = cleanValueStr.replace(/,/g, '');
+                }
+            } else {
+                // Single separator case, assume it's decimal if it's near the end
+                cleanValueStr = cleanValueStr.replace(',', '.');
+            }
+
+            const value = parseFloat(cleanValueStr);
+
             let description = line
                 .replace(dateStr, '')
                 .replace(lastValueMatch, '')
@@ -88,15 +105,10 @@ export const parseBankStatementRules = (text: string): any[] => {
                 .trim();
 
             if (description && !isNaN(value)) {
-                // If the description is just another date or value, skip it
-                if (description.match(dateRegex) || description.match(valueRegex)) {
-                    // Possible balance line or multi-column line, skip for safety unless specific
-                }
-
                 transactions.push({
                     date: dateStr.includes('/') && dateStr.split('/').length === 2
-                        ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}` // DD/MM to YYYY-MM-DD
-                        : dateStr.split('/').reverse().join('-'), // DD/MM/YYYY to YYYY-MM-DD
+                        ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}`
+                        : dateStr.includes('/') ? dateStr.split('/').reverse().join('-') : dateStr,
                     description: description.substring(0, 50),
                     value: value,
                     type: value < 0 ? 'EXPENSE' : 'INCOME',
@@ -106,23 +118,33 @@ export const parseBankStatementRules = (text: string): any[] => {
         }
     });
 
+    console.log(`Regras (Offline): Encontradas ${transactions.length} transações.`);
     return transactions;
 };
 
 export const parsePDF = async (file: File, geminiToken?: string): Promise<any[]> => {
-    const text = await extractTextFromPDF(file);
+    try {
+        const text = await extractTextFromPDF(file);
 
-    if (geminiToken) {
-        try {
-            console.log("Attempting AI parsing...");
-            return await parseBankStatementWithAI(text, geminiToken);
-        } catch (err) {
-            console.error("AI Parsing failed, falling back to rules:", err);
+        if (!text.trim()) {
+            throw new Error("Arquivo PDF parece estar vazio ou é uma imagem (OCR necessário).");
         }
-    }
 
-    console.log("Using rule-based parsing...");
-    return parseBankStatementRules(text);
+        if (geminiToken) {
+            try {
+                console.log("Tentando processamento com IA Gemini...");
+                return await parseBankStatementWithAI(text, geminiToken);
+            } catch (err) {
+                console.warn("IA falhou, tentando via regras:", err);
+            }
+        }
+
+        console.log("Usando processamento via regras locais...");
+        return parseBankStatementRules(text);
+    } catch (err: any) {
+        console.error("Erro no processamento do PDF:", err);
+        throw err;
+    }
 };
 
 export const generatePDFReport = (transactions: Transaction[], categories: Category[], period: string) => {
