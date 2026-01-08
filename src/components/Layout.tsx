@@ -69,13 +69,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex h-screen bg-gray-50 dark:bg-black overflow-hidden w-full font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-72 bg-white dark:bg-black flex-col shadow-xl z-20 border-r border-gray-200 dark:border-gray-900 transition-colors duration-300">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-900 flex items-center space-x-4">
-          <div className="bg-blue-900/10 p-2 rounded-full border border-blue-500/20 shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-            <Logo className="text-accent" size={54} />
+        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-center space-x-4">
+          <div className="p-2 shrink-0">
+            <Logo size={42} />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-3xl font-serif font-bold tracking-wider text-gray-900 dark:text-white drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">SPFP</h1>
-            <p className="text-[10px] text-blue-500 dark:text-blue-400 tracking-[0.2em] uppercase">Planejador</p>
+            <h1 className="text-3xl font-serif font-bold tracking-wider text-gray-900 dark:text-white dark:text-glow">SPFP</h1>
+            <p className="text-[10px] text-blue-500 dark:text-blue-400 tracking-[0.3em] uppercase font-bold">Premium</p>
             <div className="mt-2 h-6 flex items-center">
               {isSyncing ? (
                 <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 animate-pulse">
@@ -88,29 +88,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                   </span>
-                  <span className="text-[9px] font-bold text-emerald-300 uppercase tracking-widest">Online</span>
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Ativo</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 py-6 px-4 space-y-2">
+        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar">
           {desktopNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
                 key={item.id}
                 to={item.path}
-                className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                  ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
+                  ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
                   : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
                 {({ isActive }) => (
                   <>
-                    <Icon size={22} className={`mr-3 ${isActive ? 'text-accent drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
-                    <span className="font-medium text-base">{item.label}</span>
+                    <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                    <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
                   </>
                 )}
               </NavLink>
