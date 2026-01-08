@@ -45,13 +45,19 @@ export const parseCSV = (csvText: string): Partial<Transaction>[] => {
   const dataLines = headerIndex === -1 ? lines : lines.slice(headerIndex + 1);
   const headerCols = headerIndex === -1 ? [] : lines[headerIndex].toLowerCase().split(delimiter).map(h => h.trim());
 
-  // Map header columns to fields
+  // Mapeamento de colunas para campos
   const getIdx = (variants: string[]) => headerCols.findIndex(h => variants.some(v => h.includes(v)));
-  const dateIdx = getIdx(['data', 'date']);
-  const descIdx = getIdx(['descrição', 'desc', 'description', 'histórico']);
-  const valueIdx = getIdx(['valor', 'value', 'amount', 'pago', 'recebido']);
 
-  dataLines.forEach(line => {
+  const dateIdx = getIdx(['data', 'date']);
+  const descIdx = getIdx(['descrição', 'desc', 'description', 'histórico', 'lançamento', 'estabelecimento', 'favorecido', 'detalhe', 'memo']);
+  const valueIdx = getIdx(['valor', 'value', 'amount', 'pago', 'recebido', 'quantia', 'total']);
+
+  console.log("--- DIAGNÓSTICO DE COLUNAS CSV ---");
+  console.log("Cabeçalhos detectados:", headerCols);
+  console.log(`Mapeamento: Data(idx:${dateIdx}), Descrição(idx:${descIdx}), Valor(idx:${valueIdx})`);
+  console.log("---------------------------------");
+
+  dataLines.forEach((line, index) => {
     if (!line.trim()) return;
 
     const columns = line.split(delimiter).map(c => c.trim().replace(/^"(.*)"$/, '$1'));
@@ -62,39 +68,49 @@ export const parseCSV = (csvText: string): Partial<Transaction>[] => {
 
     if (headerIndex !== -1) {
       date = columns[dateIdx] || '';
-      description = columns[descIdx] || '';
+      description = (descIdx !== -1 ? columns[descIdx] : '') || '';
 
-      let valStr = (columns[valueIdx] || '0');
+      let valStr = (valueIdx !== -1 ? columns[valueIdx] : '0') || '0';
 
       // Normalização robusta de números
       if (valStr.includes(',') && valStr.includes('.')) {
-        // Formato com milhar e decimal: 1.234,56 ou 1,234.56
         if (valStr.lastIndexOf(',') > valStr.lastIndexOf('.')) {
-          // 1.234,56 -> 1234.56
           valStr = valStr.replace(/\./g, '').replace(',', '.');
         } else {
-          // 1,234.56 -> 1234.56
           valStr = valStr.replace(/,/g, '');
         }
       } else {
-        // Formato com apenas um separador: 1234,56 ou 1234.56
         valStr = valStr.replace(',', '.');
       }
 
       value = parseFloat(valStr);
-    } else if (columns.length >= 3) {
-      // Fallback por posição
-      date = columns[0];
-      description = columns[1];
-      const valStr = columns[2].replace(',', '.');
-      value = parseFloat(valStr);
+    } else {
+      // Fallback por posição se não houver cabeçalhos claros
+      date = columns[0] || '';
+
+      // Tenta adivinhar qual coluna é o valor (aquela que tem números e separadores)
+      const isNumeric = (s: string) => !isNaN(parseFloat(s?.replace(',', '.'))) && s?.match(/\d/);
+
+      const col1IsNumeric = isNumeric(columns[1]);
+      const col2IsNumeric = isNumeric(columns[2]);
+
+      if (col2IsNumeric && !col1IsNumeric) {
+        description = columns[1];
+        value = parseFloat(columns[2].replace(',', '.'));
+      } else if (col1IsNumeric) {
+        description = columns[2] || columns[0];
+        value = parseFloat(columns[1].replace(',', '.'));
+      } else {
+        description = columns[1] || 'Sem descrição';
+        value = parseFloat(columns[2]?.replace(',', '.') || '0');
+      }
     }
 
     if (date && !isNaN(value)) {
       transactions.push({
         id: generateId(),
         date: date.includes('/') ? date.split('/').reverse().join('-') : date,
-        description,
+        description: description || 'Sem descrição',
         value: Math.abs(value),
         type: value < 0 ? 'EXPENSE' : 'INCOME',
         categoryId: 'uncategorized',
