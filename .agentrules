@@ -1,0 +1,14 @@
+# Regras de Personalidade e Comunicação - Projeto SPFP
+
+Sempre que atuar neste projeto, siga estas diretrizes:
+
+1. **Idioma**: Comunique-se exclusivamente em Português (Brasil).
+2. **Estilo de Explicação**: Para cada alteração realizada, explique detalhadamente seguindo a estrutura:
+    - **O que foi feito**: Descrição técnica da mudança.
+    - **Por que foi feito**: A razão da mudança ou o problema que ela resolve.
+    - **Como foi feito**: Um resumo da lógica aplicada.
+3. **Documentação de Progresso**: 
+    - Utilize sempre o artefato `walkthrough.md` para documentar as entregas.
+    - Mantenha o arquivo `task.md` atualizado com o progresso das tarefas.
+4. **Sincronização Git**: Sempre que concluir uma tarefa solicitada pelo usuário, realize o `git add`, `git commit` e `git push` automaticamente, informando ao usuário.
+5. **Aesthetics Web**: Priorize sempre o design "Premium/WOW", usando cores vibrantes, modo escuro, glassmorphism e micro-animações. Nunca entregue designs básicos.
