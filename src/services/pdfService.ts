@@ -58,8 +58,10 @@ export const parseBankStatementRules = (text: string): any[] => {
     const lines = text.split('\n');
     const transactions: any[] = [];
 
-    // Mapeamento de meses em português
+    // Mapeamento de meses em português (curto e longo)
     const monthMap: { [key: string]: string } = {
+        'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04', 'mai': '05', 'jun': '06',
+        'jul': '07', 'ago': '08', 'set': '09', 'out': '10', 'nov': '11', 'dez': '12',
         'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
         'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
         'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
@@ -68,15 +70,34 @@ export const parseBankStatementRules = (text: string): any[] => {
     // Regex para diferentes formatos de data
     const standardDateRegex = /(\d{2}\/\d{2}(?:\/\d{4})?|\d{4}-\d{2}-\d{2})/;
     const extendedDateRegex = /(\d{1,2})\s+de\s+([a-zA-ZçÇ]+)\s+de\s+(\d{4})/i;
+    const shortDateRegex = /(\d{1,2})\s+([A-Z]{3})/; // Ex: 13 NOV
 
     // Regex de Valor melhorado: Suporta -R$ 1.234,56, R$ 1.234,56 ou 1.234,56
     const valueRegex = /(-?\s*R\$\s*[\d\.,]+|-?[\d\.]+,\d{2}|-?[\d,]+\.\d{2})/g;
 
+    // Palavras que indicam que a linha NÃO é uma transação individual
+    const blackList = [
+        'Limite', 'Saldo', 'Vencimento', 'Pagamento mínimo', 'Total a pagar',
+        'Fatura anterior', 'Total de compras', 'Próximas faturas', 'Utilizado',
+        'Disponível', 'Valor máximo', 'SAC:', 'Ouvidoria:', 'Nu Pagamentos',
+        'CNPJ', 'Rua Capote Valente', 'Juros', 'IOF', 'CET', 'Composição',
+        'Você quita', 'Sempre a melhor', 'Pagar o valor', 'Parcele a sua',
+        'vencimento da fatura', 'entrada e escolhe', 'Ideal para', 'atraso',
+        'negativado', 'Nunca é uma boa', 'encargos', 'resumo da fatura',
+        'vincendo', 'vigente', 'extrato', 'período'
+    ];
+
     let currentDate: string | null = null;
+    const currentYear = new Date().getFullYear();
 
     lines.forEach((line) => {
         const trimmedLine = line.trim();
         if (!trimmedLine) return;
+
+        // Se a linha contiver alguma palavra da lista negra, ignoramos
+        if (blackList.some(word => trimmedLine.toLowerCase().includes(word.toLowerCase()))) {
+            return;
+        }
 
         // 1. Tenta encontrar um cabeçalho de data por extenso (ex: "7 de Dezembro de 2025")
         const extendedMatch = trimmedLine.match(extendedDateRegex);
@@ -91,16 +112,29 @@ export const parseBankStatementRules = (text: string): any[] => {
             }
         }
 
-        // 2. Tenta encontrar uma data padrão na linha (ex: "06/01/2026")
+        // 2. Tenta encontrar data curta (ex: "13 NOV") - Comum no Nubank
+        const shortMatch = trimmedLine.match(shortDateRegex);
+        if (shortMatch) {
+            const day = shortMatch[1].padStart(2, '0');
+            const monthShort = shortMatch[2].toLowerCase();
+            const month = monthMap[monthShort];
+            if (month) {
+                // Se não temos ano no texto curto, usamos o ano atual ou o ano detectado no cabeçalho
+                const year = currentDate ? currentDate.split('-')[0] : currentYear;
+                currentDate = `${year}-${month}-${day}`;
+            }
+        }
+
+        // 3. Tenta encontrar uma data padrão na linha (ex: "06/01/2026")
         const standardMatch = trimmedLine.match(standardDateRegex);
         if (standardMatch) {
             const dateStr = standardMatch[0];
             currentDate = dateStr.includes('/') && dateStr.split('/').length === 2
-                ? `${new Date().getFullYear()}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}`
+                ? `${currentYear}-${dateStr.split('/')[1]}-${dateStr.split('/')[0]}`
                 : dateStr.includes('/') ? dateStr.split('/').reverse().join('-') : dateStr;
         }
 
-        // 3. Procura por valores na linha
+        // 4. Procura por valores na linha
         const valueMatches = [...trimmedLine.matchAll(valueRegex)];
 
         // Filtra linhas de saldo ou metadados
@@ -109,7 +143,9 @@ export const parseBankStatementRules = (text: string): any[] => {
         }
 
         if (valueMatches.length > 0 && currentDate) {
-            // Em extratos do Inter, o primeiro valor é a transação, o segundo costuma ser o saldo após ela.
+            // Em faturas, ignoramos se houver muitos valores (geralmente é tabela de parcelamento)
+            if (valueMatches.length > 4) return;
+
             // Pegamos o primeiro valor (mais provável ser a transação).
             let lastValueMatch = valueMatches[0][0];
 
@@ -137,12 +173,15 @@ export const parseBankStatementRules = (text: string): any[] => {
                 .replace(currentDate, '')
                 .replace(extendedDateRegex, '')
                 .replace(standardDateRegex, '')
+                .replace(shortDateRegex, '')
                 .replace(/Pix enviado:|Pix recebido:|Compra no debito:|Pix enviado devolvido:/g, '')
                 .replace(/"/g, '')
+                .replace(/\s\w\s[\w\*]+\s[\d\*]+\s*/, ' ') // Remove ícones e IDs de cartão do Nubank
+                .replace(/\d{4}$/, '') // Remove final do cartão se houver (ex: .... 5802)
                 .replace(/\s+/g, ' ')
                 .trim();
 
-            if (!description) {
+            if (!description || description.length < 2) {
                 // Se falhar o split, tenta pegar o resto da linha removendo o valor
                 description = trimmedLine.replace(lastValueMatch, '').substring(0, 50).trim();
             }
