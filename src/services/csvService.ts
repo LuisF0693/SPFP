@@ -49,7 +49,7 @@ export const parseCSV = (csvText: string): Partial<Transaction>[] => {
   const getIdx = (variants: string[]) => headerCols.findIndex(h => variants.some(v => h.includes(v)));
 
   const dateIdx = getIdx(['data', 'date']);
-  const descIdx = getIdx(['descrição', 'desc', 'description', 'histórico', 'lançamento', 'estabelecimento', 'favorecido', 'detalhe', 'memo']);
+  const descIdx = getIdx(['descrição', 'desc', 'description', 'histórico', 'lançamento', 'estabelecimento', 'favorecido', 'detalhe', 'memo', 'title']);
   const valueIdx = getIdx(['valor', 'value', 'amount', 'pago', 'recebido', 'quantia', 'total']);
 
   console.log("--- DIAGNÓSTICO DE COLUNAS CSV ---");
