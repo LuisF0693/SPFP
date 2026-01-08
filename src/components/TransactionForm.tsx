@@ -70,8 +70,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
             setCategoryId(initialData.categoryId);
             setAccountId(initialData.accountId);
             setUserManuallyChangedCategory(true);
-            setAccountId(initialData.accountId);
-            setUserManuallyChangedCategory(true);
             if (initialData.date) setDate(initialData.date.split('T')[0]);
             if (initialData.spender) setSpender(initialData.spender);
             setPaid(initialData.paid ?? true);
@@ -302,14 +300,31 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Conta</label>
-                        <select value={accountId} onChange={(e) => setAccountId(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer">
-                            {accounts.map((acc: any) => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Conta / Cartão</label>
+                        <div className={`relative transition-all border rounded-xl overflow-hidden ${isCreditCardExpense ? 'border-primary/50 ring-2 ring-primary/5 shadow-sm bg-blue-50/30' : 'border-gray-200 bg-gray-50'}`}>
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                {isCreditCardExpense ? <CreditCard size={18} className="text-primary" /> : <Plus size={18} className="text-gray-400 rotate-45" />}
+                            </div>
+                            <select
+                                value={accountId}
+                                onChange={(e) => setAccountId(e.target.value)}
+                                className="w-full pl-11 pr-4 py-4 bg-transparent outline-none appearance-none cursor-pointer text-sm font-medium text-gray-800"
+                            >
+                                {accounts.map((acc: any) => (
+                                    <option key={acc.id} value={acc.id}>
+                                        {acc.type === 'CREDIT_CARD' ? '💳 ' : '🏦 '}
+                                        {acc.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <ChevronDown size={18} />
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Data da Compra</label>
-                        <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
+                        <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium text-gray-800" />
                     </div>
                 </div>
 
@@ -361,7 +376,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                 </div>
 
                 {/* SEÇÃO ESPECÍFICA DE CARTÃO DE CRÉDITO */}
-                {isCreditCardExpense && !initialData && (
+                {isCreditCardExpense && (
                     <div className="p-4 rounded-xl border border-gray-200 bg-gray-50 space-y-3 animate-fade-in">
                         <div className="flex items-center space-x-2 text-gray-700 font-medium">
                             <CalendarRange size={18} className="text-primary" />
@@ -402,52 +417,50 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
                     </div>
                 )}
 
-                {!initialData && (
-                    <div className={`p-4 rounded-xl border transition-all ${recurrence !== 'NONE' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="flex items-center space-x-2 text-gray-700 font-medium mb-3">
-                            <Repeat size={18} className={recurrence !== 'NONE' ? 'text-blue-600' : 'text-gray-400'} />
-                            <span className="text-sm">Recorrência / Parcelamento</span>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                            <button type="button" onClick={() => setRecurrence('NONE')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'NONE' ? 'bg-gray-800 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
-                                Único
-                            </button>
-                            <button type="button" onClick={() => setRecurrence('INSTALLMENT')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'INSTALLMENT' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
-                                Parcelado
-                            </button>
-                            <button type="button" onClick={() => setRecurrence('REPEATED')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'REPEATED' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
-                                Fixo Mensal
-                            </button>
-                        </div>
-
-                        {recurrence !== 'NONE' && (
-                            <div className="animate-fade-in bg-white p-3 rounded-lg border border-blue-100">
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">{recurrence === 'INSTALLMENT' ? 'Número de Parcelas' : 'Repetir por (meses)'}</label>
-                                    <select value={installments} onChange={(e) => setInstallments(Number(e.target.value))} className="p-1 bg-gray-50 border border-gray-200 rounded text-sm font-bold text-gray-800 outline-none">
-                                        {[...Array(11)].map((_, i) => <option key={i} value={i + 2}>{i + 2}x</option>)}
-                                        <option value={18}>18x</option>
-                                        <option value={24}>24x</option>
-                                        <option value={36}>36x</option>
-                                        <option value={48}>48x</option>
-                                    </select>
-                                </div>
-                                <div className="text-right">
-                                    {recurrence === 'INSTALLMENT' ? (
-                                        <p className="text-xs text-gray-500">
-                                            Serão criados <strong className="text-gray-800">{installments}</strong> lançamentos de <strong className="text-blue-600">{formatCurrency(numericValue / installments)}</strong>
-                                        </p>
-                                    ) : (
-                                        <p className="text-xs text-gray-500">
-                                            Serão criados <strong className="text-gray-800">{installments}</strong> lançamentos de <strong className="text-indigo-600">{formatCurrency(numericValue)}</strong>
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                <div className={`p-4 rounded-xl border transition-all ${recurrence !== 'NONE' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center space-x-2 text-gray-700 font-medium mb-3">
+                        <Repeat size={18} className={recurrence !== 'NONE' ? 'text-blue-600' : 'text-gray-400'} />
+                        <span className="text-sm">Recorrência / Parcelamento</span>
                     </div>
-                )}
+
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                        <button type="button" onClick={() => setRecurrence('NONE')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'NONE' ? 'bg-gray-800 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
+                            Único
+                        </button>
+                        <button type="button" onClick={() => setRecurrence('INSTALLMENT')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'INSTALLMENT' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
+                            Parcelado
+                        </button>
+                        <button type="button" onClick={() => setRecurrence('REPEATED')} className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'REPEATED' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white border text-gray-500 hover:bg-gray-100'}`}>
+                            Fixo Mensal
+                        </button>
+                    </div>
+
+                    {recurrence !== 'NONE' && (
+                        <div className="animate-fade-in bg-white p-3 rounded-lg border border-blue-100">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase">{recurrence === 'INSTALLMENT' ? 'Número de Parcelas' : 'Repetir por (meses)'}</label>
+                                <select value={installments} onChange={(e) => setInstallments(Number(e.target.value))} className="p-1 bg-gray-50 border border-gray-200 rounded text-sm font-bold text-gray-800 outline-none">
+                                    {[...Array(11)].map((_, i) => <option key={i} value={i + 2}>{i + 2}x</option>)}
+                                    <option value={18}>18x</option>
+                                    <option value={24}>24x</option>
+                                    <option value={36}>36x</option>
+                                    <option value={48}>48x</option>
+                                </select>
+                            </div>
+                            <div className="text-right">
+                                {recurrence === 'INSTALLMENT' ? (
+                                    <p className="text-xs text-gray-500">
+                                        Serão criados <strong className="text-gray-800">{installments}</strong> lançamentos de <strong className="text-blue-600">{formatCurrency(numericValue / installments)}</strong>
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-gray-500">
+                                        Serão criados <strong className="text-gray-800">{installments}</strong> lançamentos de <strong className="text-indigo-600">{formatCurrency(numericValue)}</strong>
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <button type="submit" className={`w-full py-4 text-white font-bold text-lg rounded-xl shadow-lg transition active:scale-95 ${type === 'INCOME' ? 'bg-success hover:bg-green-600' : 'bg-danger hover:bg-red-600'}`}>
                     {initialData ? 'Salvar Alterações' : (type === 'INCOME' ? 'Receber Valor' : 'Pagar Agora')}
