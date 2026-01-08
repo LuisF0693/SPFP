@@ -187,13 +187,46 @@ export const parseBankStatementRules = (text: string): any[] => {
             }
 
             if (!isNaN(value) && Math.abs(value) > 0) {
-                transactions.push({
+                const baseTransaction = {
                     date: currentDate,
                     description: description.substring(0, 50) || 'Transação Importada',
                     value: value,
                     type: value < 0 ? 'EXPENSE' : 'INCOME',
                     categoryId: 'uncategorized'
-                });
+                };
+
+                transactions.push(baseTransaction);
+
+                // DETECÇÃO AUTOMÁTICA DE PARCELAS (Ex: "02/06" ou "1/10")
+                const installmentRegex = /\b(\d{1,2})\s*[\/]\s*(\d{1,2})\b/;
+                const match = description.match(installmentRegex);
+
+                if (match && currentDate) {
+                    const currentInstallment = parseInt(match[1]);
+                    const totalInstallments = parseInt(match[2]);
+
+                    if (totalInstallments > currentInstallment && totalInstallments <= 72) { // Limite de 6 anos por segurança
+                        const [year, month, day] = currentDate.split('-').map(Number);
+                        const remaining = totalInstallments - currentInstallment;
+
+                        for (let i = 1; i <= remaining; i++) {
+                            const nextDate = new Date(year, month - 1 + i, day, 12, 0, 0);
+                            const nextInstallmentNum = currentInstallment + i;
+
+                            // Formata a nova descrição substituindo a parcela (ex: de 02/06 para 03/06)
+                            const nextDescription = description.replace(
+                                installmentRegex,
+                                `${String(nextInstallmentNum).padStart(match[1].length, '0')}/${match[2]}`
+                            );
+
+                            transactions.push({
+                                ...baseTransaction,
+                                date: nextDate.toISOString().split('T')[0],
+                                description: nextDescription.substring(0, 50)
+                            });
+                        }
+                    }
+                }
             }
         }
     });

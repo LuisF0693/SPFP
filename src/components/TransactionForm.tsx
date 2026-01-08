@@ -147,40 +147,71 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
         if (!description || !value || !accountId || !categoryId) return;
 
         const rawValue = parseFloat(value);
-
-        // Calcula a data base inicial considerando o offset da fatura (se for cartão)
-        // Se invoiceOffset for 0, usa a data selecionada. Se for 1, soma 1 mês, etc.
         const baseDate = getTargetDate(date, isCreditCardExpense ? invoiceOffset : 0);
         const baseDateStr = baseDate.toISOString().split('T')[0];
 
         // Lógica para Recorrência (Parcelado ou Fixo)
-        if (!initialData && recurrence !== 'NONE' && installments > 1) {
-            const newTransactions = [];
+        if (recurrence !== 'NONE' && installments > 1) {
             const [year, month, day] = baseDateStr.split('-').map(Number);
-
-            // Se for Parcelado: Valor total dividido pelo número de parcelas
-            // Se for Repetido: Valor total repetido a cada mês
             const monthlyValue = recurrence === 'INSTALLMENT' ? rawValue / installments : rawValue;
 
-            for (let i = 0; i < installments; i++) {
-                // Cria data incrementando os meses a partir da DATA DA FATURA
-                const txDate = new Date(year, month - 1 + i, day, 12, 0, 0);
-
-                // Sufixo na descrição
-                let descSuffix = '';
-                if (recurrence === 'INSTALLMENT') descSuffix = ` (${i + 1}/${installments})`;
-
-                newTransactions.push({
-                    description: `${description}${descSuffix}`,
+            // Se for Parcelado e estamos editando, a primeira parcela substitui o gasto atual
+            if (initialData) {
+                const firstInstallmentDesc = recurrence === 'INSTALLMENT' ? `${description} (1/${installments})` : description;
+                updateTransaction({
+                    id: initialData.id,
+                    description: firstInstallmentDesc,
                     value: monthlyValue,
                     type,
                     categoryId,
                     accountId,
-                    date: txDate.toISOString()
+                    date: baseDate.toISOString(),
+                    spender,
+                    paid
                 });
+
+                // Cria as demais parcelas (da 2 em diante)
+                const extraTransactions = [];
+                for (let i = 1; i < installments; i++) {
+                    const txDate = new Date(year, month - 1 + i, day, 12, 0, 0);
+                    let descSuffix = '';
+                    if (recurrence === 'INSTALLMENT') descSuffix = ` (${i + 1}/${installments})`;
+
+                    extraTransactions.push({
+                        description: `${description}${descSuffix}`,
+                        value: monthlyValue,
+                        type,
+                        categoryId,
+                        accountId,
+                        date: txDate.toISOString(),
+                        spender,
+                        paid
+                    });
+                }
+                addManyTransactions(extraTransactions);
+            } else {
+                // Modo criação (comportamento que já existia)
+                const newTransactions = [];
+                for (let i = 0; i < installments; i++) {
+                    const txDate = new Date(year, month - 1 + i, day, 12, 0, 0);
+                    let descSuffix = '';
+                    if (recurrence === 'INSTALLMENT') descSuffix = ` (${i + 1}/${installments})`;
+
+                    newTransactions.push({
+                        description: `${description}${descSuffix}`,
+                        value: monthlyValue,
+                        type,
+                        categoryId,
+                        accountId,
+                        date: txDate.toISOString(),
+                        spender,
+                        paid
+                    });
+                }
+                addManyTransactions(newTransactions);
             }
-            addManyTransactions(newTransactions);
         } else {
+            // Caso de transação única
             const payload = {
                 description,
                 value: rawValue,
