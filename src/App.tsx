@@ -33,7 +33,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useFinance();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+      <Route path="/login" element={!user ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/" />)} />
 
       <Route path="/" element={
         <PrivateRoute>
