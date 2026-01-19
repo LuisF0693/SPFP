@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate } from '../utils';
 import {
-  Wallet, TrendingUp, TrendingDown, Target, MoreHorizontal,
-  ArrowUpRight, ArrowDownRight, CreditCard, DollarSign, Calendar
+  Wallet, TrendingUp, Target, MoreHorizontal,
+  ArrowUpRight, CreditCard, AlertTriangle, CheckCircle, PieChart as PieChartIcon
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,8 +14,7 @@ import { CategoryIcon } from './CategoryIcon';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { totalBalance, transactions, categories, accounts, userProfile } = useFinance();
-  const [dateRange, setDateRange] = useState('Oct 2023'); // Exemplo estático ou dinâmico
+  const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets } = useFinance();
 
   // --- DATA PREPARATION ---
 
@@ -31,8 +30,10 @@ const Dashboard: React.FC = () => {
 
   const lastMonthTx = transactions.filter(t => {
     const d = new Date(t.date);
-    return d.getMonth() === (currentMonth === 0 ? 11 : currentMonth - 1) &&
-      d.getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear);
+    // Handle Jan -> Dec wrap for last month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
   });
 
   // Calculate Totals
@@ -43,14 +44,28 @@ const Dashboard: React.FC = () => {
   const lastMonthExpense = lastMonthTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
 
   // Comparisons
-  const incomeGrowth = lastMonthIncome > 0 ? ((totalIncome - lastMonthIncome) / lastMonthIncome) * 100 : 0;
-  const expenseGrowth = lastMonthExpense > 0 ? ((totalExpense - lastMonthExpense) / lastMonthExpense) * 100 : 0;
-  const netWorthGrowth = 2.4; // Placeholder for net worth growth logic if not tracking history
+  // const incomeGrowth = lastMonthIncome > 0 ? ((totalIncome - lastMonthIncome) / lastMonthIncome) * 100 : 0;
+  // const expenseGrowth = lastMonthExpense > 0 ? ((totalExpense - lastMonthExpense) / lastMonthExpense) * 100 : 0;
 
-  // Savings Goal Logic (15% of Income)
-  const savingsTarget = totalIncome * 0.15;
-  const currentSavings = totalIncome - totalExpense;
-  const savingsProgress = savingsTarget > 0 ? Math.min(Math.max((currentSavings / savingsTarget) * 100, 0), 100) : 0;
+  // BUDGET / GOALS LOGIC
+  const budgetAlerts = categories.reduce((acc, cat) => {
+    const budget = categoryBudgets.find(b => b.categoryId === cat.id);
+    if (!budget || budget.limit <= 0) return acc;
+
+    const spent = currentMonthTx
+      .filter(t => t.type === 'EXPENSE' && t.categoryId === cat.id)
+      .reduce((sum, t) => sum + t.value, 0);
+
+    const percentage = (spent / budget.limit) * 100;
+
+    if (percentage >= 100) return { ...acc, critical: acc.critical + 1 };
+    if (percentage >= 90) return { ...acc, warning: acc.warning + 1 };
+    return acc;
+  }, { critical: 0, warning: 0 });
+
+  const totalBudgeted = categoryBudgets.reduce((sum, b) => sum + b.limit, 0);
+  const isBudgetSet = totalBudgeted > 0;
+
 
   // Charts Data
   // 1. Cash Flow Trends (Last 6 Months)
@@ -97,7 +112,7 @@ const Dashboard: React.FC = () => {
             </div>
             {/* Calculate percentage */}
             <span className="font-bold text-gray-500">
-              {Math.round((entry.payload.value / totalExpense) * 100)}%
+              {Math.round((entry.payload.value / (totalExpense || 1)) * 100)}%
             </span>
           </li>
         ))}
@@ -106,7 +121,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
 
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2">
@@ -117,7 +132,6 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          {/*  Notification Bell could go here */}
           <button
             onClick={() => navigate('/transactions/add')}
             className="bg-accent hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center"
@@ -134,7 +148,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Patrimônio Líquido Total</p>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Patrimônio Líquido</p>
               <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">{formatCurrency(totalBalance)}</h2>
             </div>
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-500">
@@ -142,6 +156,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center text-sm">
+            {/* Stub for growth */}
             <span className="bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md font-bold text-xs flex items-center mr-2">
               <ArrowUpRight size={12} className="mr-1" /> +2.4%
             </span>
@@ -173,36 +188,62 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* CARD 3: SAVINGS GOAL */}
-        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm">
+        {/* CARD 3: BUDGET STATUS (NEW) */}
+        <div
+          className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:border-blue-500/30 transition-colors"
+          onClick={() => navigate('/budget')}
+        >
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Meta de Economia (15%)</p>
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">{formatCurrency(savingsTarget)}</h2>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Metas Financeiras</p>
+              {isBudgetSet ? (
+                <div className="mt-1">
+                  {(budgetAlerts.critical > 0 || budgetAlerts.warning > 0) ? (
+                    <h2 className="text-2xl font-black text-red-500 flex items-center gap-2">
+                      {budgetAlerts.critical + budgetAlerts.warning} Alertas
+                      <AlertTriangle size={24} className="text-red-500 animate-pulse" />
+                    </h2>
+                  ) : (
+                    <h2 className="text-2xl font-black text-emerald-500 flex items-center gap-2">
+                      Em Dia
+                      <CheckCircle size={24} className="text-emerald-500" />
+                    </h2>
+                  )}
+                </div>
+              ) : (
+                <h2 className="text-xl font-bold text-gray-400 mt-1">Não definidas</h2>
+              )}
             </div>
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-500">
+            <div className={`p-3 rounded-xl ${budgetAlerts.critical > 0 ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'}`}>
               <Target size={24} />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-            <span>Economia Atual</span>
-            <span className={`font-bold ${currentSavings >= savingsTarget ? 'text-emerald-500' : 'text-blue-500'}`}>
-              {formatCurrency(Math.max(currentSavings, 0))}
-            </span>
-          </div>
-          <div className="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-1000 ${currentSavings >= savingsTarget ? 'bg-emerald-500' : 'bg-blue-500'}`}
-              style={{ width: `${savingsProgress}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            {currentSavings >= savingsTarget
-              ? 'Meta atingida! 🎉'
-              : `Faltam ${formatCurrency(Math.max(savingsTarget - currentSavings, 0))} para atingir 15%`
-            }
-          </p>
+
+          {isBudgetSet ? (
+            <div className="mt-4">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-gray-400">Progresso Geral</span>
+                <span className="text-white font-bold">{Math.min((totalExpense / totalBudgeted) * 100, 100).toFixed(0)}%</span>
+              </div>
+              <div className="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${budgetAlerts.critical > 0 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                  style={{ width: `${Math.min((totalExpense / totalBudgeted) * 100, 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {budgetAlerts.critical > 0
+                  ? `${budgetAlerts.critical} categorias excederam o limite.`
+                  : 'Você está dentro do planejado.'}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 mt-2">
+              Toque para configurar suas metas mensais.
+            </p>
+          )}
         </div>
+
       </div>
 
       {/* MIDDLE SECTION: CHART + ACCOUNTS */}
@@ -215,14 +256,7 @@ const Dashboard: React.FC = () => {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Tendência de Fluxo de Caixa</h3>
               <p className="text-xs text-gray-500">Entradas vs Saídas (Últimos 6 Meses)</p>
             </div>
-            <div className="flex space-x-4">
-              <div className="flex items-center text-xs text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span> Entradas
-              </div>
-              <div className="flex items-center text-xs text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span> Saídas
-              </div>
-            </div>
+            {/* Legend... */}
           </div>
 
           <div className="h-[300px] w-full">
@@ -373,11 +407,12 @@ const Dashboard: React.FC = () => {
 
         {/* SPENDING BY CATEGORY */}
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
+          {/* ... existing chart code ... */}
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Gastos por Categoria</h3>
             <span className="text-xs text-gray-500">{today.toLocaleString('pt-BR', { month: 'short', year: 'numeric' })}</span>
           </div>
-
+          {/* Re-use responsive container logic logic or just simplified since I am rewriting */}
           <div className="flex-1 flex flex-col items-center justify-center relative min-h-[200px]">
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
@@ -409,7 +444,6 @@ const Dashboard: React.FC = () => {
                 Sem dados suficientes
               </div>
             )}
-
             {/* Center Text for Total */}
             {categoryData.length > 0 && (
               <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">

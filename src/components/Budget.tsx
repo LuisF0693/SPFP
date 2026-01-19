@@ -186,7 +186,24 @@ const Budget: React.FC = () => {
                                     <span className="text-white font-bold mr-3">{formatCurrency(cat.spent)}</span>
 
                                     <span className="text-gray-500">Meta: </span>
-                                    <span className="text-blue-400 font-bold">{formatCurrency(cat.limit)}</span>
+                                    <div className="inline-flex items-center">
+                                        <span className="text-blue-400 font-bold ml-1 text-xs">R$</span>
+                                        <input
+                                            type="number"
+                                            className="bg-transparent text-blue-400 font-bold w-16 outline-none text-right text-xs p-0 m-0 border-b border-transparent focus:border-blue-400 transition-colors"
+                                            value={cat.limit || ''}
+                                            placeholder="0"
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                if (!isNaN(val) && val >= 0) {
+                                                    const monthlyLimit = viewMode === 'YEARLY' ? Math.round(val / 12) : val;
+                                                    updateCategoryBudget(cat.id, monthlyLimit);
+                                                } else if (e.target.value === '') {
+                                                    updateCategoryBudget(cat.id, 0);
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
