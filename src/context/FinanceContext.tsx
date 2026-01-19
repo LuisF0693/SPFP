@@ -386,7 +386,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Update State
-        setState(data.content as GlobalState);
+        const clientContent = data.content as any;
+        setState({
+          ...clientContent,
+          accounts: Array.isArray(clientContent.accounts) ? clientContent.accounts : INITIAL_ACCOUNTS,
+          transactions: Array.isArray(clientContent.transactions) ? clientContent.transactions : INITIAL_TRANSACTIONS,
+          categories: Array.isArray(clientContent.categories) ? clientContent.categories : INITIAL_CATEGORIES,
+          goals: Array.isArray(clientContent.goals) ? clientContent.goals : [],
+          investments: Array.isArray(clientContent.investments) ? clientContent.investments : [],
+          patrimonyItems: Array.isArray(clientContent.patrimonyItems) ? clientContent.patrimonyItems : [],
+          categoryBudgets: Array.isArray(clientContent.categoryBudgets) ? clientContent.categoryBudgets : [],
+          userProfile: clientContent.userProfile || INITIAL_PROFILE,
+        } as GlobalState);
         stateUserIdRef.current = userId;
 
         // PERSIST IMPERSONATION
