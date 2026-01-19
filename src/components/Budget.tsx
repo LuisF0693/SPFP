@@ -1,108 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { formatCurrency } from '../utils';
-import { AlertTriangle } from 'lucide-react';
+import { formatCurrency, getMonthName } from '../utils';
+import { AlertTriangle, ChevronLeft, ChevronRight, Calendar, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
 import { CategoryIcon } from './CategoryIcon';
+import { BudgetSlider } from './BudgetSlider';
 
-// Sub-component for individual budget rows to handle input state safely
-const BudgetCategoryRow: React.FC<{
-    category: any;
-    updateBudget: (id: string, val: number) => void;
-    getStatusColor: (s: string) => string;
-    getProgressBarColor: (s: string) => string;
-}> = ({ category: cat, updateBudget, getStatusColor, getProgressBarColor }) => {
-    // Local state for the input value to allow free typing (decimals, etc.)
-    const [localLimit, setLocalLimit] = useState(cat.limit?.toString() || '');
-
-    // Sync from props if context updates externally
-    useEffect(() => {
-        if (Number(localLimit) !== cat.limit) {
-            setLocalLimit(cat.limit > 0 ? cat.limit.toString() : '');
-        }
-    }, [cat.limit]);
-
-    const handleBlur = () => {
-        const val = parseFloat(localLimit);
-        if (!isNaN(val) && val >= 0) {
-            updateBudget(cat.id, val);
-        } else if (localLimit === '') {
-            updateBudget(cat.id, 0);
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.currentTarget.blur(); // Trigger blur to save
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalLimit(e.target.value);
-    };
-
-    return (
-        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all group">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4 md:mb-0">
-                {/* Icon & Name */}
-                <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
-                        <CategoryIcon iconName={cat.icon} size={24} />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white text-lg">{cat.name}</h4>
-                        <p className="text-xs text-gray-500">
-                            Mês: <span className="text-white font-medium">{formatCurrency(cat.spent)}</span>
-                            {cat.limit > 0 && ` (Restam ${formatCurrency(cat.remaining)})`}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Alert Logic - Only show if limit set */}
-                {cat.limit > 0 && (
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-2 ${getStatusColor(cat.status)}`}>
-                        {cat.status === 'ok' && 'Dentro da Meta'}
-                        {cat.status === 'warning' && 'Atenção (75%)'}
-                        {cat.status === 'danger' && 'Cuidado (90%)'}
-                        {cat.status === 'critical' && 'Limite Atingido'}
-                    </div>
-                )}
-
-                {/* Edit Limit Input */}
-                <div className="flex items-center gap-2 bg-gray-900/50 p-2 rounded-lg border border-gray-800 focus-within:border-blue-500/50 transition-colors">
-                    <span className="text-xs text-gray-500 font-bold px-2">Meta:</span>
-                    <input
-                        type="number"
-                        className="bg-transparent text-white font-bold w-24 text-right outline-none text-sm placeholder-gray-600"
-                        placeholder="0.00"
-                        value={localLimit}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        onKeyDown={handleKeyDown}
-                        step="0.01"
-                    />
-                </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mt-4 relative pt-1">
-                <div className="flex mb-2 items-center justify-between">
-                    <div></div>
-                    <div className="text-right">
-                        <span className={`text-xs font-semibold inline-block ${cat.percentage > 100 ? 'text-red-500' : 'text-gray-400'}`}>
-                            {cat.percentage.toFixed(0)}%
-                        </span>
-                    </div>
-                </div>
-                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-800">
-                    <div
-                        style={{ width: `${Math.min(cat.percentage, 100)}%` }}
-                        className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500 ${getProgressBarColor(cat.status)}`}
-                    ></div>
-                </div>
-            </div>
-        </div>
-    );
-};
+type ViewMode = 'MONTHLY' | 'YEARLY';
 
 const Budget: React.FC = () => {
     const {
@@ -112,150 +15,208 @@ const Budget: React.FC = () => {
         updateCategoryBudget,
     } = useFinance();
 
-    // Calculate current month's income and expenses
-    const { income, expense } = useMemo(() => {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [viewMode, setViewMode] = useState<ViewMode>('MONTHLY');
 
-        return transactions.reduce((acc, tx) => {
-            const date = new Date(tx.date);
-            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                if (tx.type === 'INCOME') acc.income += tx.value;
-                else if (tx.type === 'EXPENSE') acc.expense += tx.value;
-            }
-            return acc;
-        }, { income: 0, expense: 0 });
-    }, [transactions]);
+    // Date Navigation Handlers
+    const handlePrev = () => {
+        const newDate = new Date(currentDate);
+        if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() - 1);
+        else newDate.setFullYear(newDate.getFullYear() - 1);
+        setCurrentDate(newDate);
+    };
 
-    const balance = income - expense;
+    const handleNext = () => {
+        const newDate = new Date(currentDate);
+        if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() + 1);
+        else newDate.setFullYear(newDate.getFullYear() + 1);
+        setCurrentDate(newDate);
+    };
 
-    // Group expenses by category for current month
-    const expensesByCategory = useMemo(() => {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        const map = new Map<string, number>();
+    // Calculate Data based on View Mode
+    const { income, expense, expensesByCategory } = useMemo(() => {
+        const targetMonth = currentDate.getMonth();
+        const targetYear = currentDate.getFullYear();
+        const catMap = new Map<string, number>();
+        let inc = 0;
+        let exp = 0;
 
         transactions.forEach(tx => {
             const date = new Date(tx.date);
-            if (tx.type === 'EXPENSE' && date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                const current = map.get(tx.categoryId) || 0;
-                map.set(tx.categoryId, current + tx.value);
+            const txYear = date.getFullYear();
+            const txMonth = date.getMonth();
+
+            const isMatch = viewMode === 'MONTHLY'
+                ? txYear === targetYear && txMonth === targetMonth
+                : txYear === targetYear;
+
+            if (isMatch) {
+                if (tx.type === 'INCOME') inc += tx.value;
+                else if (tx.type === 'EXPENSE') {
+                    exp += tx.value;
+                    const cur = catMap.get(tx.categoryId) || 0;
+                    catMap.set(tx.categoryId, cur + tx.value);
+                }
             }
         });
-        return map;
-    }, [transactions]);
 
-    // Merge categories with budget data
+        return { income: inc, expense: exp, expensesByCategory: catMap };
+    }, [transactions, currentDate, viewMode]);
+
+    // Merge Budgets
     const budgetData = useMemo(() => {
         return categories.map(cat => {
             const spent = expensesByCategory.get(cat.id) || 0;
-            const budgetItem = categoryBudgets.find(b => b.categoryId === cat.id);
-            const limit = budgetItem ? budgetItem.limit : 0;
+            // For yearly view, the limit should probably be multiplied by 12?
+            // Or we leave it as "Average Monthly Limit"?
+            // The screenshot shows "Saldo do plano", suggesting a total calculation.
+            // If the user sets a monthly limit of 1000, the yearly limit is 12000.
+            const baseLimit = categoryBudgets.find(b => b.categoryId === cat.id)?.limit || 0;
+            const limit = viewMode === 'YEARLY' ? baseLimit * 12 : baseLimit;
+
             const remaining = Math.max(0, limit - spent);
             const percentage = limit > 0 ? (spent / limit) * 100 : (spent > 0 ? 100 : 0);
 
-            let status: 'ok' | 'warning' | 'danger' | 'critical' = 'ok';
-            if (limit > 0) {
-                if (percentage >= 100) status = 'critical';
-                else if (percentage >= 90) status = 'danger';
-                else if (percentage >= 75) status = 'warning';
-            }
+            return { ...cat, spent, limit, remaining, percentage };
+        }).sort((a, b) => b.spent - a.spent);
+    }, [categories, expensesByCategory, categoryBudgets, viewMode]);
 
-            return {
-                ...cat,
-                spent,
-                limit,
-                remaining,
-                percentage,
-                status
-            };
-        }).sort((a, b) => {
-            // Stable sort: Spend desc -> Name asc
-            const diff = b.spent - a.spent;
-            if (diff !== 0) return diff;
-            return a.name.localeCompare(b.name);
-        });
-    }, [categories, expensesByCategory, categoryBudgets]);
-
-    // Calculate Totals for Projection
+    // Totals
     const totalBudgeted = budgetData.reduce((acc, curr) => acc + curr.limit, 0);
-    const projectedBalance = income - totalBudgeted;
+    const projectedBalance = income - totalBudgeted; // Income - Plans
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'critical': return 'text-red-500 bg-red-500/10 border-red-500/30';
-            case 'danger': return 'text-orange-500 bg-orange-500/10 border-orange-500/30';
-            case 'warning': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30';
-            default: return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
-        }
-    };
-
-    const getProgressBarColor = (status: string) => {
-        switch (status) {
-            case 'critical': return 'bg-red-500';
-            case 'danger': return 'bg-orange-500';
-            case 'warning': return 'bg-yellow-500';
-            default: return 'bg-emerald-500';
-        }
-    };
+    // Header Title
+    const headerTitle = viewMode === 'MONTHLY'
+        ? `${getMonthName(currentDate.getMonth())} de ${currentDate.getFullYear()}`
+        : `${currentDate.getFullYear()}`;
 
     return (
         <div className="p-6 space-y-8 pb-24 animate-fade-in min-h-screen">
-            <div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Metas Financeiras</h2>
-                <p className="text-gray-500 text-sm">Defina limites e acompanhe seus gastos mensais.</p>
+            {/* Header: Title & Controls */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Metas Financeiras</h2>
+                    <p className="text-gray-500 text-sm">Planeje e controle seu orçamento futuro.</p>
+                </div>
+
+                <div className="flex items-center gap-4 bg-gray-900/50 p-2 rounded-xl border border-gray-800">
+                    <button onClick={handlePrev} className="p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-white transition-colors">
+                        <ChevronLeft size={20} />
+                    </button>
+
+                    <div className="flex items-center gap-2 px-2 min-w-[180px] justify-center text-white font-bold">
+                        <Calendar size={18} className="text-blue-400" />
+                        <span>{headerTitle}</span>
+                    </div>
+
+                    <button onClick={handleNext} className="p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-white transition-colors">
+                        <ChevronRight size={20} />
+                    </button>
+
+                    <div className="w-px h-6 bg-gray-700 mx-2"></div>
+
+                    <select
+                        value={viewMode}
+                        onChange={(e) => setViewMode(e.target.value as ViewMode)}
+                        className="bg-transparent text-sm font-medium text-gray-300 outline-none cursor-pointer hover:text-white"
+                    >
+                        <option value="MONTHLY" className="bg-gray-900">Mensal</option>
+                        <option value="YEARLY" className="bg-gray-900">Anual</option>
+                    </select>
+                </div>
             </div>
 
-            {/* Income/Expense Summary Header */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800">
-                    <p className="text-gray-400 text-sm font-medium mb-1">Renda Mensal</p>
-                    <h3 className="text-2xl font-bold text-white">{formatCurrency(income)}</h3>
+                {/* Income */}
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <TrendingUp size={48} className="text-emerald-500" />
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">Renda {viewMode === 'MONTHLY' ? 'Mensal' : 'Anual'}</p>
+                    <h3 className="text-2xl font-bold text-emerald-400">{formatCurrency(income)}</h3>
                 </div>
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800">
-                    <p className="text-gray-400 text-sm font-medium mb-1">Gastos Atuais</p>
+
+                {/* Expenses */}
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Wallet size={48} className="text-red-500" />
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">Gastos {viewMode === 'MONTHLY' ? 'do Mês' : 'do Ano'}</p>
                     <h3 className="text-2xl font-bold text-red-400">{formatCurrency(expense)}</h3>
                 </div>
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800">
-                    <p className="text-gray-400 text-sm font-medium mb-1">Total Metas</p>
+
+                {/* Total Budgeted */}
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <PiggyBank size={48} className="text-blue-500" />
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">Total Planejado</p>
                     <h3 className="text-2xl font-bold text-blue-400">{formatCurrency(totalBudgeted)}</h3>
                 </div>
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800">
-                    <p className="text-gray-400 text-sm font-medium mb-1">Saldo Projetado</p>
+
+                {/* Projected Balance */}
+                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <AlertTriangle size={48} className={projectedBalance >= 0 ? "text-emerald-500" : "text-amber-500"} />
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">Saldo do Plano</p>
                     <h3 className={`text-2xl font-bold ${projectedBalance >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatCurrency(projectedBalance)}</h3>
-                    <p className="text-[10px] text-gray-500 mt-1">(Renda - Metas)</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Renda - Metas</p>
                 </div>
             </div>
 
-            {/* Advice/Alert Box */}
-            {budgetData.some(b => b.status === 'critical' || b.status === 'danger') && (
-                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-start gap-4">
-                    <div className="p-2 bg-red-500/20 rounded-full text-red-500 shrink-0">
-                        <AlertTriangle size={20} />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-red-400 mb-1">Atenção aos Gastos!</h4>
-                        <p className="text-sm text-gray-300">Você atingiu ou ultrapassou o limite de gastos em algumas categorias. Revise suas despesas para manter o orçamento em dia.</p>
-                    </div>
+            {/* List Header */}
+            <div className="pt-4">
+                <h3 className="text-xl font-bold text-white mb-6">Categorias & Metas</h3>
+
+                <div className="space-y-6">
+                    {budgetData.map(cat => (
+                        <div key={cat.id} className="flex flex-col gap-2">
+                            {/* Row Top: Info & Values */}
+                            <div className="flex justify-between items-end mb-1">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
+                                        <CategoryIcon iconName={cat.icon} size={16} />
+                                    </div>
+                                    <span className="text-gray-300 font-medium">{cat.name}</span>
+                                </div>
+                                <div className="text-right text-xs">
+                                    <span className="text-gray-500">Gasto: </span>
+                                    <span className="text-white font-bold mr-3">{formatCurrency(cat.spent)}</span>
+
+                                    <span className="text-gray-500">Meta: </span>
+                                    <span className="text-blue-400 font-bold">{formatCurrency(cat.limit)}</span>
+                                </div>
+                            </div>
+
+                            {/* Slider Component */}
+                            <BudgetSlider
+                                spent={cat.spent}
+                                limit={cat.limit}
+                                color={cat.color}
+                                onChangeLimit={(val) => {
+                                    // If Yearly, we need to convert back to monthly?
+                                    // Or we only allow editing in Monthly view?
+                                    // Let's assume editing in Yearly updates the monthly average (val / 12)
+                                    const monthlyLimit = viewMode === 'YEARLY' ? Math.round(val / 12) : val;
+                                    updateCategoryBudget(cat.id, monthlyLimit);
+                                }}
+                            />
+
+                            {/* Row Bottom: Status Text */}
+                            <div className="flex justify-between text-[11px] text-gray-500 px-1">
+                                <span>{cat.limit > 0 ? `${cat.percentage.toFixed(0)}% da meta` : 'Sem meta definida'}</span>
+                                <span className={cat.remaining === 0 && cat.limit > 0 ? "text-red-400" : "text-emerald-500/80"}>
+                                    {cat.limit === 0 ? '' : cat.remaining > 0 ? `Resta ${formatCurrency(cat.remaining)}` : `Ultrapassou ${formatCurrency(Math.abs(cat.remaining))}`}
+                                </span>
+                            </div>
+
+                        </div>
+                    ))}
                 </div>
-            )}
-
-
-            {/* Budget List */}
-            <div className="space-y-4">
-                {budgetData.map(cat => (
-                    <BudgetCategoryRow
-                        key={cat.id}
-                        category={cat}
-                        updateBudget={updateCategoryBudget}
-                        getStatusColor={getStatusColor}
-                        getProgressBarColor={getProgressBarColor}
-                    />
-                ))}
             </div>
+
         </div>
     );
 };
