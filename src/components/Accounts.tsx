@@ -473,11 +473,14 @@ const Accounts: React.FC = () => {
                                             </div>
 
                                             <div className="flex gap-3">
-                                                <button onClick={() => handleEditClick(card)} className="flex-1 py-2.5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
-                                                    Detalhes
+                                                <button onClick={() => handleDelete(card.id, card.name)} className="px-3 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-colors flex items-center justify-center" title="Excluir Cartão">
+                                                    <Trash2 size={20} />
+                                                </button>
+                                                <button onClick={() => handleEditClick(card)} className="flex-1 py-2.5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                                                    <Edit2 size={16} /> Editar
                                                 </button>
                                                 <button onClick={() => openPaymentModal(card)} className="flex-1 py-2.5 bg-[#0f172a] dark:bg-accent text-white font-bold text-sm rounded-xl hover:opacity-90 transition-colors">
-                                                    Pagar Fatura
+                                                    Pagar
                                                 </button>
                                             </div>
                                         </div>

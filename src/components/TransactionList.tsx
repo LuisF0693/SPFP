@@ -16,7 +16,7 @@ interface TransactionListProps {
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
-    const { transactions, categories, deleteTransaction, addCategory, updateCategory, deleteCategory, accounts, userProfile } = useFinance();
+    const { transactions, categories, deleteTransaction, deleteTransactions, updateTransactions, addCategory, updateCategory, deleteCategory, accounts, userProfile } = useFinance();
 
     // Date State
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -32,6 +32,8 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [activeTabModal, setActiveTabModal] = useState<'import' | 'export'>('import');
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkCategoryModalOpen, setIsBulkCategoryModalOpen] = useState(false);
 
     // Filter Logic
     const filteredTransactions = useMemo(() => {
@@ -245,6 +247,21 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-500">
+                                <th className="p-4 font-medium w-10">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                const ids = filteredTransactions.map(t => t.id);
+                                                setSelectedIds(new Set(ids));
+                                            } else {
+                                                setSelectedIds(new Set());
+                                            }
+                                        }}
+                                        checked={filteredTransactions.length > 0 && selectedIds.size === filteredTransactions.length}
+                                    />
+                                </th>
                                 <th className="p-4 font-medium">Data</th>
                                 <th className="p-4 font-medium">Resp.</th>
                                 <th className="p-4 font-medium">Descrição</th>
@@ -258,7 +275,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         <tbody className="divide-y divide-gray-800">
                             {filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="p-8 text-center text-gray-500 font-medium">
+                                    <td colSpan={9} className="p-8 text-center text-gray-500 font-medium">
                                         Nenhuma transação encontrada.
                                     </td>
                                 </tr>
@@ -271,7 +288,20 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                     const spender = getSpenderInfo(tx.spender);
 
                                     return (
-                                        <tr key={tx.id} className="group hover:bg-[#1e293b]/50 transition-colors">
+                                        <tr key={tx.id} className={`group hover:bg-[#1e293b]/50 transition-colors ${selectedIds.has(tx.id) ? 'bg-blue-900/10' : ''}`}>
+                                            <td className="p-4">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                                                    checked={selectedIds.has(tx.id)}
+                                                    onChange={(e) => {
+                                                        const newSet = new Set(selectedIds);
+                                                        if (e.target.checked) newSet.add(tx.id);
+                                                        else newSet.delete(tx.id);
+                                                        setSelectedIds(newSet);
+                                                    }}
+                                                />
+                                            </td>
                                             <td className="p-4 text-gray-400 text-sm font-mono whitespace-nowrap">
                                                 {formatDate(tx.date)}
                                             </td>
@@ -336,6 +366,53 @@ const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Bulk Actions Floating Bar */}
+            {selectedIds.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#1e293b] border border-gray-700 shadow-2xl rounded-full px-6 py-3 flex items-center gap-6 animate-slide-up">
+                    <span className="text-white font-bold text-sm hidden sm:inline">{selectedIds.size} selecionados</span>
+                    <div className="h-6 w-px bg-gray-700 hidden sm:block"></div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsBulkCategoryModalOpen(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-700 rounded-lg text-gray-300 transition-colors text-sm font-bold"
+                        >
+                            <Edit2 size={16} /> Editar Categoria
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (confirm(`Tem certeza que deseja excluir ${selectedIds.size} itens?`)) {
+                                    deleteTransactions(Array.from(selectedIds));
+                                    setSelectedIds(new Set());
+                                }
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-rose-500/20 text-rose-500 rounded-lg transition-colors text-sm font-bold"
+                        >
+                            <Trash2 size={16} /> Excluir
+                        </button>
+                        <button
+                            onClick={() => setSelectedIds(new Set())}
+                            className="ml-2 p-1.5 hover:bg-gray-700 rounded-full text-gray-500"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {isBulkCategoryModalOpen && (
+                <BulkCategoryModal
+                    selectedCount={selectedIds.size}
+                    categories={categories}
+                    onClose={() => setIsBulkCategoryModalOpen(false)}
+                    onApply={(catId) => {
+                        const txsToUpdate = transactions.filter(t => selectedIds.has(t.id)).map(t => ({ ...t, categoryId: catId }));
+                        updateTransactions(txsToUpdate);
+                        setIsBulkCategoryModalOpen(false);
+                        setSelectedIds(new Set());
+                    }}
+                />
+            )}
 
             {/* Category Manager Reuse Logic (Placeholder for now, assuming external modal or page) */}
             <div className="flex justify-end pt-4">
@@ -430,5 +507,42 @@ const CategoryCreator = () => {
         </form>
     )
 }
+
+const BulkCategoryModal: React.FC<{
+    selectedCount: number;
+    categories: Category[];
+    onClose: () => void;
+    onApply: (categoryId: string) => void;
+}> = ({ selectedCount, categories, onClose, onApply }) => {
+    const [selectedCat, setSelectedCat] = useState(categories[0]?.id || '');
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 shadow-2xl animate-slide-up">
+                <h3 className="font-bold text-white text-lg mb-2">Editar {selectedCount} itens</h3>
+                <p className="text-sm text-gray-400 mb-6">Selecione a nova categoria para os itens selecionados.</p>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Nova Categoria</label>
+                        <select
+                            value={selectedCat}
+                            onChange={(e) => setSelectedCat(e.target.value)}
+                            className="w-full p-3 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-blue-500"
+                        >
+                            {categories.map(c => (
+                                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex gap-3">
+                        <button onClick={onClose} className="flex-1 py-3 text-gray-500 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
+                        <button onClick={() => onApply(selectedCat)} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default TransactionList;

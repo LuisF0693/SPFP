@@ -22,6 +22,9 @@ export interface FinanceContextData extends FinanceContextType {
   isSyncing: boolean;
   isInitialLoadComplete: boolean;
   addCategory: (category: Omit<Category, 'id'>) => string;
+  addManyTransactions: (transactions: Omit<Transaction, 'id'>[]) => void;
+  deleteTransactions: (ids: string[]) => void;
+  updateTransactions: (transactions: Transaction[]) => void;
   isImpersonating: boolean;
   stopImpersonating: (redirectPath?: string) => void;
   loadClientData: (userId: string) => Promise<void>;
@@ -303,6 +306,29 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return { ...a, balance: b };
     });
     updateAndSync({ accounts: nextAcc, transactions: state.transactions.map(t => t.id === u.id ? u : t) });
+  };
+
+  const updateTransactions = (updates: Transaction[]) => {
+    let nextAcc = [...state.accounts];
+    const updateMap = new Map(updates.map(u => [u.id, u]));
+
+    // Revert old effects
+    updates.forEach(u => {
+      const old = state.transactions.find(t => t.id === u.id);
+      if (old && shouldAffectBalanceNow(old.date)) {
+        nextAcc = nextAcc.map(a => a.id === old.accountId ? { ...a, balance: a.balance + (old.type === 'INCOME' ? -old.value : old.value) } : a);
+      }
+    });
+
+    // Apply new effects
+    updates.forEach(u => {
+      if (shouldAffectBalanceNow(u.date)) {
+        nextAcc = nextAcc.map(a => a.id === u.accountId ? { ...a, balance: a.balance + (u.type === 'INCOME' ? u.value : -u.value) } : a);
+      }
+    });
+
+    const nextTxs = state.transactions.map(t => updateMap.get(t.id) || t);
+    updateAndSync({ accounts: nextAcc, transactions: nextTxs });
   };
 
   const deleteTransaction = (id: string) => {

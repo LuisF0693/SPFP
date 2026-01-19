@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Target, Trophy, TrendingUp, Calendar, Plus, MoreVertical, CreditCard } from 'lucide-react';
+import { Target, Trophy, TrendingUp, Calendar, Plus, MoreVertical, CreditCard, Edit2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
@@ -203,12 +203,22 @@ const Goals: React.FC = () => {
                                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filter === 'LONG' ? 'Longo Prazo' : filter === 'SHORT' ? 'Curto Prazo' : 'Objetivo'}</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={(e) => handleDelete(goal.id, e)}
-                                    className="text-gray-600 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
-                                >
-                                    <MoreVertical size={20} />
-                                </button>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setEditingGoal(goal); setIsFormOpen(true); }}
+                                        className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                        title="Editar"
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleDelete(goal.id, e)}
+                                        className="text-gray-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
+                                        title="Excluir"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex items-end gap-2 mb-2">
