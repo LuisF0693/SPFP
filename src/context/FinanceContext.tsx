@@ -22,7 +22,7 @@ export interface FinanceContextData extends FinanceContextType {
   isInitialLoadComplete: boolean;
   addCategory: (category: Omit<Category, 'id'>) => string;
   isImpersonating: boolean;
-  stopImpersonating: () => void;
+  stopImpersonating: (redirectPath?: string) => void;
   loadClientData: (userId: string) => Promise<void>;
   fetchAllUserData: () => Promise<any[]>;
 }
@@ -70,7 +70,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(() => {
     return localStorage.getItem(IMPERSONATED_USER_ID_KEY);
   });
-  
+
   const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
   const stateUserIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
@@ -108,22 +108,22 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const [state, setState] = useState<GlobalState>(() => {
-     // Se estiver personificando no load inicial, tenta carregar o estado desse usuário alvo
-     const storedTargetId = localStorage.getItem(IMPERSONATED_USER_ID_KEY);
-     if (storedTargetId) {
-         return getInitialState(storedTargetId);
-     }
-     return getInitialState();
+    // Se estiver personificando no load inicial, tenta carregar o estado desse usuário alvo
+    const storedTargetId = localStorage.getItem(IMPERSONATED_USER_ID_KEY);
+    if (storedTargetId) {
+      return getInitialState(storedTargetId);
+    }
+    return getInitialState();
   });
 
   useEffect(() => {
     if (user?.id && stateUserIdRef.current === user.id) {
-       // Só salva no localStorage do usuário autenticado se NÃO estiver personificando
-       // Se estiver personificando, o saveToCloud já lida com o user_id correto, 
-       // e não queremos sobrescrever o cache local do admin com dados do cliente.
-       if (!isImpersonating) {
-          localStorage.setItem(getStorageKey(user.id), JSON.stringify(state));
-       }
+      // Só salva no localStorage do usuário autenticado se NÃO estiver personificando
+      // Se estiver personificando, o saveToCloud já lida com o user_id correto, 
+      // e não queremos sobrescrever o cache local do admin com dados do cliente.
+      if (!isImpersonating) {
+        localStorage.setItem(getStorageKey(user.id), JSON.stringify(state));
+      }
     }
   }, [state, user?.id, isImpersonating]);
 
@@ -364,23 +364,23 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (data && data.content) {
         // Backup original state before impersonating if not already
         if (!isImpersonating && user) {
-             // We can optimistically save current state. 
-             // Ideally we just rely on localStorage/re-fetch for admin when they come back
-             // But let's keep the adminOriginalState in memory for quick back button within session
+          // We can optimistically save current state. 
+          // Ideally we just rely on localStorage/re-fetch for admin when they come back
+          // But let's keep the adminOriginalState in memory for quick back button within session
           setAdminOriginalState(state);
         }
-        
+
         // Update State
         setState(data.content as GlobalState);
-        stateUserIdRef.current = userId; 
+        stateUserIdRef.current = userId;
 
         // PERSIST IMPERSONATION
         localStorage.setItem(IMPERSONATION_KEY, 'true');
         localStorage.setItem(IMPERSONATED_USER_ID_KEY, userId);
-        
+
         setIsImpersonating(true);
         setImpersonatedUserId(userId);
-        
+
         window.scrollTo(0, 0);
         navigate('/'); // Redirect to Dashboard
       }
@@ -391,25 +391,25 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const stopImpersonating = () => {
+  const stopImpersonating = (redirectPath: string = '/admin') => {
     // Clear Persistence
     localStorage.removeItem(IMPERSONATION_KEY);
     localStorage.removeItem(IMPERSONATED_USER_ID_KEY);
-    
+
     setIsImpersonating(false);
     setImpersonatedUserId(null);
 
     if (adminOriginalState && user) {
       // Restore from memory if available
       setState(adminOriginalState);
-      stateUserIdRef.current = user.id; 
+      stateUserIdRef.current = user.id;
       setAdminOriginalState(null);
-      navigate('/admin');
+      navigate(redirectPath);
     } else if (user) {
-        // Fallback if full page reload happened and we lost adminOriginalState memory
-        // It will trigger useEffect to reload admin data
-         stateUserIdRef.current = user.id;
-        navigate('/admin');
+      // Fallback if full page reload happened and we lost adminOriginalState memory
+      // It will trigger useEffect to reload admin data
+      stateUserIdRef.current = user.id;
+      navigate(redirectPath);
     }
   };
 

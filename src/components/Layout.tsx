@@ -128,13 +128,13 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
 
               <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
                 <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acesso Pessoal</p>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-white/5 hover:text-white`}
+                <div
+                  onClick={() => stopImpersonating('/')}
+                  className={`flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer`}
                 >
                   <ArrowLeftRight size={22} className="mr-3 text-gray-500 group-hover:text-white" />
                   <span className="font-medium text-base">Meus Dados</span>
-                </NavLink>
+                </div>
               </div>
             </>
           ) : (
