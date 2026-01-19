@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -57,36 +58,31 @@ const AdminCRM: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-                <p className="mt-4 text-gray-500 font-medium">Carregando painel de controle...</p>
+                <p className="mt-4 text-gray-400 font-medium">Carregando painel de controle...</p>
             </div>
         );
     }
 
     return (
-        <div className="animate-fade-in max-w-6xl mx-auto pb-20 p-4 md:p-0">
+        <div className="animate-fade-in max-w-full mx-auto pb-20 p-4 md:p-2">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
-                    <div className="flex items-center space-x-2 text-accent mb-1">
-                        <ShieldCheck size={20} />
-                        <span className="text-xs font-bold uppercase tracking-widest">Acesso Administrador</span>
+                    <h1 className="text-3xl font-bold text-white mb-2">Clientes</h1>
+                    <div className="flex space-x-6 text-sm">
+                        <span className="text-white font-bold border-b-2 border-accent pb-1">Clientes ativos <span className="ml-1 text-accent">{clients.length}</span></span>
+                        <span className="text-gray-500 hover:text-gray-300 cursor-pointer transition-colors">Clientes de Demonstração</span>
+                        <span className="text-gray-500 hover:text-gray-300 cursor-pointer transition-colors">Cliente próprio</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gerenciamento de Clientes</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Visualize e acompanhe a saúde financeira de todos os usuários da plataforma.</p>
                 </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl px-4 py-3 flex items-center">
-                    <div className="mr-4 text-right hidden sm:block">
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Total de Usuários</p>
-                        <p className="text-xl font-bold text-accent">{clients.length}</p>
-                    </div>
-                    <div className="bg-accent/20 p-2 rounded-xl">
-                        <Users className="text-accent" size={24} />
-                    </div>
+                <div className="flex items-center space-x-3">
+                    <button className="px-4 py-2 border border-white/10 rounded-lg text-white text-xs font-bold uppercase tracking-wider hover:bg-white/5 transition-colors">Ativos</button>
+                    <button className="px-4 py-2 border border-white/10 rounded-lg text-gray-500 text-xs font-bold uppercase tracking-wider hover:bg-white/5 transition-colors">Inativos</button>
                 </div>
             </div>
 
             {error && (
-                <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-2xl flex items-start">
+                <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl flex items-start">
                     <AlertCircle size={20} className="mr-3 shrink-0 mt-0.5" />
                     <div>
                         <p className="font-bold text-sm">Erro de Permissão</p>
@@ -96,74 +92,81 @@ const AdminCRM: React.FC = () => {
             )}
 
             {/* Barra de Busca */}
-            <div className="bg-white dark:bg-black p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-900 mb-6 flex items-center group transition-colors focus-within:border-accent">
-                <Search className="text-gray-400 group-focus-within:text-accent transition-colors mr-3" size={20} />
-                <input
-                    type="text"
-                    placeholder="Buscar cliente por nome ou e-mail..."
-                    className="bg-transparent border-none outline-none w-full text-gray-900 dark:text-white placeholder-gray-500 font-medium"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="bg-white/5 p-4 rounded-t-3xl border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center bg-black/40 px-4 py-2 rounded-xl border border-white/10 w-full max-w-md focus-within:border-accent transition-colors">
+                    <Search className="text-gray-500 mr-3" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Busque pelo nome do cliente"
+                        className="bg-transparent border-none outline-none w-full text-white placeholder-gray-600 font-medium text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center text-gray-400 text-sm">
+                    <span className="mr-2">Filtro</span>
+                    {/* Placeholder for filter icon */}
+                </div>
             </div>
 
-            {/* Lista de Clientes */}
-            <div className="bg-white dark:bg-black rounded-3xl shadow-xl border border-gray-100 dark:border-gray-900 overflow-hidden">
+            {/* Lista de Clientes - Table */}
+            <div className="bg-white/5 rounded-b-3xl shadow-xl overflow-hidden mb-6">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-900">
-                                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cliente</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Patrimônio</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden lg:table-cell">Última Sincronização</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                            <tr className="border-b border-white/5 text-gray-500">
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest pl-10">Nome</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest">E-mail</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest">Origem</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-right">Patrimônio</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-gray-900">
+                        <tbody className="divide-y divide-white/5">
                             {filteredClients.map((client) => {
                                 const profile = client.content.userProfile || {};
                                 const totalBalance = calculateBalance(client.content);
 
                                 return (
-                                    <tr key={client.user_id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
+                                    <tr key={client.user_id} className="hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-5">
                                             <div className="flex items-center">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold overflow-hidden border border-gray-200 dark:border-gray-800 mr-3">
-                                                    {profile.avatar ? (
-                                                        <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User size={18} />
-                                                    )}
+                                                {/* Status Indicator Dots (Mockup) */}
+                                                <div className="flex space-x-1 mr-4">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{profile.name || 'Usuário Sem Nome'}</p>
-                                                    <div className="flex items-center text-xs text-gray-500">
-                                                        <Mail size={12} className="mr-1" />
-                                                        {profile.email || 'Email não disponível'}
+
+                                                <div className="flex items-center">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-gray-400 font-bold overflow-hidden border border-white/10 mr-3 text-xs">
+                                                        {profile.avatar ? (
+                                                            <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User size={14} />
+                                                        )}
                                                     </div>
+                                                    <p className="text-sm font-medium text-white group-hover:text-accent transition-colors">{profile.name || 'Usuário Sem Nome'}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5 hidden md:table-cell">
-                                            <span className={`text-sm font-bold ${totalBalance >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                        <td className="px-6 py-5 text-sm text-gray-400">
+                                            {profile.email || 'Email não disponível'}
+                                        </td>
+                                        <td className="px-6 py-5 text-sm text-gray-500">
+                                            Networking Planejador /
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <span className={`text-sm font-bold ${totalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalBalance)}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-5 hidden lg:table-cell">
-                                            <div className="flex items-center text-xs text-gray-500">
-                                                <Clock size={14} className="mr-1.5" />
-                                                {formatDate(client.last_updated)}
-                                            </div>
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <button
                                                 onClick={() => loadClientData(client.user_id)}
                                                 disabled={isSyncing}
-                                                className="inline-flex items-center px-4 py-2 bg-accent hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                                className="text-gray-500 hover:text-white transition-colors"
                                             >
-                                                <Eye size={14} className="mr-2" />
-                                                Ver Dados
-                                                <ArrowRight size={14} className="ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                                <Eye size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -172,9 +175,9 @@ const AdminCRM: React.FC = () => {
 
                             {filteredClients.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-20 text-center">
+                                    <td colSpan={5} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center">
-                                            <Database className="text-gray-200 dark:text-gray-800 mb-4" size={60} />
+                                            <Database className="text-gray-800 mb-4" size={60} />
                                             <p className="text-gray-500 font-medium">Nenhum cliente encontrado.</p>
                                             <button onClick={() => setSearchTerm('')} className="text-accent text-sm font-bold mt-2 hover:underline">Limpar busca</button>
                                         </div>
@@ -190,3 +193,4 @@ const AdminCRM: React.FC = () => {
 };
 
 export default AdminCRM;
+

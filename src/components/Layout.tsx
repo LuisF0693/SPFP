@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -8,21 +8,19 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
+  mode?: 'personal' | 'crm';
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useFinance();
   const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (userProfile.theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [userProfile.theme]);
+    // Force dark mode for premium feel
+    document.documentElement.classList.add('dark');
+  }, []);
 
   const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
     { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
@@ -49,6 +47,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'admin', path: '/admin', icon: ShieldCheck, label: 'Painel Admin' },
   ];
 
+  const crmNavItems = [
+    { id: 'dashboard', path: '/admin', icon: Users, label: 'Gerenciar Clientes' },
+    // { id: 'settings', path: '/admin/settings', icon: Settings, label: 'Configurações CRM' }, // Future use
+  ];
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Tem certeza que deseja sair da sua conta?')) {
@@ -61,7 +64,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (currentPath === '/' || currentPath === '/dashboard') return 'Visão Geral';
     if (currentPath === '/settings') return 'Configurações';
     if (currentPath === '/admin') return 'Painel Administrativo';
-    const item = [...desktopNavItems, ...adminNavItems].find(i => i.path === currentPath);
+
+    const allItems = [...desktopNavItems, ...adminNavItems, ...crmNavItems];
+    const item = allItems.find(i => i.path === currentPath);
     return item ? item.label : 'Visão Geral';
   };
 
@@ -96,52 +101,94 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
 
         <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar">
-          {desktopNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.id}
-                to={item.path}
-                className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
-                  ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
-                    <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
-
-          {isAdmin && (
-            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
-              <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Administração</p>
-              {adminNavItems.map((item) => {
+          {mode === 'crm' ? (
+            // CRM Navigation
+            <>
+              {crmNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
                     key={item.id}
                     to={item.path}
-                    className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                      ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                    end
+                    className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
+                      ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
                       : 'text-gray-400 hover:bg-white/5 hover:text-white'
                       }`}
                   >
                     {({ isActive }) => (
                       <>
-                        <Icon size={22} className={`mr-3 ${isActive ? 'text-accent drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
-                        <span className="font-medium text-base">{item.label}</span>
+                        <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                        <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
                       </>
                     )}
                   </NavLink>
                 );
               })}
-            </div>
+
+              <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
+                <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acesso Pessoal</p>
+                <NavLink
+                  to="/"
+                  className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-white/5 hover:text-white`}
+                >
+                  <ArrowLeftRight size={22} className="mr-3 text-gray-500 group-hover:text-white" />
+                  <span className="font-medium text-base">Meus Dados</span>
+                </NavLink>
+              </div>
+            </>
+          ) : (
+            // Personal Navigation
+            <>
+              {desktopNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
+                      ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      }`}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                        <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+
+              {isAdmin && (
+                <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
+                  <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Administração</p>
+                  {adminNavItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.id}
+                        to={item.path}
+                        className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
+                          ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                          : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                          }`}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon size={22} className={`mr-3 ${isActive ? 'text-accent drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+                            <span className="font-medium text-base">{item.label}</span>
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
+
         </nav>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-black">

@@ -70,21 +70,21 @@ const AppContent: React.FC = () => {
 
       <Route path="/" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Dashboard />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/accounts" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Accounts />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/transactions" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <TransactionList onEdit={handleEditTransaction} />
           </Layout>
         </PrivateRoute>
@@ -96,49 +96,49 @@ const AppContent: React.FC = () => {
       } />
       <Route path="/goals" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Goals />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/investments" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Investments />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/patrimony" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Patrimony />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/reports" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Reports />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/insights" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Insights />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/settings" element={
         <PrivateRoute>
-          <Layout>
+          <Layout mode="personal">
             <Settings />
           </Layout>
         </PrivateRoute>
       } />
       <Route path="/admin" element={
         <AdminRoute>
-          <Layout>
+          <Layout mode="crm">
             <AdminCRM />
           </Layout>
         </AdminRoute>
