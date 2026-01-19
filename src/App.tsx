@@ -16,6 +16,7 @@ import Loading from './components/ui/Loading';
 import Investments from './components/Investments';
 import Patrimony from './components/Patrimony';
 import AdminCRM from './components/AdminCRM';
+import Budget from './components/Budget';
 import { Transaction } from './types';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -126,6 +127,13 @@ const AppContent: React.FC = () => {
         <PrivateRoute>
           <Layout mode="personal">
             <Insights />
+          </Layout>
+        </PrivateRoute>
+      } />
+      <Route path="/budget" element={
+        <PrivateRoute>
+          <Layout mode="personal">
+            <Budget />
           </Layout>
         </PrivateRoute>
       } />

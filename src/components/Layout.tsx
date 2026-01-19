@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -27,7 +27,8 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investir', isFab: false },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
-    { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
+    { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
+    { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas Financeiras' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
   ];
@@ -38,7 +39,8 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
     { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investimentos' },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
-    { id: 'goals', path: '/goals', icon: Target, label: 'Metas' },
+    { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
+    { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas Financeiras' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
   ];

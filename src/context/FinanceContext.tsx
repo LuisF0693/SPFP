@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset, PatrimonyItem } from '../types';
+import { Account, Category, Transaction, FinanceContextType, UserProfile, DashboardWidget, Goal, InvestmentAsset, PatrimonyItem, CategoryBudget } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
 import { supabase } from '../supabase';
@@ -14,6 +14,7 @@ interface GlobalState {
   investments: InvestmentAsset[];
   patrimonyItems: PatrimonyItem[];
   userProfile: UserProfile;
+  categoryBudgets: CategoryBudget[];
   lastUpdated: number;
 }
 
@@ -88,6 +89,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           goals: Array.isArray(parsedData.goals) ? parsedData.goals : [],
           investments: Array.isArray(parsedData.investments) ? parsedData.investments : [],
           patrimonyItems: Array.isArray(parsedData.patrimonyItems) ? parsedData.patrimonyItems : [],
+          categoryBudgets: Array.isArray(parsedData.categoryBudgets) ? parsedData.categoryBudgets : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -102,6 +104,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       goals: [],
       investments: [],
       patrimonyItems: [],
+      categoryBudgets: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -342,6 +345,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updatePatrimonyItem = (item: PatrimonyItem) => updateAndSync({ patrimonyItems: state.patrimonyItems.map(i => i.id === item.id ? item : i) });
   const deletePatrimonyItem = (id: string) => updateAndSync({ patrimonyItems: state.patrimonyItems.filter(i => i.id !== id) });
 
+  // Budgeting Logic
+  const updateCategoryBudget = (categoryId: string, limit: number) => {
+    const existing = state.categoryBudgets.find(b => b.categoryId === categoryId);
+    let newBudgets;
+    if (existing) {
+      newBudgets = state.categoryBudgets.map(b => b.categoryId === categoryId ? { ...b, limit } : b);
+    } else {
+      newBudgets = [...state.categoryBudgets, { categoryId, limit }];
+    }
+    updateAndSync({ categoryBudgets: newBudgets });
+  };
+
   // Admin Methods
   const fetchAllUserData = async () => {
     const { data, error } = await supabase
@@ -435,7 +450,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       isImpersonating,
       stopImpersonating,
       loadClientData,
-      fetchAllUserData
+      fetchAllUserData,
+      categoryBudgets: state.categoryBudgets || [],
+      updateCategoryBudget
     }}>
       {children}
     </FinanceContext.Provider>

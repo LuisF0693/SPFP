@@ -114,6 +114,11 @@ export interface PatrimonyItem {
   acquisitionDate?: string;
 }
 
+export interface CategoryBudget {
+  categoryId: string;
+  limit: number;
+}
+
 export interface FinanceContextType {
   userProfile: UserProfile;
   updateUserProfile: (profile: UserProfile) => void;
@@ -146,4 +151,7 @@ export interface FinanceContextType {
   deletePatrimonyItem: (id: string) => void;
   getAccountBalance: (accountId: string) => number;
   totalBalance: number;
+  // Budgeting
+  categoryBudgets: CategoryBudget[];
+  updateCategoryBudget: (categoryId: string, limit: number) => void;
 }

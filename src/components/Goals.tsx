@@ -77,7 +77,7 @@ const Goals: React.FC = () => {
 
     const handleDelete = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (confirm('Tem certeza que deseja excluir esta meta?')) {
+        if (confirm('Tem certeza que deseja excluir este objetivo?')) {
             deleteGoal(id);
         }
     }
@@ -86,7 +86,7 @@ const Goals: React.FC = () => {
         <div className="p-6 space-y-8 pb-24 animate-fade-in min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Metas Financeiras</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Meus Objetivos</h2>
                     <p className="text-gray-500 text-sm">Acompanhe o progresso dos seus sonhos e objetivos.</p>
                 </div>
                 <button
@@ -97,7 +97,7 @@ const Goals: React.FC = () => {
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center"
                 >
                     <Plus size={18} className="mr-2" />
-                    Nova Meta
+                    Novo Objetivo
                 </button>
             </div>
 
@@ -118,7 +118,7 @@ const Goals: React.FC = () => {
                 {/* Metas Concluídas */}
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Metas Concluídas</span>
+                        <span className="text-gray-400 text-sm font-medium">Objetivos Concluídos</span>
                         <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500"><Trophy size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{completedGoals}</h3>
@@ -200,7 +200,7 @@ const Goals: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-white text-lg">{goal.name}</h3>
-                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filter === 'LONG' ? 'Longo Prazo' : filter === 'SHORT' ? 'Curto Prazo' : 'Meta'}</p>
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filter === 'LONG' ? 'Longo Prazo' : filter === 'SHORT' ? 'Curto Prazo' : 'Objetivo'}</p>
                                     </div>
                                 </div>
                                 <button
@@ -239,7 +239,7 @@ const Goals: React.FC = () => {
                     <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
                         <Plus size={32} />
                     </div>
-                    <span className="font-bold text-gray-500 group-hover:text-white">Criar Nova Meta</span>
+                    <span className="font-bold text-gray-500 group-hover:text-white">Criar Novo Objetivo</span>
                 </button>
             </div>
 
