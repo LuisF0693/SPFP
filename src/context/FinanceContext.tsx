@@ -160,8 +160,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (error) throw error;
         setIsSyncing(false);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Erro ao salvar na nuvem:", e);
+        // Alert the user if it's a permission error or other save failure
+        // Use a less intrusive toast in production, but for now specific alert for the admin
+        if (isImpersonating || user?.email === 'nando062218@gmail.com') {
+          alert(`Erro ao salvar dados: ${e.message || e.error_description || 'Erro desconhecido'}. Verifique as permissões.`);
+        }
         setIsSyncing(false);
       }
     }, 1500);
@@ -229,10 +234,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setState(current => {
               if (cloudData.lastUpdated > current.lastUpdated) {
                 // Ensure goals exists in cloud data structure merge
+                // Ensure all arrays exist in cloud data structure merge to prevent undefined access
                 const safeCloudData = {
                   ...cloudData,
                   goals: Array.isArray(cloudData.goals) ? cloudData.goals : [],
-                  investments: Array.isArray(cloudData.investments) ? cloudData.investments : []
+                  investments: Array.isArray(cloudData.investments) ? cloudData.investments : [],
+                  categoryBudgets: Array.isArray(cloudData.categoryBudgets) ? cloudData.categoryBudgets : [],
+                  patrimonyItems: Array.isArray(cloudData.patrimonyItems) ? cloudData.patrimonyItems : [],
                 };
                 return safeCloudData;
               }
@@ -347,12 +355,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Budgeting Logic
   const updateCategoryBudget = (categoryId: string, limit: number) => {
-    const existing = state.categoryBudgets.find(b => b.categoryId === categoryId);
+    const budgets = state.categoryBudgets || [];
+    const existing = budgets.find(b => b.categoryId === categoryId);
     let newBudgets;
     if (existing) {
-      newBudgets = state.categoryBudgets.map(b => b.categoryId === categoryId ? { ...b, limit } : b);
+      newBudgets = budgets.map(b => b.categoryId === categoryId ? { ...b, limit } : b);
     } else {
-      newBudgets = [...state.categoryBudgets, { categoryId, limit }];
+      newBudgets = [...budgets, { categoryId, limit }];
     }
     updateAndSync({ categoryBudgets: newBudgets });
   };
