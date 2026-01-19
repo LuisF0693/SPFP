@@ -424,19 +424,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setIsImpersonating(false);
     setImpersonatedUserId(null);
+    setAdminOriginalState(null); // Clear memory state as we will reload fresh
 
-    if (adminOriginalState && user) {
-      // Restore from memory if available
-      setState(adminOriginalState);
-      stateUserIdRef.current = user.id;
-      setAdminOriginalState(null);
-      navigate(redirectPath);
-    } else if (user) {
-      // Fallback if full page reload happened and we lost adminOriginalState memory
-      // It will trigger useEffect to reload admin data
-      stateUserIdRef.current = user.id;
-      navigate(redirectPath);
-    }
+    // IMPORTANT: Do NOT manually set stateUserIdRef.current here.
+    // We want the main useEffect to detect that user.id != stateUserIdRef.current (which is currently the client ID)
+    // and trigger a fresh load of the admin's data.
+
+    navigate(redirectPath);
   };
 
   return (

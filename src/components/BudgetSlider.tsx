@@ -11,11 +11,12 @@ interface BudgetSliderProps {
 export const BudgetSlider: React.FC<BudgetSliderProps> = ({ spent, limit, color, onChangeLimit }) => {
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [dragMaxValue, setDragMaxValue] = useState<number | null>(null);
 
-    // The maximum range of the slider is typically slightly more than the larger of spent or limit,
-    // to give some breathing room. Let's say max is 1.5x the higher value, or a default base.
-    // If both are 0, default to 1000.
-    const maxValue = Math.max(spent, limit, 500) * 1.5;
+    // The maximum range of the slider is typically slightly more than the larger of spent or limit.
+    // We use the latched value during drag to prevent the slider from "fighting" the user as the limit changes.
+    const currentMax = Math.max(spent, limit, 500) * 1.5;
+    const maxValue = isDragging && dragMaxValue ? dragMaxValue : currentMax;
 
     const getPercentage = (value: number) => {
         return Math.min((value / maxValue) * 100, 100);
@@ -37,6 +38,7 @@ export const BudgetSlider: React.FC<BudgetSliderProps> = ({ spent, limit, color,
 
     const handleMouseDown = (e: React.MouseEvent) => {
         setIsDragging(true);
+        setDragMaxValue(currentMax); // Snapshot the current scale
         handleInteraction(e.clientX);
     };
 

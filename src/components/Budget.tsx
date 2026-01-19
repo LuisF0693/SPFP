@@ -74,10 +74,12 @@ const Budget: React.FC = () => {
             const baseLimit = categoryBudgets.find(b => b.categoryId === cat.id)?.limit || 0;
             const limit = viewMode === 'YEARLY' ? baseLimit * 12 : baseLimit;
 
-            const remaining = Math.max(0, limit - spent);
+            const diff = limit - spent;
+            const remaining = Math.max(0, diff);
+            const overrun = diff < 0 ? Math.abs(diff) : 0;
             const percentage = limit > 0 ? (spent / limit) * 100 : (spent > 0 ? 100 : 0);
 
-            return { ...cat, spent, limit, remaining, percentage };
+            return { ...cat, spent, limit, remaining, overrun, percentage };
         }).sort((a, b) => b.spent - a.spent);
     }, [categories, expensesByCategory, categoryBudgets, viewMode]);
 
@@ -224,8 +226,8 @@ const Budget: React.FC = () => {
                             {/* Row Bottom: Status Text */}
                             <div className="flex justify-between text-[11px] text-gray-500 px-1">
                                 <span>{cat.limit > 0 ? `${cat.percentage.toFixed(0)}% da meta` : 'Sem meta definida'}</span>
-                                <span className={cat.remaining === 0 && cat.limit > 0 ? "text-red-400" : "text-emerald-500/80"}>
-                                    {cat.limit === 0 ? '' : cat.remaining > 0 ? `Resta ${formatCurrency(cat.remaining)}` : `Ultrapassou ${formatCurrency(Math.abs(cat.remaining))}`}
+                                <span className={cat.overrun > 0 ? "text-red-400" : "text-emerald-500/80"}>
+                                    {cat.limit === 0 ? '' : cat.remaining > 0 ? `Resta ${formatCurrency(cat.remaining)}` : `Ultrapassou ${formatCurrency(cat.overrun)}`}
                                 </span>
                             </div>
 
