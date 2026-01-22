@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   }, []);
 
   const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
-    { id: 'dashboard', path: '/', icon: Home, label: 'Início' },
+    { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Início' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investir', isFab: false },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
@@ -34,7 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   ];
 
   const desktopNavItems = [
-    { id: 'dashboard', path: '/', icon: Home, label: 'Dashboard' },
+    { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Dashboard' },
     { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investimentos' },
@@ -131,7 +131,7 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
               <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
                 <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acesso Pessoal</p>
                 <div
-                  onClick={() => stopImpersonating('/')}
+                  onClick={() => stopImpersonating('/dashboard')}
                   className={`flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer`}
                 >
                   <ArrowLeftRight size={22} className="mr-3 text-gray-500 group-hover:text-white" />

@@ -17,6 +17,7 @@ import Investments from './components/Investments';
 import Patrimony from './components/Patrimony';
 import AdminCRM from './components/AdminCRM';
 import Budget from './components/Budget';
+import { SalesPage } from './components/SalesPage';
 import { Transaction } from './types';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,7 +30,8 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading, isAdmin } = useAuth();
   if (loading) return <Loading />;
-  if (!user || !isAdmin) return <Navigate to="/" />;
+  if (!user) return <Navigate to="/login" />;
+  if (!isAdmin) return <Navigate to="/dashboard" />;
   return <>{children}</>;
 };
 
@@ -66,10 +68,13 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <Routes>
-      <Route path="/login" element={!user ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/" />)} />
 
-      <Route path="/" element={
+    <Routes>
+      <Route path="/login" element={!user ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
+
+      <Route path="/" element={<SalesPage />} />
+
+      <Route path="/dashboard" element={
         <PrivateRoute>
           <Layout mode="personal">
             <Dashboard />
