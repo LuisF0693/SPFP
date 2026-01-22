@@ -30,6 +30,10 @@ export interface AIConfig {
   model?: string;
 }
 
+/**
+ * User profile and settings configuration.
+ * Includes personal details, family information, and application preferences.
+ */
 export interface UserProfile {
   name: string;
   email: string;
@@ -51,6 +55,9 @@ export interface UserProfile {
   aiConfig?: AIConfig;
 }
 
+/**
+ * Represents a financial account (Bank, Investment, Credit Card).
+ */
 export interface Account {
   id: string;
   name: string;
@@ -65,6 +72,9 @@ export interface Account {
   dueDay?: number;
 }
 
+/**
+ * Categorization metadata for transactions.
+ */
 export interface Category {
   id: string;
   name: string;
@@ -73,6 +83,9 @@ export interface Category {
   icon?: string; // Nome do ícone (chave do mapa de ícones)
 }
 
+/**
+ * Represents a single financial movement (Income or Expense).
+ */
 export interface Transaction {
   id: string;
   accountId: string;
@@ -85,6 +98,9 @@ export interface Transaction {
   spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
 }
 
+/**
+ * Financial objective with tracking and deadline.
+ */
 export interface Goal {
   id: string;
   name: string;
@@ -98,6 +114,9 @@ export interface Goal {
 
 export type InvestmentType = 'STOCK' | 'FII' | 'ETF' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
 
+/**
+ * Market investment asset (Stock, FII, Crypto, etc.).
+ */
 export interface InvestmentAsset {
   id: string;
   ticker: string;
@@ -112,6 +131,9 @@ export interface InvestmentAsset {
 
 export type PatrimonyType = 'REAL_ESTATE' | 'VEHICLE' | 'MILES' | 'DEBT' | 'FINANCIAL' | 'OTHER';
 
+/**
+ * Physical or non-market asset/debt (Real Estate, Vehicles, Miles).
+ */
 export interface PatrimonyItem {
   id: string;
   type: PatrimonyType;

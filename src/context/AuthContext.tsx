@@ -17,6 +17,11 @@ const ADMIN_EMAILS = ['nando062218@gmail.com'];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Auth Provider component.
+ * Manages user authentication state, including login, registration, and logout.
+ * Uses Supabase Auth for session management and defines administrative access.
+ */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -45,6 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  /**
+   * Initiates Google OAuth sign-in flow.
+   */
   const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -57,6 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Signs in a user using email and password.
+   * @param email - User's email
+   * @param pass - User's password
+   */
   const signInWithEmail = async (email: string, pass: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -70,6 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Registers a new user with email, password, and display name.
+   * @param email - User's email
+   * @param pass - User's password
+   * @param name - User's full name
+   */
   const registerWithEmail = async (email: string, pass: string, name: string) => {
     try {
       const { error, data } = await supabase.auth.signUp({
@@ -89,6 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Logs out the current user and clears local authentication state.
+   */
   const logout = async () => {
     try {
       // Limpar estado local imediatamente para evitar flash de conteúdo

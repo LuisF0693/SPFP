@@ -78,9 +78,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-black overflow-hidden w-full font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div className="flex h-screen bg-bg-dark overflow-hidden w-full font-sans text-text-primary transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 bg-white dark:bg-black flex-col shadow-xl z-20 border-r border-gray-200 dark:border-gray-900 transition-colors duration-300">
+      <aside className="hidden md:flex w-72 bg-card-dark flex-col shadow-xl z-20 border-r border-white/5 transition-colors duration-300">
         <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-center space-x-4">
           <div className="p-2 shrink-0">
             <Logo size={42} />

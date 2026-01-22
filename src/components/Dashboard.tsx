@@ -27,32 +27,38 @@ export const Dashboard: React.FC = () => {
   const currentYear = today.getFullYear();
 
   // Filter current month transactions
-  const currentMonthTx = transactions.filter(t => {
+  const currentMonthTx = React.useMemo(() => transactions.filter(t => {
     const d = new Date(t.date);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  });
+  }), [transactions, currentMonth, currentYear]);
 
-  const lastMonthTx = transactions.filter(t => {
+  const lastMonthTx = React.useMemo(() => transactions.filter(t => {
     const d = new Date(t.date);
     // Handle Jan -> Dec wrap for last month
     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
     return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  });
+  }), [transactions, currentMonth, currentYear]);
 
   // Calculate Totals
-  const totalIncome = currentMonthTx.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.value, 0);
-  const totalExpense = currentMonthTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
+  const { totalIncome, totalExpense } = React.useMemo(() => {
+    const income = currentMonthTx.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.value, 0);
+    const expense = currentMonthTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
+    return { totalIncome: income, totalExpense: expense };
+  }, [currentMonthTx]);
 
-  const lastMonthIncome = lastMonthTx.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.value, 0);
-  const lastMonthExpense = lastMonthTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
+  const { lastMonthIncome, lastMonthExpense } = React.useMemo(() => {
+    const income = lastMonthTx.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.value, 0);
+    const expense = lastMonthTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.value, 0);
+    return { lastMonthIncome: income, lastMonthExpense: expense };
+  }, [lastMonthTx]);
 
   // Comparisons
   // const incomeGrowth = lastMonthIncome > 0 ? ((totalIncome - lastMonthIncome) / lastMonthIncome) * 100 : 0;
   // const expenseGrowth = lastMonthExpense > 0 ? ((totalExpense - lastMonthExpense) / lastMonthExpense) * 100 : 0;
 
   // BUDGET / GOALS LOGIC
-  const budgetAlerts = categories.reduce((acc, cat) => {
+  const budgetAlerts = React.useMemo(() => categories.reduce((acc, cat) => {
     const budget = categoryBudgets.find(b => b.categoryId === cat.id);
     if (!budget || budget.limit <= 0) return acc;
 
@@ -65,7 +71,7 @@ export const Dashboard: React.FC = () => {
     if (percentage >= 100) return { ...acc, critical: acc.critical + 1 };
     if (percentage >= 90) return { ...acc, warning: acc.warning + 1 };
     return acc;
-  }, { critical: 0, warning: 0 });
+  }, { critical: 0, warning: 0 }), [categories, categoryBudgets, currentMonthTx]);
 
   const totalBudgeted = categoryBudgets.reduce((sum, b) => sum + b.limit, 0);
   const isBudgetSet = totalBudgeted > 0;
@@ -73,7 +79,7 @@ export const Dashboard: React.FC = () => {
 
   // Charts Data
   // 1. Cash Flow Trends (Last 6 Months)
-  const getLast6MonthsData = () => {
+  const trendData = React.useMemo(() => {
     const data = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -90,8 +96,7 @@ export const Dashboard: React.FC = () => {
       data.push({ name: monthName, Income: income, Expense: expense });
     }
     return data;
-  };
-  const trendData = getLast6MonthsData();
+  }, [transactions, today]);
 
   // 2. Spending by Category
   const categoryData = Object.entries(

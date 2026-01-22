@@ -58,6 +58,11 @@ const getUserDisplayName = (user: any) => {
   return user?.user_metadata?.display_name || user?.user_metadata?.full_name || '';
 };
 
+/**
+ * Finance Provider component.
+ * Manages the global financial state, including transactions, accounts, budgets, and goals.
+ * Handles data synchronization with Supabase and provides impersonation logic for admin users.
+ */
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const syncTimeoutRef = useRef<any>(null);
@@ -260,6 +265,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [user, isImpersonating, impersonatedUserId]); // Re-run if impersonation changes
 
+  /**
+   * Updates the local state and triggers a cloud synchronization.
+   * @param partial - Partial state to update
+   */
   const updateAndSync = (partial: Partial<Omit<GlobalState, 'lastUpdated'>>) => {
     if (!isInitialLoadComplete && user) {
       return;
@@ -273,6 +282,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   today.setHours(23, 59, 59, 999);
   const shouldAffectBalanceNow = (date: string) => new Date(date) <= today;
 
+  /**
+   * Adds a single transaction and updates the corresponding account balance.
+   * @param d - Transaction data without ID
+   */
   const addTransaction = (d: Omit<Transaction, 'id'>) => {
     const id = generateId();
     const nextTx = [{ ...d, id }, ...state.transactions];
@@ -286,6 +299,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ transactions: nextTx, accounts: nextAcc });
   };
 
+  /**
+   * Adds multiple transactions in bulk and calculates all balance updates efficiently.
+   * @param txs - Array of transaction data without IDs
+   */
   const addManyTransactions = (txs: Omit<Transaction, 'id'>[]) => {
     const newTxs = txs.map(t => ({ ...t, id: generateId() }));
     const nextAcc = state.accounts.map(a => {
@@ -296,6 +313,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ transactions: [...newTxs, ...state.transactions], accounts: nextAcc });
   };
 
+  /**
+   * Updates an existing transaction and adjusts account balances accordingly (reverting old values and applying new ones).
+   * @param u - Updated transaction object
+   */
   const updateTransaction = (u: Transaction) => {
     const old = state.transactions.find(t => t.id === u.id);
     if (!old) return;
@@ -308,6 +329,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ accounts: nextAcc, transactions: state.transactions.map(t => t.id === u.id ? u : t) });
   };
 
+  /**
+   * Efficiently updates multiple transactions and recalculates affected balances.
+   * @param updates - Array of updated transaction objects
+   */
   const updateTransactions = (updates: Transaction[]) => {
     let nextAcc = [...state.accounts];
     const updateMap = new Map(updates.map(u => [u.id, u]));
@@ -331,6 +356,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ accounts: nextAcc, transactions: nextTxs });
   };
 
+  /**
+   * Deletes a single transaction and reverts its effect on the account balance.
+   * @param id - ID of the transaction to delete
+   */
   const deleteTransaction = (id: string) => {
     const tx = state.transactions.find(t => t.id === id);
     if (!tx) return;
@@ -338,6 +367,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ accounts: nextAcc, transactions: state.transactions.filter(t => t.id !== id) });
   };
 
+  /**
+   * Deletes multiple transactions and reverts their effects on balances in bulk.
+   * @param ids - Array of transaction IDs to delete
+   */
   const deleteTransactions = (ids: string[]) => {
     let nextAcc = [...state.accounts];
     let nextTx = [...state.transactions];
@@ -401,6 +434,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return data || [];
   };
 
+  /**
+   * Loads a client's data for admin impersonation.
+   * Fetches data from cloud and switches application context to target user.
+   * @param userId - ID of the user to impersonate
+   */
   const loadClientData = async (userId: string) => {
     setIsSyncing(true);
     try {
@@ -452,6 +490,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  /**
+   * Stops the current impersonation session and returns to the admin view.
+   * @param redirectPath - Path to navigate after stopping impersonation
+   */
   const stopImpersonating = (redirectPath: string = '/admin') => {
     // Clear Persistence
     localStorage.removeItem(IMPERSONATION_KEY);

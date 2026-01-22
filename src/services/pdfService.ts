@@ -10,6 +10,11 @@ import { parseBankStatementWithAI } from './geminiService';
 // Using local bundled worker via Vite to avoid external CDN issues
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
+/**
+ * Extracts raw text from a PDF file using PDF.js.
+ * @param file - The PDF file to extract text from
+ * @returns A promise that resolves to the extracted text
+ */
 export const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -54,6 +59,12 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     return fullText;
 };
 
+/**
+ * Parses bank statement text using regex rules and heuristics.
+ * Detects dates, values, descriptions, and installment patterns.
+ * @param text - Raw text from bank statement
+ * @returns Array of detected transaction objects
+ */
 export const parseBankStatementRules = (text: string): any[] => {
     const lines = text.split('\n');
     const transactions: any[] = [];
@@ -235,6 +246,12 @@ export const parseBankStatementRules = (text: string): any[] => {
     return transactions;
 };
 
+/**
+ * Main PDF parsing coordinator. 
+ * Extracts text and chooses between AI processing (Gemini) or rule-based parsing.
+ * @param file - The PDF file to parse
+ * @param geminiToken - Optional API token for Gemini AI
+ */
 export const parsePDF = async (file: File, geminiToken?: string): Promise<any[]> => {
     try {
         const text = await extractTextFromPDF(file);
@@ -260,6 +277,14 @@ export const parsePDF = async (file: File, geminiToken?: string): Promise<any[]>
     }
 };
 
+/**
+ * Generates a comprehensive PDF financial report using jsPDF.
+ * Includes executive summaries, goal progress, and detailed transaction lists.
+ * @param transactions - List of transactions for the period
+ * @param categories - List of available categories
+ * @param period - Label for the report period (e.g., "Janeiro 2026")
+ * @param summary - Statistical summaries for the period
+ */
 export const generatePDFReport = async (
     transactions: Transaction[],
     categories: Category[],

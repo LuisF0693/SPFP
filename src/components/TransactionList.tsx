@@ -79,7 +79,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         setSelectedYear(newYear);
     };
 
-    const getStatus = (date: string, paid: boolean) => {
+    const getStatus = React.useCallback((date: string, paid: boolean) => {
         const d = new Date(date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -89,7 +89,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         if (d < today) return { label: 'Atrasado', color: 'text-red-500', icon: Clock };
 
         return { label: 'Agendado', color: 'text-yellow-500', icon: Clock };
-    };
+    }, []);
 
     const getSpenderInfo = (spenderId?: string) => {
         if (!spenderId || spenderId === 'ME') {
