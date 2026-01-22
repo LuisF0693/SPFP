@@ -48,14 +48,12 @@ const Insights: React.FC = () => {
     try {
       const history = await getAIHistory(user.id);
       if (history.length > 0) {
-        // If we have history, we could load it as messages, 
-        // but for now, let's keep it simple and just show the last one if chat is empty
         if (messages.length === 0) {
           setMessages([{
             id: 'hist-' + Date.now(),
             role: 'assistant',
             content: history[0].response,
-            timestamp: history[0].created_at
+            timestamp: history[0].timestamp.getTime()
           }]);
         }
       }
@@ -79,9 +77,6 @@ const Insights: React.FC = () => {
     for (const modelName of models) {
       try {
         const model = genAI.getGenerativeModel({ model: modelName });
-
-        // If it's a follow-up, we use chat functionality if available or just concat
-        // Using startChat for conversational context
         const chat = model.startChat({
           history: chatHistory,
         });
@@ -98,6 +93,29 @@ const Insights: React.FC = () => {
       }
     }
     throw new Error("Nenhum modelo disponível no momento.");
+  };
+
+  const testConnection = async () => {
+    if (!hasToken) return;
+    setTestStatus('testing');
+    setError(null);
+    try {
+      const cleanToken = userProfile.geminiToken!.trim();
+      const genAI = new GoogleGenerativeAI(cleanToken);
+      const { modelName } = await tryModels(genAI, "Teste de conexão. Responda OK.");
+      setTestStatus('success');
+      console.log(`Connection success with: ${modelName}`);
+      setTimeout(() => setTestStatus('idle'), 3000);
+    } catch (err: any) {
+      console.error("Connection test failed", err);
+      setTestStatus('error');
+      const msg = err.message || "";
+      if (msg.includes("API_KEY_INVALID")) {
+        setError("Chave API Inválida. Verifique em Configurações.");
+      } else {
+        setError(`Erro no Google: ${msg.split('\n')[0]}`);
+      }
+    }
   };
 
   const getFinancialContext = () => {
@@ -276,6 +294,21 @@ const Insights: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          {hasToken && (
+            <button
+              onClick={testConnection}
+              disabled={testStatus === 'testing'}
+              className={`px-4 py-2 border rounded-xl font-bold text-xs flex items-center transition-all ${testStatus === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                testStatus === 'error' ? 'bg-red-50 text-red-600 border-red-200' :
+                  'bg-white/5 border-white/10 text-gray-400 dark:text-gray-300 hover:bg-white/10'
+                }`}
+            >
+              {testStatus === 'testing' ? <Loader2 size={14} className="mr-2 animate-spin" /> :
+                testStatus === 'success' ? <CheckCircle2 size={14} className="mr-2" /> :
+                  <RefreshCw size={14} className="mr-2" />}
+              Testar Conexão
+            </button>
+          )}
           <button
             onClick={() => handleSend("Realize um Diagnóstico Patrimonial completo e Plano de Ação.")}
             disabled={loading || !hasToken}
@@ -333,15 +366,15 @@ const Insights: React.FC = () => {
           >
             <div className={`flex gap-4 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center border ${msg.role === 'user'
-                  ? 'bg-blue-600 border-blue-400 text-white'
-                  : 'bg-white/5 border-white/10 text-blue-400'
+                ? 'bg-blue-600 border-blue-400 text-white'
+                : 'bg-white/5 border-white/10 text-blue-400'
                 }`}>
                 {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
               </div>
               <div className={`space-y-1 ${msg.role === 'user' ? 'text-right' : ''}`}>
                 <div className={`p-5 rounded-2xl shadow-sm ${msg.role === 'user'
-                    ? 'bg-blue-600/90 text-white rounded-tr-none'
-                    : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none prose prose-invert prose-sm max-w-none'
+                  ? 'bg-blue-600/90 text-white rounded-tr-none'
+                  : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none prose prose-invert prose-sm max-w-none'
                   }`}>
                   {msg.role === 'assistant' ? (
                     <div className="whitespace-pre-wrap leading-relaxed">
