@@ -72,7 +72,7 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/login" element={!user ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
 
-      <Route path="/" element={<SalesPage />} />
+      <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <SalesPage />} />
 
       <Route path="/dashboard" element={
         <PrivateRoute>

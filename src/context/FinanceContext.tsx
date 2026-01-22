@@ -443,7 +443,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setImpersonatedUserId(userId);
 
         window.scrollTo(0, 0);
-        navigate('/'); // Redirect to Dashboard
+        navigate('/dashboard'); // Redirect to Dashboard
       }
     } catch (e) {
       console.error("Erro ao carregar dados do cliente:", e);
