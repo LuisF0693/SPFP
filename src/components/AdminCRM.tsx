@@ -10,7 +10,11 @@ interface ClientEntry {
     last_updated: number;
 }
 
-const AdminCRM: React.FC = () => {
+/**
+ * Admin CRM component.
+ * Provides administrative tools for user management and platform monitoring.
+ */
+export const AdminCRM: React.FC = () => {
     const { fetchAllUserData, loadClientData, isSyncing } = useFinance();
     const { user } = useAuth();
     const [clients, setClients] = useState<ClientEntry[]>([]);
@@ -191,6 +195,4 @@ const AdminCRM: React.FC = () => {
         </div>
     );
 };
-
-export default AdminCRM;
 

@@ -7,7 +7,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import PatrimonyForm from './PatrimonyForm';
 import { Link } from 'react-router-dom';
 
-const Patrimony: React.FC = () => {
+/**
+ * Patrimony component.
+ * Manages physical and financial assets (real estate, vehicles, debts) for a complete net worth view.
+ */
+export const Patrimony: React.FC = () => {
     const { patrimonyItems, deletePatrimonyItem, investments } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<PatrimonyItem | null>(null);
@@ -253,8 +257,8 @@ const Patrimony: React.FC = () => {
                         <div key={item.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-b border-gray-50 dark:border-white/5 last:border-0">
                             <div className="col-span-6 md:col-span-5 flex items-center">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${item.type === 'VEHICLE' ? 'bg-emerald-100 text-emerald-600' :
-                                        item.type === 'MILES' ? 'bg-orange-100 text-orange-600' :
-                                            'bg-blue-100 text-blue-600'
+                                    item.type === 'MILES' ? 'bg-orange-100 text-orange-600' :
+                                        'bg-blue-100 text-blue-600'
                                     }`}>
                                     {getTypeIcon(item.type)}
                                 </div>
@@ -337,4 +341,3 @@ const Patrimony: React.FC = () => {
     );
 };
 
-export default Patrimony;

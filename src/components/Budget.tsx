@@ -7,7 +7,11 @@ import { BudgetSlider } from './BudgetSlider';
 
 type ViewMode = 'MONTHLY' | 'YEARLY';
 
-const Budget: React.FC = () => {
+/**
+ * Budget component.
+ * Manages category budgets and tracks spending limits.
+ */
+export const Budget: React.FC = () => {
     const {
         transactions,
         categories,
@@ -239,5 +243,3 @@ const Budget: React.FC = () => {
         </div>
     );
 };
-
-export default Budget;

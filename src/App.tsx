@@ -2,21 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import Accounts from './components/Accounts';
-import TransactionForm from './components/TransactionForm';
-import TransactionList from './components/TransactionList';
-import Reports from './components/Reports';
-import Insights from './components/Insights';
-import Settings from './components/Settings';
+import { Layout } from './components/Layout';
+import { Dashboard } from './components/Dashboard';
+import { Accounts } from './components/Accounts';
+import { TransactionForm } from './components/TransactionForm';
+import { TransactionList } from './components/TransactionList';
+import { Reports } from './components/Reports';
+import { Insights } from './components/Insights';
+import { Settings } from './components/Settings';
 import { Login } from './components/Login';
-import Goals from './components/Goals';
+import { Goals } from './components/Goals';
 import Loading from './components/ui/Loading';
-import Investments from './components/Investments';
-import Patrimony from './components/Patrimony';
-import AdminCRM from './components/AdminCRM';
-import Budget from './components/Budget';
+import { Investments } from './components/Investments';
+import { Patrimony } from './components/Patrimony';
+import { AdminCRM } from './components/AdminCRM';
+import { Budget } from './components/Budget';
 import { SalesPage } from './components/SalesPage';
 import { Transaction } from './types';
 
@@ -35,6 +35,10 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+/**
+ * Main application content component. 
+ * Handles authentication routing, user profile synchronization, and global navigation logic.
+ */
 const AppContent: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useFinance();
@@ -161,7 +165,11 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+/**
+ * Root Application component.
+ * Provides Context Providers (Auth, Finance) and Router to the application.
+ */
+export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -173,4 +181,3 @@ const App: React.FC = () => {
   );
 };
 
-export default App;

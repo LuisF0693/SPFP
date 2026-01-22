@@ -18,7 +18,12 @@ const COLOR_PALETTE = [
 
 type RecurrenceType = 'NONE' | 'INSTALLMENT' | 'REPEATED';
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
+/**
+ * Transaction Form component.
+ * Provides a form to create or edit financial transactions, including support for 
+ * expense/income types, categories, accounts, and recurrence logic.
+ */
+export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
     const { accounts, categories, transactions, addTransaction, addManyTransactions, updateTransaction, addCategory } = useFinance() as any;
 
     const [description, setDescription] = useState('');
@@ -552,5 +557,3 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData 
         </div>
     );
 };
-
-export default TransactionForm;

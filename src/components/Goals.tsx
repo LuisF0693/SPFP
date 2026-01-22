@@ -6,7 +6,11 @@ import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 
-const Goals: React.FC = () => {
+/**
+ * Goals component.
+ * Manages financial goals, tracking progress and allowing the creation of new objectives.
+ */
+export const Goals: React.FC = () => {
     const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -304,4 +308,3 @@ const Goals: React.FC = () => {
     );
 };
 
-export default Goals;

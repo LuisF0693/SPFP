@@ -12,7 +12,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { CategoryIcon } from './CategoryIcon';
 
-const Dashboard: React.FC = () => {
+/**
+ * Dashboard main component.
+ * Displays financial overviews, cash flow trends, account summaries, and recent transactions.
+ */
+export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets } = useFinance();
 
@@ -459,4 +463,3 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;

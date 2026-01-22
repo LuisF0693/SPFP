@@ -17,7 +17,12 @@ interface Message {
   timestamp: number;
 }
 
-const Insights: React.FC = () => {
+/**
+ * Insights component.
+ * Provides an AI-powered financial advisor chat interface.
+ * Integrates with AI services to provide context-aware financial guidance.
+ */
+export const Insights: React.FC = () => {
   const {
     transactions, totalBalance, categories, userProfile,
     investments, patrimonyItems, goals, categoryBudgets
@@ -454,5 +459,3 @@ const Insights: React.FC = () => {
     </div>
   );
 };
-
-export default Insights;

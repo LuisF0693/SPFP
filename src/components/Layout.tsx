@@ -11,7 +11,12 @@ interface LayoutProps {
   mode?: 'personal' | 'crm';
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
+/**
+ * Main Layout component.
+ * Provides the sidebar, header, and main content area structure for the application.
+ * Supports different modes such as 'personal' and 'crm'.
+ */
+export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useFinance();
   const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -295,4 +300,3 @@ const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   );
 };
 
-export default Layout;

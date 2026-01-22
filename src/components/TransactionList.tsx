@@ -5,7 +5,7 @@ import {
     Trash2, Edit2, Upload, Download, Search, Filter, ChevronLeft, ChevronRight,
     ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock, X
 } from 'lucide-react';
-import TransactionForm from './TransactionForm';
+import { TransactionForm } from './TransactionForm';
 import { Transaction, Category, CategoryGroup } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
@@ -15,7 +15,12 @@ interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
+/**
+ * Transaction List component.
+ * Displays a list of transactions with filtering, search, and bulk action capabilities.
+ * Includes monthly navigation and statistical summaries.
+ */
+export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const { transactions, categories, deleteTransaction, deleteTransactions, updateTransactions, addCategory, updateCategory, deleteCategory, accounts, userProfile } = useFinance();
 
     // Date State
@@ -544,5 +549,3 @@ const BulkCategoryModal: React.FC<{
         </div>
     );
 };
-
-export default TransactionList;

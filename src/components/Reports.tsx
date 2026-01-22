@@ -13,7 +13,12 @@ import {
 import { CategoryIcon } from './CategoryIcon';
 import { generatePDFReport } from '../services/pdfService';
 
-const Reports: React.FC = () => {
+/**
+ * Reports component.
+ * Generates financial reports with charts (flux trends, distributions) and progress for goals and budgets.
+ * Supports PDF generation.
+ */
+export const Reports: React.FC = () => {
     const { transactions, categories, totalBalance, categoryBudgets, goals } = useFinance();
 
     // State for Month Selection
@@ -406,4 +411,3 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, icon, color, tr
     </div>
 );
 
-export default Reports;

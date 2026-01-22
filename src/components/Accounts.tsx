@@ -21,7 +21,12 @@ const CARD_COLORS = [
     '#f59e0b', // Amber
 ];
 
-const Accounts: React.FC = () => {
+/**
+ * Accounts management component.
+ * Handles the display and CRUD operations for bank accounts, credit cards, and investments.
+ * Includes a dashboard for credit card limits and invoices.
+ */
+export const Accounts: React.FC = () => {
     const { accounts, addAccount, updateAccount, deleteAccount, userProfile, transactions, categories, addManyTransactions } = useFinance();
     const [showForm, setShowForm] = useState(false);
     const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
@@ -640,4 +645,3 @@ const Accounts: React.FC = () => {
     );
 };
 
-export default Accounts;

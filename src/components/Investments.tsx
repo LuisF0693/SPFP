@@ -10,7 +10,11 @@ import InvestmentImportExport from './InvestmentImportExport';
 import { MarketDataService } from '../services/MarketDataService';
 import { RefreshCw } from 'lucide-react';
 
-const Investments: React.FC = () => {
+/**
+ * Investments component.
+ * Tracks investment portfolios, assets, and performance across different markets.
+ */
+export const Investments: React.FC = () => {
     const { investments, deleteInvestment, updateInvestment, userProfile } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isImportExportOpen, setIsImportExportOpen] = useState(false);
@@ -419,5 +423,3 @@ const Investments: React.FC = () => {
         </div>
     );
 };
-
-export default Investments;

@@ -14,6 +14,11 @@ export interface AIResponse {
 /**
  * Unified service to interact with multiple AI providers.
  * Supports Google Gemini SDK and OpenAI-compatible REST APIs.
+ * 
+ * @param messages - Array of chat messages (history + current)
+ * @param config - AI configuration including provider and model settings
+ * @param legacyToken - Optional fallback token for Gemini
+ * @returns Promise with the AI response text and model used
  */
 export const chatWithAI = async (
     messages: ChatMessage[],
@@ -35,7 +40,13 @@ export const chatWithAI = async (
 };
 
 /**
- * Google Gemini SDK Implementation
+ * Handle communication with Google Gemini Generative AI models.
+ * Implements a fallback mechanism across several Gemini model versions.
+ * 
+ * @param messages - Array of chat messages in standard format
+ * @param apiKey - Google Gemini API Key
+ * @param preferredModel - Optional model name to try first
+ * @returns Promise with the AI response
  */
 async function handleGoogleGemini(
     messages: ChatMessage[],
@@ -81,7 +92,12 @@ async function handleGoogleGemini(
 }
 
 /**
- * OpenAI-compatible API Implementation (standard fetch)
+ * OpenAI-compatible API Implementation using standard fetch.
+ * Standardizes messages for GPT-style endpoints.
+ * 
+ * @param messages - Array of chat messages
+ * @param config - AI configuration with baseUrl, model, and apiKey
+ * @returns Promise with the AI response
  */
 async function handleOpenAICompatible(
     messages: ChatMessage[],

@@ -3,7 +3,12 @@ import { useFinance } from '../context/FinanceContext';
 import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 
 
-const Settings: React.FC = () => {
+/**
+ * Settings component.
+ * Handles user profile management, appearance settings (theme), 
+ * and AI provider configurations.
+ */
+export const Settings: React.FC = () => {
     const { userProfile, updateUserProfile } = useFinance();
     const [formData, setFormData] = useState(userProfile);
     const [showSuccess, setShowSuccess] = useState(false);
