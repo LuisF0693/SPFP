@@ -260,31 +260,154 @@ export const parsePDF = async (file: File, geminiToken?: string): Promise<any[]>
     }
 };
 
-export const generatePDFReport = (transactions: Transaction[], categories: Category[], period: string) => {
+export const generatePDFReport = async (
+    transactions: Transaction[],
+    categories: Category[],
+    period: string,
+    summary: {
+        totalIncome: number;
+        totalExpense: number;
+        balance: number;
+        savingsRate: number;
+        categoryData: any[];
+        goals: any[];
+        budgets: any[];
+    }
+) => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.setFontSize(18);
-    doc.text(`Relatório Financeiro - ${period}`, 14, 22);
+    // --- Header & Branding ---
+    // Background Header
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, pageWidth, 40, 'F');
 
-    const tableData = transactions.map(t => {
-        const categoryName = categories.find(c => c.id === t.categoryId)?.name || 'Sem Categoria';
-        return [
-            formatDate(t.date),
-            t.description,
-            t.type === 'INCOME' ? 'Receita' : 'Despesa',
-            categoryName,
-            formatCurrency(t.value)
-        ];
-    });
+    // Logo Text (Simulating Logo with text since we don't have base64 image easily here)
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('playfair', 'bold');
+    doc.setFontSize(24);
+    doc.text('SPFP', 14, 20);
 
-    // @ts-ignore - jspdf-autotable types might be tricky
+    doc.setFont('inter', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(148, 163, 184); // slate-400
+    doc.text('Planejador Financeiro Pessoal', 14, 28);
+
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`RELATÓRIO MENSAL - ${period.toUpperCase()}`, pageWidth - 14, 25, { align: 'right' });
+
+    // --- Executive Summary Section ---
+    doc.setTextColor(30, 41, 59); // slate-800
+    doc.setFontSize(16);
+    doc.setFont('inter', 'bold');
+    doc.text('Resumo Executivo', 14, 55);
+
+    // Summary Cards (manual drawing)
+    const cardWidth = (pageWidth - 40) / 3;
+
+    // Income Card
+    doc.setFillColor(240, 253, 244); // bg-emerald-50
+    doc.roundedRect(14, 65, cardWidth, 25, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(5, 150, 105); // emerald-600
+    doc.text('TOTAL RECEITAS', 19, 72);
+    doc.setFontSize(12);
+    doc.text(formatCurrency(summary.totalIncome), 19, 82);
+
+    // Expense Card
+    doc.setFillColor(254, 242, 242); // bg-rose-50
+    doc.roundedRect(14 + cardWidth + 6, 65, cardWidth, 25, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(225, 29, 72); // rose-600
+    doc.text('TOTAL DESPESAS', 19 + cardWidth + 6, 72);
+    doc.setFontSize(12);
+    doc.text(formatCurrency(summary.totalExpense), 19 + cardWidth + 6, 82);
+
+    // Balance Card
+    doc.setFillColor(239, 246, 255); // bg-blue-50
+    doc.roundedRect(14 + (cardWidth + 6) * 2, 65, cardWidth, 25, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(37, 99, 235); // blue-600
+    doc.text('BALANÇO LÍQUIDO', 19 + (cardWidth + 6) * 2, 72);
+    doc.setFontSize(12);
+    doc.text(formatCurrency(summary.balance), 19 + (cardWidth + 6) * 2, 82);
+
+    // Savings Rate Info
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text(`Taxa de Poupança: ${summary.savingsRate.toFixed(1)}%`, 14, 105);
+
+    // --- Goals Section (if any) ---
+    let currentY = 120;
+    if (summary.goals.length > 0) {
+        doc.setFontSize(14);
+        doc.setTextColor(30, 41, 59);
+        doc.text('Objetivos Patrimoniais', 14, currentY);
+        currentY += 10;
+
+        summary.goals.forEach(goal => {
+            const percent = Math.round((goal.currentValue / goal.targetValue) * 100);
+            doc.setFontSize(10);
+            doc.setTextColor(71, 85, 105);
+            doc.text(`${goal.name}: ${formatCurrency(goal.currentValue)} de ${formatCurrency(goal.targetValue)} (${percent}%)`, 14, currentY);
+
+            // Progress Bar
+            doc.setFillColor(226, 232, 240); // slate-200
+            doc.rect(14, currentY + 2, 100, 2, 'F');
+            doc.setFillColor(16, 185, 129); // emerald-500
+            doc.rect(14, currentY + 2, Math.min(percent, 100), 2, 'F');
+
+            currentY += 15;
+        });
+    }
+
+    // --- Detailed Transactions Table ---
+    doc.setFontSize(14);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Detalhamento de Movimentações', 14, currentY + 10);
+
+    const tableData = transactions.map(t => [
+        formatDate(t.date),
+        t.description,
+        categories.find(c => c.id === t.categoryId)?.name || 'Outros',
+        formatCurrency(t.value)
+    ]);
+
     autoTable(doc, {
-        head: [['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor']],
+        head: [['Data', 'Descrição', 'Categoria', 'Valor']],
         body: tableData,
-        startY: 30,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [22, 163, 74] }, // Green-600
+        startY: currentY + 15,
+        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        didParseCell: (data) => {
+            if (data.section === 'body' && data.column.index === 3) {
+                const tx = transactions[data.row.index];
+                if (tx.type === 'INCOME') {
+                    data.cell.styles.textColor = [5, 150, 105];
+                } else {
+                    data.cell.styles.textColor = [225, 29, 72];
+                }
+                data.cell.styles.fontStyle = 'bold' as 'bold';
+            }
+        },
+        margin: { top: 40 }
     });
 
-    doc.save(`relatorio_${period}.pdf`);
+    // --- Footer ---
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+            `Gerado em ${new Date().toLocaleDateString('pt-BR')} | Página ${i} de ${pageCount} | SPFP Intelligence`,
+            pageWidth / 2,
+            doc.internal.pageSize.getHeight() - 10,
+            { align: 'center' }
+        );
+    }
+
+    doc.save(`SPFP_Relatorio_${period.replace(' ', '_')}.pdf`);
 };
