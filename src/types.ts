@@ -23,6 +23,13 @@ export interface ChildProfile {
   avatar?: string;
 }
 
+export interface AIConfig {
+  provider: 'google' | 'openai' | 'custom' | 'platform';
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
@@ -40,7 +47,8 @@ export interface UserProfile {
   theme?: 'dark' | 'light';
   monthlySavingsTarget?: number;
   apiToken?: string; // Brapi or other API token
-  geminiToken?: string; // Google Gemini API token
+  geminiToken?: string; // Legacy Google Gemini API token
+  aiConfig?: AIConfig;
 }
 
 export interface Account {

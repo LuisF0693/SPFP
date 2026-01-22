@@ -6,9 +6,9 @@ import {
   BrainCircuit, Key, CheckCircle2, Send, User, Bot, Trash2,
   ChevronDown, Info, ShieldCheck, Target, Wallet
 } from 'lucide-react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { saveAIInteraction, getAIHistory } from '../services/aiHistoryService';
 import { formatCurrency } from '../utils';
+import { chatWithAI, ChatMessage } from '../services/aiService';
 
 interface Message {
   id: string;
@@ -33,8 +33,9 @@ const Insights: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const aiConfig = userProfile.aiConfig;
+  const hasToken = !!(aiConfig?.apiKey || userProfile.geminiToken);
   const hasData = transactions.length > 0;
-  const hasToken = !!userProfile.geminiToken;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -66,55 +67,22 @@ const Insights: React.FC = () => {
     fetchLatestInsight();
   }, [fetchLatestInsight]);
 
-  const tryModels = async (genAI: any, prompt: string, chatHistory: any[] = []) => {
-    const models = [
-      "gemini-1.5-flash",
-      "gemini-1.5-flash-latest",
-      "gemini-2.0-flash-exp",
-      "gemini-1.5-pro"
-    ];
-
-    for (const modelName of models) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const chat = model.startChat({
-          history: chatHistory,
-        });
-
-        const result = await chat.sendMessage(prompt);
-        const response = await result.response;
-        return { text: response.text(), modelName };
-      } catch (err: any) {
-        const msg = err.message || "";
-        if (msg.includes("404") || msg.includes("not found") || msg.includes("429") || msg.includes("quota")) {
-          continue;
-        }
-        throw err;
-      }
-    }
-    throw new Error("Nenhum modelo disponível no momento.");
-  };
-
   const testConnection = async () => {
     if (!hasToken) return;
     setTestStatus('testing');
     setError(null);
     try {
-      const cleanToken = userProfile.geminiToken!.trim();
-      const genAI = new GoogleGenerativeAI(cleanToken);
-      const { modelName } = await tryModels(genAI, "Teste de conexão. Responda OK.");
+      await chatWithAI(
+        [{ role: 'user', content: 'Teste de conexão. Responda apenas "OK".' }],
+        aiConfig!,
+        userProfile.geminiToken
+      );
       setTestStatus('success');
-      console.log(`Connection success with: ${modelName}`);
       setTimeout(() => setTestStatus('idle'), 3000);
     } catch (err: any) {
       console.error("Connection test failed", err);
       setTestStatus('error');
-      const msg = err.message || "";
-      if (msg.includes("API_KEY_INVALID")) {
-        setError("Chave API Inválida. Verifique em Configurações.");
-      } else {
-        setError(`Erro no Google: ${msg.split('\n')[0]}`);
-      }
+      setError(`Erro na IA: ${err.message?.split('\n')[0]}`);
     }
   };
 
@@ -184,7 +152,6 @@ const Insights: React.FC = () => {
     try {
       const context = getFinancialContext();
 
-      // Build the system instructions and current state
       const systemPrompt = `
                 # PERSONA
                 Você é o "Consultor Financeiro Pessoal CFP®", planejador financeiro certificado com 15 anos de experiência.
@@ -207,18 +174,16 @@ const Insights: React.FC = () => {
                 - Nunca garanta retornos ou recomende produtos sem contexto.
             `;
 
-      const historyForAI = messages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      }));
+      const aiMessages: ChatMessage[] = [
+        { role: 'system', content: systemPrompt },
+        ...messages.map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content
+        }) as ChatMessage),
+        { role: 'user', content: customPrompt ? `Execute a TAREFA completa de Consultoria baseada nos dados fornecidos.` : messageText }
+      ];
 
-      const cleanToken = userProfile.geminiToken!.trim();
-      const genAI = new GoogleGenerativeAI(cleanToken);
-
-      // If it's the very first message or requested "nova análise", use the full task prompt
-      const finalPrompt = customPrompt ? `${systemPrompt}\n\nExecute a TAREFA completa de Consultoria baseada nos dados fornecidos.` : messageText;
-
-      const { text, modelName } = await tryModels(genAI, finalPrompt, historyForAI);
+      const { text, modelName } = await chatWithAI(aiMessages, aiConfig!, userProfile.geminiToken);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -229,7 +194,6 @@ const Insights: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Save to history if it's a major insight
       if (customPrompt) {
         await saveAIInteraction(user!.id, "Consultoria 360", text, {
           summary: context.summary,

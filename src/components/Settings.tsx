@@ -364,18 +364,75 @@ const Settings: React.FC = () => {
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token Google Gemini (A.I. Insights)</label>
-                                <input
-                                    type="password"
-                                    value={formData.geminiToken || ''}
-                                    onChange={(e) => handleChange('geminiToken', e.target.value)}
-                                    placeholder="Cole sua API Key do Google AI Studio aqui"
-                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 font-mono text-sm"
-                                />
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Gere sua chave gratuita em <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">Google AI Studio</a>.
-                                    Esta chave é necessária para a aba de Insights gerar análises da sua carteira.
-                                </p>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Provedor de Inteligência Artificial</label>
+                                <select
+                                    value={formData.aiConfig?.provider || 'google'}
+                                    onChange={(e) => {
+                                        const provider = e.target.value as any;
+                                        handleChange('aiConfig', {
+                                            ...(formData.aiConfig || {}),
+                                            provider,
+                                            // Set reasonable defaults for new providers
+                                            baseUrl: provider === 'openai' ? 'https://api.openai.com/v1' : (formData.aiConfig?.baseUrl || ''),
+                                            model: provider === 'google' ? 'gemini-1.5-flash' : (provider === 'openai' ? 'gpt-4o-mini' : (formData.aiConfig?.model || ''))
+                                        });
+                                    }}
+                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 mb-4"
+                                >
+                                    <option value="google">Google Gemini (Recomendado)</option>
+                                    <option value="openai">OpenAI (ChatGPT)</option>
+                                    <option value="custom">Customizado (DeepSeek, Groq, Ollama...)</option>
+                                </select>
+
+                                <div className="space-y-4 animate-fade-in">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 mb-1">Chave de API (API Key)</label>
+                                        <input
+                                            type="password"
+                                            value={formData.aiConfig?.apiKey || (formData.aiConfig?.provider === 'google' ? formData.geminiToken : '') || ''}
+                                            onChange={(e) => handleChange('aiConfig', { ...(formData.aiConfig || {}), apiKey: e.target.value })}
+                                            placeholder="Cole sua API Key aqui"
+                                            className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                                        />
+                                    </div>
+
+                                    {(formData.aiConfig?.provider === 'openai' || formData.aiConfig?.provider === 'custom') && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-gray-500 mb-1">Base URL (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.aiConfig?.baseUrl || ''}
+                                                    onChange={(e) => handleChange('aiConfig', { ...(formData.aiConfig || {}), baseUrl: e.target.value })}
+                                                    placeholder="https://api.openai.com/v1"
+                                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-gray-500 mb-1">Modelo (ex: gpt-4o)</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.aiConfig?.model || ''}
+                                                    onChange={(e) => handleChange('aiConfig', { ...(formData.aiConfig || {}), model: e.target.value })}
+                                                    placeholder="gpt-4o-mini"
+                                                    className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900 dark:text-gray-100 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-4 p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                                    <p className="text-[10px] text-gray-500 leading-relaxed">
+                                        {formData.aiConfig?.provider === 'google' ? (
+                                            <>Gere sua chave gratuita em <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">Google AI Studio</a>.</>
+                                        ) : formData.aiConfig?.provider === 'openai' ? (
+                                            <>Gere sua chave em <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">OpenAI Dashboard</a>.</>
+                                        ) : (
+                                            <>Use qualquer API compatível com o padrão OpenAI. Ideal para DeepSeek, Local Ollama ou Provedores de Proxy.</>
+                                        )}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
