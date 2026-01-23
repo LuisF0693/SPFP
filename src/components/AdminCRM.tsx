@@ -48,19 +48,24 @@ export const AdminCRM: React.FC = () => {
     const handleGenerateBriefing = async (client: ClientEntry) => {
         if (briefings[client.user_id] || loadingBriefing) return;
 
-        const apiKey = userProfile?.geminiToken || userProfile?.apiToken;
+        // Try to get API Key from aiConfig first, then legacy fields
+        const aiConfig = userProfile?.aiConfig;
+        const apiKey = aiConfig?.apiKey || userProfile?.geminiToken || userProfile?.apiToken;
+        const provider = aiConfig?.provider || 'google';
+
         if (!apiKey) {
-            alert("Token Gemini/API não configurado no seu perfil.");
+            alert("Chave de API não configurada. Vá em 'Perfil/Configurações' e adicione sua chave Gemini.");
             return;
         }
 
         setLoadingBriefing(client.user_id);
         try {
             const content = client.content || {};
+            // Robust data extraction with fallbacks
             const relevantData = {
-                accounts: content.accounts?.map((a: any) => ({ name: a.name, balance: a.balance })),
-                recentTransactions: content.transactions?.slice(0, 20).map((t: any) => ({ category: t.category, value: t.value, type: t.type, date: t.date })),
-                goals: content.goals?.map((g: any) => ({ title: g.title, target: g.targetValue, current: g.currentValue }))
+                accounts: (content.accounts || []).slice(0, 10).map((a: any) => ({ name: a.name, balance: a.balance })),
+                recentTransactions: (content.transactions || []).slice(0, 15).map((t: any) => ({ category: t.category, value: t.value, type: t.type, date: t.date })),
+                goals: (content.goals || []).slice(0, 5).map((g: any) => ({ title: g.title, target: g.targetValue, current: g.currentValue }))
             };
 
             const prompt = `Analise os dados financeiros deste cliente e retorne APENAS 3 bullet points curtos (máximo 15 palavras cada) em Markdown sobre:
@@ -68,17 +73,18 @@ export const AdminCRM: React.FC = () => {
 (2) Tendência de saúde do patrimônio.
 (3) Um alerta ou oportunidade estratégica imediata para o planejador.
 
-Dados: ${JSON.stringify(relevantData)}`;
+Dados do Cliente: ${JSON.stringify(relevantData)}`;
 
             const response = await chatWithAI(
-                [{ role: 'system', content: 'Você é um Analista de CRM Agentico de elite.' }, { role: 'user', content: prompt }],
-                { provider: 'google', apiKey: apiKey }
+                [{ role: 'system', content: 'Você é um Analista de CRM Agentico de elite. Seja conciso e direto.' }, { role: 'user', content: prompt }],
+                { provider: provider as any, apiKey: apiKey, model: aiConfig?.model }
             );
 
             setBriefings(prev => ({ ...prev, [client.user_id]: response.text }));
-        } catch (err) {
-            console.error("Erro ao gerar briefing:", err);
-            alert("Falha ao conectar com a IA para gerar o resumo.");
+        } catch (err: any) {
+            console.error("Erro detalhado ao gerar briefing:", err);
+            const errorMsg = err.message || "Erro desconhecido na conexão com a IA.";
+            alert(`Falha ao conectar com a IA: ${errorMsg}`);
         } finally {
             setLoadingBriefing(null);
         }
