@@ -3,7 +3,8 @@ import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate } from '../utils';
 import {
   Wallet, TrendingUp, Target, MoreHorizontal,
-  ArrowUpRight, CreditCard, AlertTriangle, CheckCircle, PieChart as PieChartIcon
+  ArrowUpRight, CreditCard, AlertTriangle, CheckCircle, PieChart as PieChartIcon,
+  AlertCircle
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -75,6 +76,77 @@ export const Dashboard: React.FC = () => {
 
   const totalBudgeted = categoryBudgets.reduce((sum, b) => sum + b.limit, 0);
   const isBudgetSet = totalBudgeted > 0;
+
+  // 3. ATYPICAL SPENDING DETECTION
+  const atypicalAlerts = React.useMemo(() => {
+    // Media de gastos por categoria nos últimos 3 meses (simplificado para histórico disponível)
+    const categoryAverages: Record<string, number> = {};
+    const last3MonthsTx = transactions.filter(t => {
+      const d = new Date(t.date);
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+      return d >= threeMonthsAgo && (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear);
+    });
+
+    // Calcular média
+    last3MonthsTx.filter(t => t.type === 'EXPENSE').forEach(t => {
+      categoryAverages[t.categoryId] = (categoryAverages[t.categoryId] || 0) + (t.value / 3);
+    });
+
+    // Detectar anomalias no mês atual
+    return currentMonthTx.filter(t => t.type === 'EXPENSE').filter(t => {
+      const avg = categoryAverages[t.categoryId];
+      // Alerta se um único gasto for > 80% da média mensal daquela categoria E > R$ 200
+      return avg > 0 && t.value > (avg * 0.8) && t.value > 200;
+    });
+  }, [transactions, currentMonthTx, today, currentMonth, currentYear]);
+
+  // Combined Alerts for the UI
+  const alerts = React.useMemo(() => {
+    const list = [];
+
+    // Budget Alerts
+    categories.forEach(cat => {
+      const budget = categoryBudgets.find(b => b.categoryId === cat.id);
+      if (!budget || budget.limit <= 0) return;
+
+      const spent = currentMonthTx
+        .filter(t => t.type === 'EXPENSE' && t.categoryId === cat.id)
+        .reduce((sum, t) => sum + t.value, 0);
+
+      const percentage = (spent / budget.limit) * 100;
+      if (percentage >= 100) {
+        list.push({
+          type: 'CRITICAL',
+          title: `Orçamento Estourado: ${cat.name}`,
+          message: `Você excedeu o limite de ${formatCurrency(budget.limit)} em ${formatCurrency(spent - budget.limit)}.`,
+          icon: <AlertTriangle className="text-red-500" size={18} />,
+          link: '/budget'
+        });
+      } else if (percentage >= 90) {
+        list.push({
+          type: 'WARNING',
+          title: `Limite Próximo: ${cat.name}`,
+          message: `Você já utilizou ${percentage.toFixed(0)}% do orçamento de ${cat.name}.`,
+          icon: <AlertCircle className="text-orange-500" size={18} />,
+          link: '/budget'
+        });
+      }
+    });
+
+    // Atypical Alerts
+    atypicalAlerts.forEach(tx => {
+      list.push({
+        type: 'INFO',
+        title: 'Gasto Atípico Detectado',
+        message: `${tx.description} (${formatCurrency(tx.value)}) está acima do seu padrão habitual.`,
+        icon: <TrendingUp className="text-blue-500" size={18} />,
+        link: '/transactions'
+      });
+    });
+
+    return list;
+  }, [categories, categoryBudgets, currentMonthTx, atypicalAlerts]);
 
 
   // Charts Data
@@ -149,6 +221,42 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* CRITICAL ALERTS SECTION */}
+      {alerts.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up">
+          {alerts.map((alert, idx) => (
+            <div
+              key={idx}
+              onClick={() => navigate(alert.link)}
+              className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all hover:scale-[1.02] ${alert.type === 'CRITICAL'
+                ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40'
+                : alert.type === 'WARNING'
+                  ? 'bg-orange-500/10 border-orange-500/20 hover:border-orange-500/40'
+                  : 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40'
+                }`}
+            >
+              <div className={`p-2 rounded-lg ${alert.type === 'CRITICAL' ? 'bg-red-500/20' : alert.type === 'WARNING' ? 'bg-orange-500/20' : 'bg-blue-500/20'
+                }`}>
+                {alert.icon}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className={`text-sm font-bold ${alert.type === 'CRITICAL' ? 'text-red-400' : alert.type === 'WARNING' ? 'text-orange-400' : 'text-blue-400'
+                    }`}>
+                    {alert.title}
+                  </h4>
+                  {alert.type === 'CRITICAL' && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                  {alert.message}
+                </p>
+              </div>
+              <ArrowUpRight size={16} className="text-gray-600 self-center" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* TOP CARDS ROW */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

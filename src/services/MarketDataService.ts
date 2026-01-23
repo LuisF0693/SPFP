@@ -6,19 +6,26 @@ export interface MarketData {
     logourl?: string;
 }
 
+const CORS_PROXIES = [
+    'https://api.allorigins.win/get?url=',
+    'https://corsproxy.io/?'
+];
+
 export const MarketDataService = {
     /**
      * Fetch quotes from Yahoo Finance via a CORS proxy.
-     * Yahoo Finance symbols for Brazil usually end with .SA (e.g., PETR4.SA)
+     * Handles Brazilian stocks, FIIs, US stocks, and Crypto.
      */
     async getQuotes(tickers: string[]): Promise<MarketData[]> {
         if (!tickers.length) return [];
 
-        // Normalize tickers: ensuring they have .SA if they look like Brazilian stocks/FIIs
-        // Usually 4 letters + 1 or 2 numbers (e.g., PETR4, MXRF11)
+        // Normalize tickers
         const normalizedTickers = tickers.map(t => {
             const up = t.trim().toUpperCase();
-            if (up.length >= 5 && !up.includes('.')) {
+            // Crypto usually handled as BTC-USD, ETH-BRL etc.
+            if (up.includes('-') || up.includes('=X')) return up;
+            // Brazilian stocks/FIIs: mostly 5-6 chars without dot
+            if (up.length >= 5 && !up.includes('.') && /^[A-Z]{4}\d/.test(up)) {
                 return `${up}.SA`;
             }
             return up;
@@ -26,32 +33,37 @@ export const MarketDataService = {
 
         const uniqueTickers = [...new Set(normalizedTickers.filter(t => t))];
         const tickerString = uniqueTickers.join(',');
+        const targetUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickerString}`;
 
-        // Using a public CORS proxy to access Yahoo API from the client
-        // Note: For a real production app, you should have your own proxy backend.
-        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickerString}`;
-        // Try direct first, then proxy if it fails (using a common proxy for web apps)
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        // Attempt fetching with proxy fallbacks
+        for (const proxyBase of CORS_PROXIES) {
+            try {
+                const isAllOrigins = proxyBase.includes('allorigins');
+                const finalUrl = isAllOrigins
+                    ? `${proxyBase}${encodeURIComponent(targetUrl)}`
+                    : `${proxyBase}${encodeURIComponent(targetUrl)}`;
 
-        try {
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('Falha ao buscar cotações no Yahoo Finance');
+                const response = await fetch(finalUrl);
+                if (!response.ok) continue;
 
-            const content = await response.json();
-            const data = JSON.parse(content.contents);
+                const rawData = await response.json();
+                const data = isAllOrigins ? JSON.parse(rawData.contents) : rawData;
 
-            if (data && data.quoteResponse && data.quoteResponse.result) {
-                return data.quoteResponse.result.map((r: any) => ({
-                    symbol: r.symbol.replace('.SA', ''),
-                    longName: r.longName || r.shortName || r.symbol,
-                    regularMarketPrice: r.regularMarketPrice,
-                    logourl: `https://s.yimg.com/wm/geoblock/hq/${r.symbol.replace('.SA', '')}.png` // Simulated logo URL
-                }));
+                if (data?.quoteResponse?.result) {
+                    return data.quoteResponse.result.map((r: any) => ({
+                        symbol: r.symbol.replace('.SA', ''),
+                        longName: r.longName || r.shortName || r.symbol,
+                        regularMarketPrice: r.regularMarketPrice,
+                        logourl: `https://s.yimg.com/wm/geoblock/hq/${r.symbol.replace('.SA', '')}.png`
+                    }));
+                }
+            } catch (error) {
+                console.warn(`Proxy ${proxyBase} failed, trying next...`, error);
+                continue;
             }
-            return [];
-        } catch (error) {
-            console.error('MarketDataService (Yahoo) Error:', error);
-            throw error;
         }
+
+        console.error('All MarketDataService proxies failed.');
+        return [];
     }
 };

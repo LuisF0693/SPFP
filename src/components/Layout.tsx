@@ -48,6 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas Financeiras' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
+    { id: 'projections', path: '/projections', icon: TrendingUp, label: 'Projeções' },
   ];
 
   const adminNavItems = [
@@ -249,7 +250,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
 
             {isImpersonating && (
               <button
-                onClick={stopImpersonating}
+                onClick={() => stopImpersonating()}
                 className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-red-500/20 transition-all active:scale-95"
               >
                 <X size={16} />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { InvestmentAsset, InvestmentType } from '../types';
 import { Plus, Upload, Filter, Download, MoreVertical, TrendingUp, DollarSign, Wallet, PieChart as PieIcon, Trash2, Edit2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -21,13 +21,25 @@ export const Investments: React.FC = () => {
     const [editingAsset, setEditingAsset] = useState<InvestmentAsset | null>(null);
     const [filterType, setFilterType] = useState<string>('ALL');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-    const handleUpdatePrices = async () => {
-        if (investments.length === 0) return;
+    const handleUpdatePrices = useCallback(async (silent = false) => {
+        if (investments.length === 0 || isUpdating) return;
+
+        // Prevent too frequent updates (min 1 min)
+        if (lastRefresh && (new Date().getTime() - lastRefresh.getTime() < 60000) && silent) {
+            return;
+        }
+
         setIsUpdating(true);
         try {
             const tickers = investments.map(i => i.ticker);
             const quotes = await MarketDataService.getQuotes(tickers);
+
+            if (quotes.length === 0) {
+                if (!silent) alert('Não foi possível obter cotações no momento. Tente novamente mais tarde.');
+                return;
+            }
 
             let updatedCount = 0;
             quotes.forEach(quote => {
@@ -41,15 +53,23 @@ export const Investments: React.FC = () => {
                     updatedCount++;
                 });
             });
-            alert(`${updatedCount} ativos atualizados via Yahoo Finance!`);
+
+            setLastRefresh(new Date());
+            if (!silent) alert(`${updatedCount} ativos atualizados via Yahoo Finance!`);
         } catch (error) {
-            alert('Erro ao atualizar cotações via Yahoo Finance. Tente novamente em instantes.');
+            if (!silent) alert('Erro ao atualizar cotações via Yahoo Finance. Tente novamente em instantes.');
             console.error(error);
         } finally {
             setIsUpdating(false);
         }
-    };
+    }, [investments, isUpdating, lastRefresh, updateInvestment]);
 
+    // Auto-refresh on mount
+    useEffect(() => {
+        if (investments.length > 0 && !lastRefresh) {
+            handleUpdatePrices(true);
+        }
+    }, [investments.length, handleUpdatePrices, lastRefresh]);
 
     // Calculations
     const totalPatrimony = useMemo(() => investments.reduce((acc, i) => acc + (i.quantity * i.currentPrice), 0), [investments]);
@@ -126,10 +146,10 @@ export const Investments: React.FC = () => {
                 </div>
                 <div className="flex space-x-3">
                     <button
-                        onClick={handleUpdatePrices}
+                        onClick={() => handleUpdatePrices()}
                         disabled={isUpdating}
                         className={`p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors ${isUpdating ? 'animate-spin text-blue-500' : ''}`}
-                        title="Atualizar Cotações (Brapi)"
+                        title={lastRefresh ? `Atualizado em ${lastRefresh.toLocaleTimeString()}` : "Atualizar Cotações"}
                     >
                         <RefreshCw size={20} />
                     </button>

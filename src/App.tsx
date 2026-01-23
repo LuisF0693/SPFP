@@ -12,6 +12,7 @@ import { Insights } from './components/Insights';
 import { Settings } from './components/Settings';
 import { Login } from './components/Login';
 import { Goals } from './components/Goals';
+import { FutureCashFlow } from './components/FutureCashFlow';
 import Loading from './components/ui/Loading';
 import { Investments } from './components/Investments';
 import { Patrimony } from './components/Patrimony';
@@ -136,6 +137,13 @@ const AppContent: React.FC = () => {
         <PrivateRoute>
           <Layout mode="personal">
             <Insights />
+          </Layout>
+        </PrivateRoute>
+      } />
+      <Route path="/projections" element={
+        <PrivateRoute>
+          <Layout mode="personal">
+            <FutureCashFlow />
           </Layout>
         </PrivateRoute>
       } />
