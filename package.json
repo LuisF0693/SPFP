@@ -19,8 +19,10 @@
     "pdfjs-dist": "^5.4.530",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.11.0",
-    "recharts": "^3.5.1"
+    "recharts": "^3.5.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
