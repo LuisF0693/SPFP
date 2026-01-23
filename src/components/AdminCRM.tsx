@@ -158,33 +158,45 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
     return (
         <div className="animate-fade-in max-w-7xl mx-auto pb-20 p-4 space-y-8">
             {/* Admin Header & Vision */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                        <div className="px-2 py-1 bg-accent/10 border border-accent/20 rounded text-[10px] font-bold text-accent uppercase tracking-widest">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-4">
+                <div className="relative">
+                    <div className="absolute -left-20 -top-20 w-64 h-64 bg-accent/20 rounded-full blur-[100px] pointer-events-none"></div>
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="px-3 py-1 bg-accent/10 border border-accent/20 rounded-full text-[10px] font-black text-accent uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.3)] backdrop-blur-sm">
                             Admin Centric
                         </div>
                     </div>
-                    <h1 className="text-4xl font-black text-white tracking-tight">CRM <span className="text-accent">Agentico</span></h1>
-                    <p className="text-gray-500 mt-2 max-w-md font-medium">
-                        Gestão proativa de clientes com análise preditiva de engajamento e saúde patrimonial.
+                    <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 tracking-tight">
+                        CRM <span className="text-accent">Agentico</span>
+                    </h1>
+                    <p className="text-gray-400 mt-3 max-w-lg text-lg font-medium leading-relaxed">
+                        Gestão proativa com inteligência preditiva e análise em tempo real.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full md:w-auto">
-                    <div className="glass p-4 rounded-2xl border border-white/5 flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Sob Gestão</span>
-                        <span className="text-xl font-bold text-emerald-400">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 w-full md:w-auto z-10">
+                    <div className="glass p-5 rounded-2xl flex flex-col items-start card-hover-premium group">
+                        <div className="mb-3 p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                            <Database size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Sob Gestão</span>
+                        <span className="text-2xl font-black text-emerald-400 tracking-tight">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(clientStats.totalAUM)}
                         </span>
                     </div>
-                    <div className="glass p-4 rounded-2xl border border-white/5 flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Ativos Hoje</span>
-                        <span className="text-xl font-bold text-blue-400">{clientStats.activeToday}</span>
+                    <div className="glass p-5 rounded-2xl flex flex-col items-start card-hover-premium group">
+                        <div className="mb-3 p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                            <UserCheck size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ativos Hoje</span>
+                        <span className="text-2xl font-black text-blue-400 tracking-tight">{clientStats.activeToday}</span>
                     </div>
-                    <div className="glass p-4 rounded-2xl border border-white/5 flex flex-col col-span-2 md:col-span-1">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Alertas Criticos</span>
-                        <span className={`text-xl font-bold ${clientStats.atRisk > 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                    <div className="glass p-5 rounded-2xl flex flex-col items-start card-hover-premium group col-span-2 lg:col-span-1">
+                        <div className={`mb-3 p-2 rounded-xl transition-colors ${clientStats.atRisk > 0 ? 'bg-red-500/10 text-red-400 group-hover:bg-red-500/20' : 'bg-gray-500/10 text-gray-400'}`}>
+                            <AlertCircle size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Alertas Críticos</span>
+                        <span className={`text-2xl font-black tracking-tight ${clientStats.atRisk > 0 ? 'text-red-400' : 'text-gray-400'}`}>
                             {clientStats.atRisk}
                         </span>
                     </div>
@@ -192,23 +204,26 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
             </div>
 
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative group">
+            <div className="flex flex-col md:flex-row gap-4 sticky top-4 z-40">
+                <div className="flex-1 relative group glass rounded-2xl shadow-lg shadow-black/20">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Search className="text-gray-500 group-focus-within:text-accent transition-colors" size={20} />
                     </div>
                     <input
                         type="text"
                         placeholder="Pesquisar por nome, CPF ou e-mail..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder-gray-600 outline-none focus:border-accent/50 focus:bg-white/10 transition-all font-medium"
+                        className="w-full bg-transparent border-none py-4 pl-12 pr-4 text-white placeholder-gray-500 outline-none focus:ring-0 font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <div className="flex space-x-2">
-                    <button className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white font-bold text-sm transition-all flex items-center">
-                        <Inbox className="mr-2" size={18} />
+                    <button className="px-6 py-3 glass hover:bg-white/5 rounded-2xl text-white font-bold text-sm transition-all flex items-center shadow-lg shadow-black/20 border border-white/10">
+                        <Inbox className="mr-2 text-accent" size={18} />
                         Filtros
+                    </button>
+                    <button className="px-4 py-3 glass hover:bg-white/5 rounded-2xl text-white font-bold transition-all shadow-lg border border-white/10">
+                        <TrendingUp size={20} className="text-gray-400 hover:text-white" />
                     </button>
                 </div>
             </div>
@@ -225,111 +240,113 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                     return (
                         <div
                             key={client.user_id}
-                            className="glass rounded-3xl border border-white/10 overflow-hidden group hover:border-accent/30 transition-all duration-500 animate-slide-up relative flex flex-col"
+                            className="glass p-0 rounded-3xl overflow-hidden card-hover-premium group flex flex-col border border-white/5"
                         >
                             {/* Card Header */}
-                            <div className="p-6 pb-4">
-                                <div className="flex justify-between items-start mb-4">
+                            <div className="p-6 pb-4 relative">
+                                <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <ArrowRight size={20} className="text-white/20 group-hover:text-accent transform -rotate-45 group-hover:rotate-0 transition-all duration-500" />
+                                </div>
+
+                                <div className="flex justify-between items-start mb-5">
                                     <div className="flex items-center">
                                         <div className="relative">
-                                            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center text-gray-500 overflow-hidden">
+                                            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center text-gray-500 overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-500">
                                                 {profile.avatar ? (
                                                     <img src={profile.avatar} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <User size={24} />
+                                                    <User size={28} />
                                                 )}
                                             </div>
                                             {isNew && (
-                                                <div className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full border-2 border-[#0F172A] animate-pulse"></div>
+                                                <div className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-accent rounded-full border-[3px] border-[#0F172A] animate-pulse shadow-glow"></div>
                                             )}
                                         </div>
                                         <div className="ml-4">
-                                            <h3 className="text-lg font-bold text-white group-hover:text-accent transition-colors leading-tight truncate w-40">
+                                            <h3 className="text-xl font-bold text-white group-hover:text-accent transition-colors leading-tight truncate w-48">
                                                 {profile.name || 'Sem Nome'}
                                             </h3>
-                                            <p className="text-xs text-gray-500 truncate w-44">{profile.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => handleGenerateBriefing(client)}
-                                            disabled={loadingBriefing === client.user_id}
-                                            className={`p-2 rounded-xl border transition-all ${briefings[client.user_id] ? 'bg-accent/20 border-accent/40 text-accent' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                            title="Gerar Briefing IA"
-                                        >
-                                            {loadingBriefing === client.user_id ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                        </button>
-                                        <div className={`px-3 py-1.5 rounded-xl ${health.bg} ${health.color} border border-white/5 flex items-center text-[10px] font-black uppercase tracking-widest`}>
-                                            <health.icon size={12} className="mr-1.5" />
-                                            {health.label}
+                                            <div className="flex items-center mt-1 space-x-2">
+                                                <span className="text-xs text-gray-500 truncate max-w-[150px]">{profile.email}</span>
+                                                {health.label === 'Risco' && <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Timeline Access Button */}
-                                <button
-                                    onClick={() => handleFetchTimeline(client.user_id)}
-                                    className="w-full mt-2 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center uppercase tracking-widest"
-                                >
-                                    <Clock size={12} className="mr-2" />
-                                    Ver Timeline de Interação
-                                </button>
+                                {/* Health & Briefing Actions */}
+                                <div className="flex items-center justify-between mb-4 bg-white/5 rounded-xl p-1.5 border border-white/5">
+                                    <div className={`px-3 py-1.5 rounded-lg ${health.bg} ${health.color} flex items-center text-[10px] font-black uppercase tracking-widest`}>
+                                        <health.icon size={12} className="mr-1.5" />
+                                        {health.label}
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        <button
+                                            onClick={() => handleGenerateBriefing(client)}
+                                            disabled={loadingBriefing === client.user_id}
+                                            className={`p-2 rounded-lg transition-all ${briefings[client.user_id] ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'hover:bg-white/10 text-gray-400 hover:text-white'}`}
+                                            title="Gerar Briefing IA"
+                                        >
+                                            {loadingBriefing === client.user_id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                        </button>
+                                        <button
+                                            onClick={() => handleFetchTimeline(client.user_id)}
+                                            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+                                            title="Ver Timeline"
+                                        >
+                                            <Clock size={14} />
+                                        </button>
+                                    </div>
+                                </div>
 
                                 {/* Briefing Display */}
                                 {briefings[client.user_id] && (
-                                    <div className="mt-4 p-3 bg-accent/5 border border-accent/10 rounded-2xl text-[11px] text-gray-300 animate-fade-in relative overflow-hidden group/brief">
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-accent opacity-50"></div>
-                                        <div className="relative z-10 space-y-1">
+                                    <div className="mb-5 p-4 bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-xl text-xs text-gray-300 animate-slide-up relative overflow-hidden">
+                                        <div className="space-y-2 relative z-10">
                                             {briefings[client.user_id].split('\n').filter(l => l.trim()).map((line, i) => (
-                                                <p key={i} className="flex items-start">
-                                                    <span className="text-accent mr-1.5 mt-0.5">•</span>
-                                                    {line.replace(/^[*-]\s*/, '')}
-                                                </p>
+                                                <div key={i} className="flex items-start">
+                                                    <div className="min-w-[4px] h-[4px] rounded-full bg-accent mt-1.5 mr-2"></div>
+                                                    <span className="leading-relaxed font-medium">{line.replace(/^[*-]\s*/, '')}</span>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Quick Metrics */}
-                                <div className="grid grid-cols-2 gap-4 mt-6">
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Patrimônio</span>
-                                        <span className="text-sm font-bold text-white leading-none mt-1">
-                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                                {/* Metrics Grid */}
+                                <div className="grid grid-cols-2 gap-3 pb-2">
+                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Patrimônio</span>
+                                        <span className="text-sm font-bold text-white">
+                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(
                                                 (client.content.accounts || []).reduce((a: number, curr: any) => a + (curr.balance || 0), 0)
                                             )}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col text-right">
-                                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Score</span>
-                                        <div className="flex items-center justify-end mt-1">
-                                            <div className="h-1.5 w-16 bg-white/10 rounded-full overflow-hidden mr-2">
-                                                <div
-                                                    className={`h-full ${score > 70 ? 'bg-emerald-400' : score > 40 ? 'bg-amber-400' : 'bg-red-400'}`}
-                                                    style={{ width: `${score}%` }}
-                                                ></div>
-                                            </div>
+                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors flex flex-col justify-center">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Score</span>
                                             <span className="text-xs font-black text-white">{score}</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-gray-700/50 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-1000 ${score > 70 ? 'bg-gradient-to-r from-emerald-500 to-emerald-300' : score > 40 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-red-500 to-red-300'}`}
+                                                style={{ width: `${score}%` }}
+                                            ></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Card Footer Actions */}
-                            <div className="mt-auto border-t border-white/5 p-4 bg-black/20 flex items-center justify-between">
-                                <div className="flex items-center text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                                    <Clock size={12} className="mr-1.5" />
-                                    {isNew ? 'Ativo Agora' : lastActive.toLocaleDateString()}
-                                </div>
-                                <button
-                                    onClick={() => loadClientData(client.user_id)}
-                                    disabled={isSyncing}
-                                    className="p-2.5 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:scale-110 active:scale-95 transition-all"
-                                    title="Acessar Dashboard do Cliente"
-                                >
-                                    <ArrowRight size={18} />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => loadClientData(client.user_id)}
+                                disabled={isSyncing}
+                                className="mt-auto w-full py-3 bg-white/5 hover:bg-accent hover:text-white border-t border-white/5 text-xs font-bold text-gray-400 uppercase tracking-widest transition-all flex items-center justify-center group/btn"
+                            >
+                                Acessar Conta
+                                <ArrowRight size={14} className="ml-2 transform group-hover/btn:translate-x-1 transition-transform" />
+                            </button>
                         </div>
                     );
                 })}
