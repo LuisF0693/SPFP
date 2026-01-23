@@ -1,17 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import {
     Users, Search, Eye, Clock, User, Mail, Database,
     ArrowRight, ShieldCheck, AlertCircle, TrendingUp,
-    Activity, Zap, Shield, UserCheck, Inbox
+    Activity, Zap, Shield, UserCheck, Inbox, Sparkles,
+    Loader2
 } from 'lucide-react';
-
-interface ClientEntry {
-    user_id: string;
-    content: any;
-    last_updated: number;
-}
+import { chatWithAI } from '../services/aiService';
+import { getInteractionLogs, InteractionLog } from '../services/logService';
+import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
 
 /**
  * Admin CRM component.
@@ -19,12 +17,72 @@ interface ClientEntry {
  * Redesigned for an agentic experience with predictive health scores.
  */
 export const AdminCRM: React.FC = () => {
-    const { fetchAllUserData, loadClientData, isSyncing } = useFinance();
+    const { fetchAllUserData, loadClientData, isSyncing, userProfile } = useFinance();
     const { user } = useAuth();
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // Briefing state
+    const [briefings, setBriefings] = useState<Record<string, string>>({});
+    const [loadingBriefing, setLoadingBriefing] = useState<string | null>(null);
+
+    // Timeline state
+    const [showTimeline, setShowTimeline] = useState<string | null>(null);
+    const [timelineLogs, setTimelineLogs] = useState<InteractionLog[]>([]);
+    const [loadingTimeline, setLoadingTimeline] = useState(false);
+
+    const handleFetchTimeline = async (clientId: string) => {
+        setShowTimeline(clientId);
+        setLoadingTimeline(true);
+        try {
+            const { data, error } = await getInteractionLogs(clientId);
+            if (data) setTimelineLogs(data);
+            if (error) console.error(error);
+        } finally {
+            setLoadingTimeline(false);
+        }
+    };
+
+    const handleGenerateBriefing = async (client: ClientEntry) => {
+        if (briefings[client.user_id] || loadingBriefing) return;
+
+        const apiKey = userProfile?.geminiToken || userProfile?.apiToken;
+        if (!apiKey) {
+            alert("Token Gemini/API não configurado no seu perfil.");
+            return;
+        }
+
+        setLoadingBriefing(client.user_id);
+        try {
+            const content = client.content || {};
+            const relevantData = {
+                accounts: content.accounts?.map((a: any) => ({ name: a.name, balance: a.balance })),
+                recentTransactions: content.transactions?.slice(0, 20).map((t: any) => ({ category: t.category, value: t.value, type: t.type, date: t.date })),
+                goals: content.goals?.map((g: any) => ({ title: g.title, target: g.targetValue, current: g.currentValue }))
+            };
+
+            const prompt = `Analise os dados financeiros deste cliente e retorne APENAS 3 bullet points curtos (máximo 15 palavras cada) em Markdown sobre:
+(1) Principal categoria de gastos/movimentação recente.
+(2) Tendência de saúde do patrimônio.
+(3) Um alerta ou oportunidade estratégica imediata para o planejador.
+
+Dados: ${JSON.stringify(relevantData)}`;
+
+            const response = await chatWithAI(
+                [{ role: 'system', content: 'Você é um Analista de CRM Agentico de elite.' }, { role: 'user', content: prompt }],
+                { provider: 'google', apiKey: apiKey }
+            );
+
+            setBriefings(prev => ({ ...prev, [client.user_id]: response.text }));
+        } catch (err) {
+            console.error("Erro ao gerar briefing:", err);
+            alert("Falha ao conectar com a IA para gerar o resumo.");
+        } finally {
+            setLoadingBriefing(null);
+        }
+    };
 
     useEffect(() => {
         const getClients = async () => {
@@ -44,26 +102,6 @@ export const AdminCRM: React.FC = () => {
         getClients();
     }, [fetchAllUserData]);
 
-    // Health Score Logic (Proprietary Algorithm)
-    const calculateHealthScore = (client: ClientEntry) => {
-        const now = Date.now();
-        const diffDays = Math.floor((now - client.last_updated) / (1000 * 60 * 60 * 24));
-
-        let score = 100;
-
-        // Decay based on inactivity
-        if (diffDays > 30) score -= 60;
-        else if (diffDays > 15) score -= 30;
-        else if (diffDays > 7) score -= 15;
-
-        // Bonus for data completeness
-        const content = client.content || {};
-        if (content.accounts?.length > 0) score += 5;
-        if (content.transactions?.length > 50) score += 5;
-        if (content.goals?.length > 0) score += 5;
-
-        return Math.min(100, Math.max(0, score));
-    };
 
     const getHealthStatus = (score: number) => {
         if (score >= 80) return { label: 'Saudável', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: ShieldCheck };
@@ -206,11 +244,45 @@ export const AdminCRM: React.FC = () => {
                                             <p className="text-xs text-gray-500 truncate w-44">{profile.email}</p>
                                         </div>
                                     </div>
-                                    <div className={`px-3 py-1.5 rounded-xl ${health.bg} ${health.color} border border-white/5 flex items-center text-[10px] font-black uppercase tracking-widest`}>
-                                        <health.icon size={12} className="mr-1.5" />
-                                        {health.label}
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => handleGenerateBriefing(client)}
+                                            disabled={loadingBriefing === client.user_id}
+                                            className={`p-2 rounded-xl border transition-all ${briefings[client.user_id] ? 'bg-accent/20 border-accent/40 text-accent' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                            title="Gerar Briefing IA"
+                                        >
+                                            {loadingBriefing === client.user_id ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                        </button>
+                                        <div className={`px-3 py-1.5 rounded-xl ${health.bg} ${health.color} border border-white/5 flex items-center text-[10px] font-black uppercase tracking-widest`}>
+                                            <health.icon size={12} className="mr-1.5" />
+                                            {health.label}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Timeline Access Button */}
+                                <button
+                                    onClick={() => handleFetchTimeline(client.user_id)}
+                                    className="w-full mt-2 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center uppercase tracking-widest"
+                                >
+                                    <Clock size={12} className="mr-2" />
+                                    Ver Timeline de Interação
+                                </button>
+
+                                {/* Briefing Display */}
+                                {briefings[client.user_id] && (
+                                    <div className="mt-4 p-3 bg-accent/5 border border-accent/10 rounded-2xl text-[11px] text-gray-300 animate-fade-in relative overflow-hidden group/brief">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-accent opacity-50"></div>
+                                        <div className="relative z-10 space-y-1">
+                                            {briefings[client.user_id].split('\n').filter(l => l.trim()).map((line, i) => (
+                                                <p key={i} className="flex items-start">
+                                                    <span className="text-accent mr-1.5 mt-0.5">•</span>
+                                                    {line.replace(/^[*-]\s*/, '')}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Quick Metrics */}
                                 <div className="grid grid-cols-2 gap-4 mt-6">
@@ -265,6 +337,66 @@ export const AdminCRM: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Timeline Overlay/Modal */}
+            {showTimeline && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTimeline(null)}></div>
+                    <div className="relative glass w-full max-w-lg rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-slide-up">
+                        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-xl font-bold text-white">Timeline de Interação</h2>
+                                <p className="text-xs text-gray-500">Histórico de acessos e alterações</p>
+                            </div>
+                            <button onClick={() => setShowTimeline(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                <Activity size={20} className="text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+                            {loadingTimeline ? (
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="animate-spin text-accent" size={32} />
+                                </div>
+                            ) : timelineLogs.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <p className="text-gray-500">Nenhuma interação registrada ainda.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
+                                    {timelineLogs.map((log, i) => (
+                                        <div key={log.id || i} className="relative pl-8">
+                                            <div className={`absolute left-0 top-1.5 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center ${log.action_type === 'ACCESS' ? 'bg-blue-500' : 'bg-amber-500'}`}>
+                                                {log.action_type === 'ACCESS' ? <Eye size={10} className="text-white" /> : <Zap size={10} className="text-white" />}
+                                            </div>
+                                            <div className="glass p-3 rounded-2xl border border-white/5">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${log.action_type === 'ACCESS' ? 'text-blue-400' : 'text-amber-400'}`}>
+                                                        {log.action_type === 'ACCESS' ? 'Acesso' : 'Alteração'}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-500 font-medium">
+                                                        {new Date(log.created_at || '').toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-gray-300">{log.description}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 bg-black/20 border-t border-white/5 flex justify-end">
+                            <button
+                                onClick={() => setShowTimeline(null)}
+                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-sm font-bold transition-all"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

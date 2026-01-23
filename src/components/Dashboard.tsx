@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate } from '../utils';
 import {
   Wallet, TrendingUp, Target, MoreHorizontal,
   ArrowUpRight, CreditCard, AlertTriangle, CheckCircle, PieChart as PieChartIcon,
-  AlertCircle
+  AlertCircle, Users
 } from 'lucide-react';
+import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -19,7 +20,34 @@ import { CategoryIcon } from './CategoryIcon';
  */
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets } = useFinance();
+  const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets, fetchAllUserData } = useFinance();
+  const [crmAlerts, setCrmAlerts] = useState<any[]>([]);
+  const isAdmin = userProfile?.email === 'nando062218@gmail.com';
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const getCrmAlerts = async () => {
+      try {
+        const allUsers = await fetchAllUserData();
+        const atRiskUsers = (allUsers as ClientEntry[]).filter(user => calculateHealthScore(user) < 50);
+
+        const formattedAlerts = atRiskUsers.map(u => ({
+          type: 'CRITICAL',
+          title: `CRM: Cliente em Risco`,
+          message: `${u.content?.userProfile?.name || 'Cliente'} está com score baixo (${calculateHealthScore(u)}). Necessário Check-up.`,
+          icon: <Users className="text-red-500" size={18} />,
+          link: '/admin'
+        }));
+
+        setCrmAlerts(formattedAlerts);
+      } catch (err) {
+        console.error("Erro ao buscar alertas do CRM:", err);
+      }
+    };
+
+    getCrmAlerts();
+  }, [isAdmin, fetchAllUserData]);
 
   // --- DATA PREPARATION ---
 
@@ -145,8 +173,11 @@ export const Dashboard: React.FC = () => {
       });
     });
 
+    // Add CRM Alerts
+    list.push(...crmAlerts);
+
     return list;
-  }, [categories, categoryBudgets, currentMonthTx, atypicalAlerts]);
+  }, [categories, categoryBudgets, currentMonthTx, atypicalAlerts, crmAlerts]);
 
 
   // Charts Data

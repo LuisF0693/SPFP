@@ -4,6 +4,7 @@ import { Account, Category, Transaction, FinanceContextType, UserProfile, Dashbo
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import { generateId } from '../utils';
 import { supabase } from '../supabase';
+import { logInteraction } from '../services/logService';
 import { useAuth } from './AuthContext';
 
 interface GlobalState {
@@ -276,6 +277,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const nextState = { ...state, ...partial, lastUpdated: Date.now() };
     setState(nextState);
     saveToCloud(nextState);
+
+    // Timeline Logging: Track changes made by admin while impersonating
+    if (isImpersonating && impersonatedUserId && user) {
+      const keys = Object.keys(partial).join(', ');
+      logInteraction({
+        admin_id: user.id,
+        client_id: impersonatedUserId,
+        action_type: 'CHANGE',
+        description: `Alteração de dados: ${keys}`,
+        metadata: { updated_fields: keys }
+      });
+    }
   };
 
   const today = new Date();
@@ -480,6 +493,17 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsImpersonating(true);
         setImpersonatedUserId(userId);
 
+        // Timeline Logging: Track access by admin
+        if (user) {
+          logInteraction({
+            admin_id: user.id,
+            client_id: userId,
+            action_type: 'ACCESS',
+            description: 'Acesso ao dashboard do cliente',
+            metadata: { timestamp: Date.now() }
+          });
+        }
+
         window.scrollTo(0, 0);
         navigate('/dashboard'); // Redirect to Dashboard
       }
@@ -523,6 +547,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       addAccount, updateAccount, deleteAccount, addCategory, updateCategory, deleteCategory,
       addGoal, updateGoal, deleteGoal,
       addInvestment, updateInvestment, deleteInvestment,
+      updateTransactions,
       patrimonyItems: state.patrimonyItems,
       addPatrimonyItem, updatePatrimonyItem, deletePatrimonyItem,
       getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
