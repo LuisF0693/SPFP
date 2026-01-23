@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { CategoryIcon } from './CategoryIcon';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Dashboard main component.
@@ -21,8 +22,8 @@ import { CategoryIcon } from './CategoryIcon';
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets, fetchAllUserData } = useFinance();
+  const { isAdmin } = useAuth();
   const [crmAlerts, setCrmAlerts] = useState<any[]>([]);
-  const isAdmin = userProfile?.email === 'nando062218@gmail.com';
 
   useEffect(() => {
     if (!isAdmin) return;

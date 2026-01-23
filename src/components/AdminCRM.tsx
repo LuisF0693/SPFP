@@ -17,7 +17,7 @@ import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
  * Redesigned for an agentic experience with predictive health scores.
  */
 export const AdminCRM: React.FC = () => {
-    const { fetchAllUserData, loadClientData, isSyncing, userProfile } = useFinance();
+    const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useFinance();
     const { user } = useAuth();
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);
