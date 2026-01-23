@@ -4,7 +4,7 @@ import { formatCurrency, formatDate } from '../utils';
 import {
   Wallet, TrendingUp, Target, MoreHorizontal,
   ArrowUpRight, CreditCard, AlertTriangle, CheckCircle, PieChart as PieChartIcon,
-  AlertCircle, Users
+  AlertCircle, Users, Sparkles
 } from 'lucide-react';
 import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
 import {
@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { CategoryIcon } from './CategoryIcon';
 import { useAuth } from '../context/AuthContext';
+import { MonthlyRecap } from './MonthlyRecap';
 
 /**
  * Dashboard main component.
@@ -21,9 +22,10 @@ import { useAuth } from '../context/AuthContext';
  */
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets, fetchAllUserData } = useFinance();
+  const { totalBalance, transactions, categories, accounts, userProfile, categoryBudgets, goals, fetchAllUserData } = useFinance();
   const { isAdmin } = useAuth();
   const [crmAlerts, setCrmAlerts] = useState<any[]>([]);
+  const [showRecap, setShowRecap] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -125,8 +127,25 @@ export const Dashboard: React.FC = () => {
     // Detectar anomalias no mês atual
     return currentMonthTx.filter(t => t.type === 'EXPENSE').filter(t => {
       const avg = categoryAverages[t.categoryId];
+      const txDate = new Date(t.date);
+      const dayOfWeek = txDate.getDay();
+
+      // Checar se existem outros gastos no mesmo dia da semana para comparação (opcional, mas solicitado)
+      const sameDayOfWeekTxs = transactions.filter(prevT => {
+        const prevD = new Date(prevT.date);
+        return prevT.type === 'EXPENSE' &&
+          prevD.getDay() === dayOfWeek &&
+          prevT.id !== t.id &&
+          (prevD.getMonth() !== currentMonth || prevD.getFullYear() !== currentYear);
+      });
+
+      const dayAvg = sameDayOfWeekTxs.length > 0
+        ? sameDayOfWeekTxs.reduce((acc, curr) => acc + curr.value, 0) / sameDayOfWeekTxs.length
+        : avg;
+
       // Alerta se um único gasto for > 80% da média mensal daquela categoria E > R$ 200
-      return avg > 0 && t.value > (avg * 0.8) && t.value > 200;
+      // OU se for > 2x a média daquele dia da semana específica
+      return (avg > 0 && t.value > (avg * 0.8) && t.value > 200) || (dayAvg > 0 && t.value > (dayAvg * 2));
     });
   }, [transactions, currentMonthTx, today, currentMonth, currentYear]);
 
@@ -246,6 +265,13 @@ export const Dashboard: React.FC = () => {
         </div>
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
           <button
+            onClick={() => setShowRecap(true)}
+            className="bg-white/5 hover:bg-white/10 text-blue-400 border border-blue-500/20 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center group overflow-hidden relative"
+          >
+            <div className="absolute inset-0 bg-blue-500/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+            <Sparkles size={16} className="mr-2 animate-pulse" /> ✨ Ver Retrospectiva
+          </button>
+          <button
             onClick={() => navigate('/transactions/add')}
             className="bg-accent hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center"
           >
@@ -294,7 +320,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {/* CARD 1: TOTAL NET WORTH */}
-        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
+        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group glass-shimmer card-hover">
           <div className="flex justify-between items-start mb-4">
             <div>
               <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Patrimônio Líquido</p>
@@ -314,7 +340,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* CARD 2: MONTHLY SPENDING */}
-        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm glass-shimmer card-hover">
           <div className="flex justify-between items-start mb-4">
             <div>
               <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Gastos do Mês</p>
@@ -339,7 +365,7 @@ export const Dashboard: React.FC = () => {
 
         {/* CARD 3: BUDGET STATUS (NEW) */}
         <div
-          className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:border-blue-500/30 transition-colors"
+          className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:border-blue-500/30 transition-colors glass-shimmer card-hover"
           onClick={() => navigate('/budget')}
         >
           <div className="flex justify-between items-start mb-4">
@@ -604,6 +630,28 @@ export const Dashboard: React.FC = () => {
         </div>
 
       </div>
+
+      {showRecap && (
+        <MonthlyRecap
+          onClose={() => setShowRecap(false)}
+          data={{
+            userName: userProfile.name?.split(' ')[0] || 'Usuário',
+            month: today.toLocaleString('pt-BR', { month: 'long' }),
+            income: totalIncome,
+            expense: totalExpense,
+            savingsRate: totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0,
+            topCategory: categoryData[0] ? { name: categoryData[0].name, spent: Number(categoryData[0].value) } : { name: 'Geral', spent: totalExpense },
+            goalsReached: goals.filter(g => g.status === 'COMPLETED').length,
+            investmentGrowth: 2.4, // Fallback/Mock for now
+            bestSavingCategory: categories.map(cat => {
+              const b = categoryBudgets.find(b => b.categoryId === cat.id);
+              if (!b || b.limit <= 0) return null;
+              const spent = currentMonthTx.filter(t => t.type === 'EXPENSE' && t.categoryId === cat.id).reduce((sum, t) => sum + t.value, 0);
+              return { name: cat.name, saving: b.limit - spent };
+            }).filter(Boolean).sort((a, b) => b!.saving - a!.saving)[0] as any
+          }}
+        />
+      )}
     </div>
   );
 };

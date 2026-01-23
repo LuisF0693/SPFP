@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, Lightbulb, AlertCircle, RefreshCw, Loader2, Sparkles,
   BrainCircuit, Key, CheckCircle2, Send, User, Bot, Trash2,
-  ChevronDown, Info, ShieldCheck, Target, Wallet, BarChart3, 
+  ChevronDown, Info, ShieldCheck, Target, Wallet, BarChart3,
   MessageSquare, Zap, ArrowRight, History
 } from 'lucide-react';
 import { saveAIInteraction, getAIHistory } from '../services/aiHistoryService';
@@ -118,6 +118,15 @@ export const Insights: React.FC = () => {
         return acc;
       }, {} as Record<string, number>);
 
+    const sentimentData = currentMonthTx
+      .filter(t => t.type === 'EXPENSE' && t.sentiment)
+      .map(t => ({
+        description: t.description,
+        value: t.value,
+        sentiment: t.sentiment,
+        category: categories.find(c => c.id === t.categoryId)?.name || 'Geral'
+      }));
+
     const activeGoals = goals.filter(g => g.status !== 'COMPLETED');
     const assets = investments.map(i => ({ name: i.ticker || i.name, value: i.quantity * i.currentPrice }));
     const debts = patrimonyItems.filter(p => p.type === 'DEBT');
@@ -130,6 +139,7 @@ export const Insights: React.FC = () => {
         savingsRate: income > 0 ? ((income - expense) / income) * 100 : 0
       },
       categories: spendingByCategory,
+      sentiments: sentimentData,
       goals: activeGoals.map(g => ({ name: g.name, current: g.currentAmount, target: g.targetAmount })),
       assets,
       debts: debts.map(d => ({ name: d.name, value: d.value })),
@@ -183,9 +193,11 @@ export const Insights: React.FC = () => {
                 - Objetivos: ${JSON.stringify(context.goals)}
                 - Ativos/Investimentos: ${JSON.stringify(context.assets)}
                 - Dívidas: ${JSON.stringify(context.debts)}
+                - Sentimentos em Compras Recentes: ${JSON.stringify(context.sentiments)}
 
                 # DIRETRIZES DE AGENTE
                 - Mencione que você está analisando os dados em tempo real e que sua inteligência "apreende" com o comportamento financeiro dele.
+                - CRITICAL: Analise a correlação entre sentimentos (ex: stressed, happy, impulsive) e os gastos. Se o usuário gasta mais quando está estressado, aponte isso de forma construtiva.
                 - Use tom de parceria: "Nós estamos construindo seu patrimônio", "Identifiquei um padrão no seu fluxo".
                 - Formate sua resposta usando MARKDOWN de ALTA QUALIDADE. Use tabelas para dados comparativos, negrito para ênfase e listas claras.
                 - Se for o Diagnóstico Inicial, apresente um relatório estruturado de 360 graus.
@@ -280,15 +292,14 @@ export const Insights: React.FC = () => {
             <button
               onClick={testConnection}
               disabled={testStatus === 'testing'}
-              className={`px-4 py-2 border rounded-xl font-bold text-xs flex items-center transition-all ${
-                testStatus === 'success' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-                testStatus === 'error' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
-                'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
-              }`}
+              className={`px-4 py-2 border rounded-xl font-bold text-xs flex items-center transition-all ${testStatus === 'success' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                  testStatus === 'error' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                    'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                }`}
             >
               {testStatus === 'testing' ? <Loader2 size={14} className="mr-2 animate-spin" /> :
                 testStatus === 'success' ? <CheckCircle2 size={14} className="mr-2" /> :
-                <Zap size={14} className="mr-2" />}
+                  <Zap size={14} className="mr-2" />}
               Status IA
             </button>
           )}
@@ -304,7 +315,7 @@ export const Insights: React.FC = () => {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col bg-black/40 border-x border-white/10 overflow-hidden relative">
-        
+
         {/* Step-by-step Insight Flow */}
         {!hasGeneratedInsight ? (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-8 text-center bg-slate-950/80 backdrop-blur-md">
@@ -315,11 +326,11 @@ export const Insights: React.FC = () => {
                   <BarChart3 size={64} className="text-blue-500 mx-auto" />
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <h2 className="text-3xl font-serif font-bold text-white leading-tight">Pronto para o Próximo Nível?</h2>
                 <p className="text-gray-400 leading-relaxed">
-                  Para iniciarmos nossa consultoria, preciso realizar um **Diagnóstico Patrimonial 360**. 
+                  Para iniciarmos nossa consultoria, preciso realizar um **Diagnóstico Patrimonial 360**.
                   Irei me alimentar das suas transações, metas e histórico para criar sua estratégia personalizada.
                 </p>
               </div>
@@ -355,19 +366,17 @@ export const Insights: React.FC = () => {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div className={`flex gap-4 max-w-[90%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center border shadow-lg ${
-                  msg.role === 'user'
-                  ? 'bg-blue-600 border-blue-400 text-white'
-                  : 'bg-white/5 border-white/10 text-blue-400'
-                }`}>
+                <div className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center border shadow-lg ${msg.role === 'user'
+                    ? 'bg-blue-600 border-blue-400 text-white'
+                    : 'bg-white/5 border-white/10 text-blue-400'
+                  }`}>
                   {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                 </div>
                 <div className={`space-y-2 ${msg.role === 'user' ? 'text-right' : ''}`}>
-                  <div className={`p-6 rounded-[1.5rem] shadow-2xl relative ${
-                    msg.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-tr-none'
-                    : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none'
-                  }`}>
+                  <div className={`p-6 rounded-[1.5rem] shadow-2xl relative ${msg.role === 'user'
+                      ? 'bg-blue-600 text-white rounded-tr-none'
+                      : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none'
+                    }`}>
                     {msg.role === 'assistant' ? (
                       <div className="prose prose-invert prose-blue max-w-none 
                         prose-p:leading-relaxed prose-p:text-gray-300 

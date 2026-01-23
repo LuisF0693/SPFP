@@ -96,6 +96,7 @@ export interface Transaction {
   categoryId: string;
   paid: boolean; // Se foi pago ou não
   spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
+  sentiment?: string; // Como o usuário se sente (emoji/slug)
 }
 
 /**

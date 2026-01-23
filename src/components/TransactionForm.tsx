@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction, TransactionType, CategoryGroup, Category } from '../types';
-import { ChevronLeft, ChevronDown, Search, Check, X, CalendarClock, RefreshCw, Sparkles, Plus, Palette, Repeat, CreditCard, CalendarRange, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Search, Check, X, CalendarClock, RefreshCw, Sparkles, Plus, Palette, Repeat, CreditCard, CalendarRange, CheckCircle, AlertTriangle } from 'lucide-react';
 import { CategoryIcon, AVAILABLE_ICONS } from './CategoryIcon';
 import { formatCurrency, getMonthName } from '../utils';
 
@@ -34,6 +34,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [spender, setSpender] = useState<string>('ME');
     const [paid, setPaid] = useState(true);
+    const [sentiment, setSentiment] = useState<string | undefined>(undefined);
+    const [showImpulseAlert, setShowImpulseAlert] = useState(false);
 
     // Update paid default based on date
     useEffect(() => {
@@ -78,6 +80,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
             if (initialData.date) setDate(initialData.date.split('T')[0]);
             if (initialData.spender) setSpender(initialData.spender);
             setPaid(initialData.paid ?? true);
+            setSentiment(initialData.sentiment);
         } else {
             if (categories.length > 0) setCategoryId(categories[0].id);
             if (accounts.length > 0) setAccountId(accounts[0].id);
@@ -113,6 +116,32 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         }
         if (description.length < 3) setWasCategoryAutoSelected(false);
     }, [description, transactions, initialData, userManuallyChangedCategory, categoryId]);
+
+    // Impulsivity Alert Logic
+    useEffect(() => {
+        if (!value || parseFloat(value) <= 0 || !categoryId) {
+            setShowImpulseAlert(false);
+            return;
+        }
+
+        const numericValue = parseFloat(value);
+        const categoryTransactions = transactions.filter((t: any) => t.categoryId === categoryId && t.type === 'EXPENSE');
+
+        if (categoryTransactions.length >= 3) {
+            const sum = categoryTransactions.reduce((acc: number, t: any) => acc + t.value, 0);
+            const avg = sum / categoryTransactions.length;
+            if (numericValue > avg * 1.5) {
+                setShowImpulseAlert(true);
+            } else {
+                setShowImpulseAlert(false);
+            }
+        } else if (numericValue > 500) {
+            // Threshold for new categories or little data
+            setShowImpulseAlert(true);
+        } else {
+            setShowImpulseAlert(false);
+        }
+    }, [value, categoryId, transactions]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -172,7 +201,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                     accountId,
                     date: baseDate.toISOString(),
                     spender,
-                    paid
+                    paid,
+                    sentiment
                 });
 
                 // Cria as demais parcelas (da 2 em diante)
@@ -190,7 +220,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                         accountId,
                         date: txDate.toISOString(),
                         spender,
-                        paid
+                        paid,
+                        sentiment
                     });
                 }
                 addManyTransactions(extraTransactions);
@@ -210,7 +241,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                         accountId,
                         date: txDate.toISOString(),
                         spender,
-                        paid
+                        paid,
+                        sentiment
                     });
                 }
                 addManyTransactions(newTransactions);
@@ -225,7 +257,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                 accountId,
                 date: baseDate.toISOString(),
                 spender,
-                paid
+                paid,
+                sentiment
             };
             if (initialData) updateTransaction({ ...payload, id: initialData.id });
             else addTransaction(payload);
@@ -280,6 +313,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                         <span className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">R$</span>
                         <input type="number" step="0.01" required value={value} onChange={(e) => setValue(e.target.value)} placeholder="0,00" className={`w-full pl-10 text-4xl font-bold bg-transparent outline-none transition-colors ${type === 'INCOME' ? 'text-success' : 'text-danger'}`} />
                     </div>
+                    {showImpulseAlert && type === 'EXPENSE' && (
+                        <div className="mt-2 flex items-center text-xs font-bold text-amber-600 bg-amber-50 p-2 rounded-lg animate-bounce">
+                            <AlertTriangle size={14} className="mr-2" />
+                            Atenção: Este gasto está acima do seu padrão para esta categoria!
+                        </div>
+                    )}
                 </div>
 
                 <div>
@@ -410,6 +449,32 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                         ))}
                     </div>
                 </div>
+
+                {/* Sentiment Selector */}
+                {type === 'EXPENSE' && (
+                    <div className="animate-fade-in">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Como você se sente com essa compra?</label>
+                        <div className="flex bg-gray-50 p-2 rounded-2xl border border-gray-100 justify-between">
+                            {[
+                                { emoji: '😊', label: 'Feliz', value: 'happy' },
+                                { emoji: '😐', label: 'Neutro', value: 'neutral' },
+                                { emoji: '😫', label: 'Estressado', value: 'stressed' },
+                                { emoji: '💸', label: 'Impulsivo', value: 'impulsive' },
+                                { emoji: '🍕', label: 'Conforto', value: 'comfort' }
+                            ].map((s) => (
+                                <button
+                                    key={s.value}
+                                    type="button"
+                                    onClick={() => setSentiment(sentiment === s.value ? undefined : s.value)}
+                                    className={`flex flex-col items-center p-2 rounded-xl transition-all flex-1 ${sentiment === s.value ? 'bg-white shadow-md border border-blue-100 scale-105' : 'hover:bg-white/50 opacity-50 hover:opacity-100'}`}
+                                >
+                                    <span className="text-2xl mb-1">{s.emoji}</span>
+                                    <span className="text-[10px] font-bold text-gray-500">{s.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* SEÇÃO ESPECÍFICA DE CARTÃO DE CRÉDITO */}
                 {isCreditCardExpense && (
