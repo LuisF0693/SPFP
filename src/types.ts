@@ -84,6 +84,11 @@ export interface Category {
 }
 
 /**
+ * Type of transaction grouping for installments or recurring payments.
+ */
+export type TransactionGroupType = 'INSTALLMENT' | 'RECURRING';
+
+/**
  * Represents a single financial movement (Income or Expense).
  */
 export interface Transaction {
@@ -97,6 +102,11 @@ export interface Transaction {
   paid: boolean; // Se foi pago ou não
   spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
   sentiment?: string; // Como o usuário se sente (emoji/slug)
+  // Campos de agrupamento para parcelados/recorrentes
+  groupId?: string; // UUID único do grupo
+  groupType?: TransactionGroupType; // Tipo: parcelado ou recorrente
+  groupIndex?: number; // Índice atual (1, 2, 3...)
+  groupTotal?: number; // Total de parcelas (null para recorrente infinito)
 }
 
 /**

@@ -10,6 +10,7 @@ import { Transaction, Category, CategoryGroup } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
 import { EmojiPicker } from './EmojiPicker';
+import { DeleteTransactionModal } from './DeleteTransactionModal';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -21,11 +22,18 @@ interface TransactionListProps {
  * Includes monthly navigation and statistical summaries.
  */
 export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
-    const { transactions, categories, deleteTransaction, deleteTransactions, updateTransactions, addCategory, updateCategory, deleteCategory, accounts, userProfile } = useFinance();
+    const {
+        transactions, categories, deleteTransaction, deleteTransactions, updateTransactions,
+        addCategory, updateCategory, deleteCategory, accounts, userProfile,
+        getTransactionsByGroupId, deleteTransactionGroup, deleteTransactionGroupFromIndex
+    } = useFinance();
 
     // Date State
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+    // Delete Modal State
+    const [deleteModalTransaction, setDeleteModalTransaction] = useState<Transaction | null>(null);
 
     // Filter State
     const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PAID' | 'SCHEDULED' | 'LATE'>('ALL');
@@ -90,6 +98,19 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
         return { label: 'Agendado', color: 'text-yellow-500', icon: Clock };
     }, []);
+
+    // Handle delete - show modal if grouped, otherwise delete directly
+    const handleDeleteClick = (tx: Transaction) => {
+        if (tx.groupId) {
+            // Has group - show modal
+            setDeleteModalTransaction(tx);
+        } else {
+            // No group - delete directly with confirm
+            if (confirm('Tem certeza que deseja excluir esta transação?')) {
+                deleteTransaction(tx.id);
+            }
+        }
+    };
 
     const getSpenderInfo = (spenderId?: string) => {
         if (!spenderId || spenderId === 'ME') {
@@ -351,7 +372,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                                         setEditingTransaction(tx);
                                                         setIsTransactionModalOpen(true);
                                                     }} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"><Edit2 size={14} /></button>
-                                                    <button onClick={() => deleteTransaction(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                                                    <button onClick={() => handleDeleteClick(tx)} className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 size={14} /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -467,6 +488,31 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Delete Transaction Modal for Grouped Transactions */}
+            {deleteModalTransaction && deleteModalTransaction.groupId && (
+                <DeleteTransactionModal
+                    transaction={deleteModalTransaction}
+                    relatedTransactions={getTransactionsByGroupId(deleteModalTransaction.groupId)}
+                    accounts={accounts}
+                    onDeleteSingle={() => {
+                        deleteTransaction(deleteModalTransaction.id);
+                        setDeleteModalTransaction(null);
+                    }}
+                    onDeleteFuture={() => {
+                        deleteTransactionGroupFromIndex(
+                            deleteModalTransaction.groupId!,
+                            deleteModalTransaction.groupIndex || 1
+                        );
+                        setDeleteModalTransaction(null);
+                    }}
+                    onDeleteAll={() => {
+                        deleteTransactionGroup(deleteModalTransaction.groupId!);
+                        setDeleteModalTransaction(null);
+                    }}
+                    onClose={() => setDeleteModalTransaction(null)}
+                />
             )}
         </div>
     );

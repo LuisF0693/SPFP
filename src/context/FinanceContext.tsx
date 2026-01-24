@@ -30,6 +30,10 @@ export interface FinanceContextData extends FinanceContextType {
   stopImpersonating: (redirectPath?: string) => void;
   loadClientData: (userId: string) => Promise<void>;
   fetchAllUserData: () => Promise<any[]>;
+  // Funções para exclusão em cascata de parcelados/recorrentes
+  getTransactionsByGroupId: (groupId: string) => Transaction[];
+  deleteTransactionGroup: (groupId: string) => void;
+  deleteTransactionGroupFromIndex: (groupId: string, fromIndex: number) => void;
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
@@ -397,6 +401,39 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateAndSync({ accounts: nextAcc, transactions: nextTx });
   };
 
+  /**
+   * Returns all transactions belonging to a specific group.
+   * @param groupId - The group ID to filter by
+   */
+  const getTransactionsByGroupId = (groupId: string): Transaction[] => {
+    return state.transactions.filter(t => t.groupId === groupId).sort((a, b) => (a.groupIndex || 0) - (b.groupIndex || 0));
+  };
+
+  /**
+   * Deletes ALL transactions in a group (parcelado/recorrente).
+   * @param groupId - The group ID to delete
+   */
+  const deleteTransactionGroup = (groupId: string) => {
+    const groupTxs = state.transactions.filter(t => t.groupId === groupId);
+    if (groupTxs.length === 0) return;
+
+    const ids = groupTxs.map(t => t.id);
+    deleteTransactions(ids);
+  };
+
+  /**
+   * Deletes transactions in a group from a specific index onwards (this + future).
+   * @param groupId - The group ID
+   * @param fromIndex - Delete from this index onwards (inclusive)
+   */
+  const deleteTransactionGroupFromIndex = (groupId: string, fromIndex: number) => {
+    const groupTxs = state.transactions.filter(t => t.groupId === groupId && (t.groupIndex || 0) >= fromIndex);
+    if (groupTxs.length === 0) return;
+
+    const ids = groupTxs.map(t => t.id);
+    deleteTransactions(ids);
+  };
+
   const addAccount = (d: Omit<Account, 'id'>) => updateAndSync({ accounts: [...state.accounts, { ...d, id: generateId() }] });
   const updateAccount = (u: Account) => updateAndSync({ accounts: state.accounts.map(a => a.id === u.id ? u : a) });
   const deleteAccount = (id: string) => updateAndSync({ transactions: state.transactions.filter(t => t.accountId !== id), accounts: state.accounts.filter(a => a.id !== id) });
@@ -559,7 +596,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       loadClientData,
       fetchAllUserData,
       categoryBudgets: state.categoryBudgets || [],
-      updateCategoryBudget
+      updateCategoryBudget,
+      getTransactionsByGroupId,
+      deleteTransactionGroup,
+      deleteTransactionGroupFromIndex
     }}>
       {children}
     </FinanceContext.Provider>
