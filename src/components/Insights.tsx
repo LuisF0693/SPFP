@@ -38,6 +38,7 @@ export const Insights: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [hasGeneratedInsight, setHasGeneratedInsight] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -46,6 +47,17 @@ export const Insights: React.FC = () => {
   const hasToken = !!(aiConfig?.apiKey || userProfile.geminiToken);
   const hasData = transactions.length > 0;
 
+  // Limpar estado quando usuário muda (cada usuário tem seu próprio histórico)
+  useEffect(() => {
+    if (user?.id !== currentUserId) {
+      // Usuário mudou - resetar todo o estado
+      setMessages([]);
+      setHasGeneratedInsight(false);
+      setError(null);
+      setCurrentUserId(user?.id || null);
+    }
+  }, [user?.id, currentUserId]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -53,29 +65,34 @@ export const Insights: React.FC = () => {
     }
   }, [messages, loading]);
 
-  const fetchLatestInsight = useCallback(async () => {
-    if (!user) return;
-    try {
-      const history = await getAIHistory(user.id);
-      if (history.length > 0) {
-        setHasGeneratedInsight(true);
-        if (messages.length === 0) {
+  // Buscar histórico de insights do usuário atual
+  useEffect(() => {
+    const fetchUserInsights = async () => {
+      if (!user?.id) return;
+
+      try {
+        const history = await getAIHistory(user.id);
+        if (history.length > 0) {
+          setHasGeneratedInsight(true);
+          // Carregar apenas o insight mais recente DESTE usuário
           setMessages([{
             id: 'hist-' + Date.now(),
             role: 'assistant',
             content: history[0].response,
             timestamp: history[0].timestamp.getTime()
           }]);
+        } else {
+          // Usuário não tem insights ainda - manter estado limpo
+          setHasGeneratedInsight(false);
+          setMessages([]);
         }
+      } catch (err) {
+        console.error("Failed to load AI history for user", user.id, err);
       }
-    } catch (err) {
-      console.error("Failed to load AI history", err);
-    }
-  }, [user, messages.length]);
+    };
 
-  useEffect(() => {
-    fetchLatestInsight();
-  }, [fetchLatestInsight]);
+    fetchUserInsights();
+  }, [user?.id]); // Executar sempre que o user.id mudar
 
   const testConnection = async () => {
     if (!hasToken) return;
