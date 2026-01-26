@@ -56,11 +56,11 @@ Thumbs.db
 *.swp
 
 # AIOS Local (AIOS)
+.aios/
 .aios-core/
 .aios-core/local/
 .claude/
 .claude/settings.local.json
-.aios/install-log.txt
 
 # Antigravity Agents (Local Only - DO NOT COMMIT)
 .agent/
