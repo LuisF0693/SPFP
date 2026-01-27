@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { useMonthNavigation } from '../hooks';
 import { formatCurrency, getMonthName } from '../utils';
 import {
     TrendingUp, TrendingDown, DollarSign, LineChart as LineChartIcon,
