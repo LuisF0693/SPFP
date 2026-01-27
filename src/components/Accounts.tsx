@@ -9,6 +9,8 @@ import {
 import { BankLogo } from './BankLogo';
 import { CategoryIcon } from './CategoryIcon';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal';
+import { Modal } from './ui/Modal';
+import { AccountForm } from './forms/AccountForm';
 
 const CARD_COLORS = [
     '#ef4444', // Red
@@ -34,17 +36,6 @@ export const Accounts: React.FC = () => {
     const [activeCardId, setActiveCardId] = useState<string | null>(null);
     const [viewingInvoiceAccount, setViewingInvoiceAccount] = useState<Account | null>(null);
 
-    // Form States
-    const [newAccName, setNewAccName] = useState('');
-    const [newAccType, setNewAccType] = useState<AccountType>('CHECKING');
-    const [newAccOwner, setNewAccOwner] = useState<AccountOwner>('ME');
-    const [newAccBalance, setNewAccBalance] = useState('');
-    const [newAccLimit, setNewAccLimit] = useState('');
-    const [newAccLastFour, setNewAccLastFour] = useState('');
-    const [newAccNetwork, setNewAccNetwork] = useState<CardNetwork>('MASTERCARD');
-    const [newAccClosingDay, setNewAccClosingDay] = useState('');
-    const [newAccDueDay, setNewAccDueDay] = useState('');
-    const [newAccColor, setNewAccColor] = useState(CARD_COLORS[6]);
 
     // Payment Logic State
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -159,41 +150,40 @@ export const Accounts: React.FC = () => {
     };
 
     const resetForm = () => {
-        setNewAccName(''); setNewAccBalance(''); setNewAccLimit(''); setNewAccType('CHECKING');
-        setNewAccOwner('ME'); setNewAccLastFour(''); setNewAccNetwork('MASTERCARD');
-        setNewAccClosingDay(''); setNewAccDueDay(''); setNewAccColor(CARD_COLORS[6]);
-        setEditingId(null); setShowForm(false);
+        setEditingId(null);
+        setShowForm(false);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newAccName) return;
-
-        let finalBalance = newAccBalance ? parseFloat(newAccBalance) : 0;
-        if (newAccType === 'CREDIT_CARD') {
+    const handleAccountFormSubmit = (accountData: Omit<Account, 'id'>) => {
+        let finalBalance = accountData.balance;
+        if (accountData.type === 'CREDIT_CARD') {
             finalBalance = -Math.abs(finalBalance);
         }
 
-        const accountData: any = {
-            name: newAccName, type: newAccType, owner: newAccOwner, balance: finalBalance,
+        const data: any = {
+            name: accountData.name,
+            type: accountData.type,
+            owner: accountData.owner,
+            balance: finalBalance,
         };
 
-        if (newAccType === 'CREDIT_CARD') {
-            accountData.creditLimit = newAccLimit ? parseFloat(newAccLimit) : 0;
-            accountData.lastFourDigits = newAccLastFour;
-            accountData.network = newAccNetwork;
-            accountData.closingDay = newAccClosingDay ? parseInt(newAccClosingDay) : undefined;
-            accountData.dueDay = newAccDueDay ? parseInt(newAccDueDay) : undefined;
-            accountData.color = newAccColor;
+        if (accountData.type === 'CREDIT_CARD') {
+            data.creditLimit = accountData.limit;
+            data.lastFourDigits = accountData.lastFour;
+            data.network = accountData.network;
+            data.closingDay = accountData.closingDay;
+            data.dueDay = accountData.dueDay;
+            data.color = accountData.color;
         }
 
         if (editingId) {
-            updateAccount({ ...accountData, id: editingId });
+            updateAccount({ ...data, id: editingId });
         } else {
-            addAccount(accountData);
+            addAccount(data);
         }
         resetForm();
     };
+
 
     // --- Payment Logic reused ---
     const handlePayInvoice = () => {
@@ -254,93 +244,20 @@ export const Accounts: React.FC = () => {
     return (
         <div className="p-4 md:p-6 min-h-full space-y-8 animate-fade-in pb-24">
 
-            {/* --- FORM OVERLAY --- */}
-            {showForm && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-[#0f172a] w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-800 animate-slide-up max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-gray-900 dark:text-white text-xl">{editingId ? 'Editar Conta' : 'Nova Conta'}</h3>
-                            <button onClick={resetForm}><X size={24} className="text-gray-500 hover:text-gray-700 dark:hover:text-white" /></button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nome da Instituição</label>
-                                <input type="text" placeholder="Ex: Nubank, Itaú..." value={newAccName} onChange={e => setNewAccName(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-accent text-gray-900 dark:text-white" required />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label>
-                                    <select value={newAccType} onChange={e => setNewAccType(e.target.value as AccountType)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-accent text-gray-900 dark:text-white">
-                                        <option value="CHECKING">Conta Corrente</option>
-                                        <option value="CREDIT_CARD">Cartão de Crédito</option>
-                                        <option value="INVESTMENT">Investimento</option>
-                                        <option value="CASH">Dinheiro</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Proprietário</label>
-                                    <select value={newAccOwner} onChange={e => setNewAccOwner(e.target.value as AccountOwner)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-accent text-gray-900 dark:text-white">
-                                        <option value="ME">Minha Conta</option>
-                                        <option value="SPOUSE">Conta do Cônjuge</option>
-                                        <option value="JOINT">Conta Conjunta</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {newAccType === 'CREDIT_CARD' && (
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800 space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Final (4 dígitos)</label>
-                                            <input type="text" maxLength={4} placeholder="1234" value={newAccLastFour} onChange={e => setNewAccLastFour(e.target.value.replace(/\D/g, ''))} className="w-full p-3 bg-white dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bandeira</label>
-                                            <select value={newAccNetwork} onChange={e => setNewAccNetwork(e.target.value as CardNetwork)} className="w-full p-3 bg-white dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white">
-                                                <option value="MASTERCARD">Mastercard</option>
-                                                <option value="VISA">Visa</option>
-                                                <option value="ELO">Elo</option>
-                                                <option value="AMEX">Amex</option>
-                                                <option value="OTHER">Outros</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Dia Fechamento</label>
-                                            <input type="number" min={1} max={31} placeholder="Ex: 5" value={newAccClosingDay} onChange={e => setNewAccClosingDay(e.target.value)} className="w-full p-3 bg-white dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Dia Vencimento</label>
-                                            <input type="number" min={1} max={31} placeholder="Ex: 10" value={newAccDueDay} onChange={e => setNewAccDueDay(e.target.value)} className="w-full p-3 bg-white dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Cor do Cartão</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {CARD_COLORS.map(color => (
-                                                <button key={color} type="button" onClick={() => setNewAccColor(color)} className={`w-8 h-8 rounded-full border-2 transition-transform ${newAccColor === color ? 'border-white scale-110 ring-2 ring-gray-400' : 'border-transparent'}`} style={{ backgroundColor: color }} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex space-x-2">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{newAccType === 'CREDIT_CARD' ? "Fatura Atual" : "Saldo Atual"}</label>
-                                    <input type="number" step="0.01" placeholder="0,00" value={newAccBalance} onChange={e => setNewAccBalance(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none font-bold text-gray-900 dark:text-white" />
-                                </div>
-                                {newAccType === 'CREDIT_CARD' && (
-                                    <div className="flex-1">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Limite Total</label>
-                                        <input type="number" step="0.01" placeholder="0,00" value={newAccLimit} onChange={e => setNewAccLimit(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none font-bold text-gray-900 dark:text-white" required />
-                                    </div>
-                                )}
-                            </div>
-                            <button type="submit" className="w-full bg-accent text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition-all">{editingId ? 'Salvar Alterações' : 'Criar Conta'}</button>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {/* Form Modal */}
+            <Modal
+                isOpen={showForm}
+                onClose={resetForm}
+                title={editingId ? 'Editar Conta' : 'Nova Conta'}
+                size="lg"
+                variant="dark"
+            >
+                <AccountForm
+                    onClose={resetForm}
+                    initialData={editingId ? accounts.find(a => a.id === editingId) || null : null}
+                    onSubmit={handleAccountFormSubmit}
+                />
+            </Modal>
 
             {/* --- CARDS DASHBOARD SECTION (NEW) --- */}
             <div>
@@ -599,34 +516,35 @@ export const Accounts: React.FC = () => {
                 )}
             </div>
 
-            {/* Payment Modal Reuse */}
-            {isPaymentModalOpen && viewingAccount && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-2xl p-6 animate-slide-up border border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Pagar Fatura</h3>
-                        <p className="text-sm text-gray-500 mb-6">{viewingAccount.name}</p>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Valor do Pagamento</label>
-                                <input type="number" step="0.01" value={paymentAmount} onChange={(e) => setPaymentAmount(parseFloat(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-600 rounded-xl font-bold text-gray-900 dark:text-white outline-none" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Pagar com</label>
-                                <select value={paymentSourceId} onChange={(e) => setPaymentSourceId(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-600 rounded-xl text-sm outline-none text-gray-900 dark:text-white">
-                                    <option value="" disabled>Selecione uma conta</option>
-                                    {accounts.filter(a => a.type === 'CHECKING' || a.type === 'CASH').map(acc => (
-                                        <option key={acc.id} value={acc.id}>{acc.name} ({formatCurrency(acc.balance)})</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="pt-4 flex gap-3">
-                                <button onClick={() => setIsPaymentModalOpen(false)} className="flex-1 py-3 text-gray-500 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl">Cancelar</button>
-                                <button onClick={handlePayInvoice} disabled={!paymentSourceId || paymentAmount <= 0} className="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-200/20 disabled:opacity-50">Confirmar</button>
-                            </div>
-                        </div>
+            {/* Payment Modal */}
+            <Modal
+                isOpen={isPaymentModalOpen && !!viewingAccount}
+                onClose={() => setIsPaymentModalOpen(false)}
+                title="Pagar Fatura"
+                size="md"
+                variant="dark"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-400">{viewingAccount?.name}</p>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Valor do Pagamento</label>
+                        <input type="number" step="0.01" value={paymentAmount} onChange={(e) => setPaymentAmount(parseFloat(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-600 rounded-xl font-bold text-gray-900 dark:text-white outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Pagar com</label>
+                        <select value={paymentSourceId} onChange={(e) => setPaymentSourceId(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-600 rounded-xl text-sm outline-none text-gray-900 dark:text-white">
+                            <option value="" disabled>Selecione uma conta</option>
+                            {accounts.filter(a => a.type === 'CHECKING' || a.type === 'CASH').map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name} ({formatCurrency(acc.balance)})</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="pt-4 flex gap-3">
+                        <button onClick={() => setIsPaymentModalOpen(false)} className="flex-1 py-3 text-gray-500 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl">Cancelar</button>
+                        <button onClick={handlePayInvoice} disabled={!paymentSourceId || paymentAmount <= 0} className="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-200/20 disabled:opacity-50">Confirmar</button>
                     </div>
                 </div>
-            )}
+            </Modal>
 
             {/* Helper for missing icons */}
             <div className="hidden">
