@@ -98,9 +98,10 @@ export const Goals: React.FC = () => {
                         setEditingGoal(null);
                         setIsFormOpen(true);
                     }}
+                    aria-label="Criar novo objetivo"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center"
                 >
-                    <Plus size={18} className="mr-2" />
+                    <Plus size={18} className="mr-2" aria-hidden="true" />
                     Novo Objetivo
                 </button>
             </div>
@@ -173,6 +174,8 @@ export const Goals: React.FC = () => {
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
+                        aria-label={`Filtrar objetivos ${f === 'ALL' ? 'por todas as durações' : f === 'SHORT' ? 'de curto prazo' : f === 'MEDIUM' ? 'de médio prazo' : 'de longo prazo'}`}
+                        aria-pressed={filter === f}
                         className={`pb-3 text-sm font-bold transition-all relative ${filter === f ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                     >
                         {f === 'ALL' && 'Todas'}
@@ -210,17 +213,17 @@ export const Goals: React.FC = () => {
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setEditingGoal(goal); setIsFormOpen(true); }}
+                                        aria-label={`Editar objetivo: ${goal.name}`}
                                         className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
-                                        title="Editar"
                                     >
-                                        <Edit2 size={18} />
+                                        <Edit2 size={18} aria-hidden="true" />
                                     </button>
                                     <button
                                         onClick={(e) => handleDelete(goal.id, e)}
+                                        aria-label={`Excluir objetivo: ${goal.name}`}
                                         className="text-gray-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
-                                        title="Excluir"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={18} aria-hidden="true" />
                                     </button>
                                 </div>
                             </div>
@@ -248,9 +251,10 @@ export const Goals: React.FC = () => {
                 {/* Card "Criar Nova Meta" Placeholder style */}
                 <button
                     onClick={() => { setEditingGoal(null); setIsFormOpen(true); }}
+                    aria-label="Criar novo objetivo"
                     className="bg-[#0f172a]/50 border-2 border-dashed border-gray-800 rounded-2xl p-6 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-4 min-h-[200px] group"
                 >
-                    <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                    <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-all" aria-hidden="true">
                         <Plus size={32} />
                     </div>
                     <span className="font-bold text-gray-500 group-hover:text-white">Criar Novo Objetivo</span>
