@@ -105,9 +105,10 @@ export const Patrimony: React.FC = () => {
                 </div>
                 <button
                     onClick={() => { setEditingItem(null); setIsFormOpen(true); }}
+                    aria-label="Criar novo registro de patrimônio"
                     className="flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 active:scale-95"
                 >
-                    <Plus size={20} className="mr-2" />
+                    <Plus size={20} className="mr-2" aria-hidden="true" />
                     Novo Registro
                 </button>
             </div>
@@ -273,11 +274,19 @@ export const Patrimony: React.FC = () => {
                                 {formatCurrency(item.value)}
                             </div>
                             <div className="col-span-2 flex justify-end space-x-1">
-                                <button onClick={() => handleEdit(item)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
-                                    <Edit2 size={16} />
+                                <button
+                                  onClick={() => handleEdit(item)}
+                                  aria-label={`Editar ativo: ${item.name}`}
+                                  className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                >
+                                    <Edit2 size={16} aria-hidden="true" />
                                 </button>
-                                <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                                    <Trash2 size={16} />
+                                <button
+                                  onClick={() => handleDelete(item.id)}
+                                  aria-label={`Excluir ativo: ${item.name}`}
+                                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                    <Trash2 size={16} aria-hidden="true" />
                                 </button>
                             </div>
                         </div>
@@ -313,11 +322,19 @@ export const Patrimony: React.FC = () => {
                                 - {formatCurrency(item.value)}
                             </div>
                             <div className="col-span-2 flex justify-end space-x-1">
-                                <button onClick={() => handleEdit(item)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
-                                    <Edit2 size={16} />
+                                <button
+                                  onClick={() => handleEdit(item)}
+                                  aria-label={`Editar dívida: ${item.name}`}
+                                  className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                >
+                                    <Edit2 size={16} aria-hidden="true" />
                                 </button>
-                                <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                                    <Trash2 size={16} />
+                                <button
+                                  onClick={() => handleDelete(item.id)}
+                                  aria-label={`Excluir dívida: ${item.name}`}
+                                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                    <Trash2 size={16} aria-hidden="true" />
                                 </button>
                             </div>
                         </div>
