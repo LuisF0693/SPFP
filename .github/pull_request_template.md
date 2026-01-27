@@ -1,69 +1,36 @@
-## Description
+## 📋 Pull Request
 
-<!-- Please include a summary of the changes and related context -->
+## 📝 Descrição
+<!-- Descreva as mudanças realizadas -->
 
-## Type of Change
+## 🎯 Tipo de Mudança
+- [ ] 🐛 Bug fix
+- [ ] ✨ Nova feature
+- [ ] 🔧 Refactoring
+- [ ] 📚 Documentação
+- [ ] 🧪 Testes
+- [ ] 🚀 Performance
+- [ ] 🔒 Security
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Documentation update
-- [ ] Refactoring / Code cleanup
-- [ ] Performance improvement
-- [ ] Security improvement
+## 📌 Relacionado a Story/Issue
+Closes: STY-XXX
 
-## Related Issues
+## ✅ Checklist de Qualidade
 
-<!-- Link to related issues using #issue-number -->
-Closes #
+### Código
+- [ ] Código segue style guide
+- [ ] TypeScript strict mode (sem `any`)
+- [ ] Sem console.log() em produção
 
-## Changes Made
+### Testes
+- [ ] Testes passando localmente
+- [ ] Cobertura > 80%
 
-<!-- List the specific changes made in this PR -->
--
--
--
+### Performance & Segurança
+- [ ] Sem regressão de performance
+- [ ] Sem hardcoded secrets
+- [ ] RLS policies aplicadas (se DB)
 
-## Testing
+---
 
-<!-- Describe the testing you've done to verify these changes -->
-
-### Test Cases
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
-
-### How to Test
-<!-- Provide steps to test the changes -->
-1.
-2.
-3.
-
-## Checklist
-
-- [ ] My code follows the project's code style and conventions
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings or errors
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests passed locally with my changes
-- [ ] I have not added any console logs or debug code
-- [ ] TypeScript types are properly defined
-- [ ] No breaking changes to existing APIs
-
-## Screenshots (if applicable)
-
-<!-- Add screenshots or GIFs demonstrating the changes -->
-
-## Additional Context
-
-<!-- Add any other context about the PR here -->
-
-## Deployment Notes
-
-<!-- If this requires any deployment steps, describe them here -->
-
-## Rollback Plan
-
-<!-- Describe how to rollback these changes if needed -->
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
