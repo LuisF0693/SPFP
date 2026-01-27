@@ -97,7 +97,7 @@ export const FutureCashFlow: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="h-[400px] w-full">
+                <div className="h-[300px] md:h-[350px] lg:h-[400px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>

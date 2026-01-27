@@ -20,10 +20,10 @@ interface ModalProps {
 }
 
 const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-2xl',
+  sm: 'max-w-full sm:max-w-sm',
+  md: 'max-w-full sm:max-w-md',
+  lg: 'max-w-full md:max-w-lg',
+  xl: 'max-w-full md:max-w-2xl',
 };
 
 const variantClasses = {
@@ -121,7 +121,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div
       role="presentation"
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}
+      className={`fixed inset-0 z-[100] flex md:items-center items-end justify-center p-2 md:p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}
       onClick={(e) => {
         // Close on backdrop click
         if (e.target === e.currentTarget) {
@@ -135,14 +135,14 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={ariaLabelledBy || (title ? titleId : undefined)}
         aria-label={ariaLabel}
-        className={`w-full ${sizeClasses[size]} ${variantStyle.modal} rounded-2xl shadow-2xl animate-slide-up overflow-hidden border ${className}`}
+        className={`w-full ${sizeClasses[size]} ${variantStyle.modal} md:rounded-2xl rounded-t-2xl shadow-2xl animate-slide-up md:animate-slide-up animate-slide-from-bottom overflow-hidden border max-h-[85vh] md:max-h-[90vh] ${className}`}
         style={variant === 'dark' ? {
           boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         } : undefined}
       >
         {/* Header */}
         {(title || headerIcon || closeButton) && (
-          <div className={`flex items-center justify-between p-6 border-b ${variantStyle.header} ${headerClassName}`}>
+          <div className={`flex items-center justify-between p-4 md:p-6 border-b ${variantStyle.header} ${headerClassName}`}>
             <div className="flex items-center gap-3">
               {headerIcon && <div aria-hidden="true">{headerIcon}</div>}
               {title && (
@@ -155,7 +155,7 @@ export const Modal: React.FC<ModalProps> = ({
               <button
                 onClick={onClose}
                 aria-label="Fechar diálogo"
-                className={`p-2 rounded-xl transition-all ${
+                className={`p-3 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
                   variant === 'dark'
                     ? 'text-gray-400 hover:text-white hover:bg-white/10'
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
@@ -168,13 +168,13 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content */}
-        <div className={`p-6 ${contentClassName}`}>
+        <div className={`p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-140px)] md:max-h-[calc(90vh-140px)] ${contentClassName}`}>
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className={`p-6 border-t ${variantStyle.footer} ${footerClassName}`}>
+          <div className={`p-4 md:p-6 border-t ${variantStyle.footer} ${footerClassName}`}>
             {footer}
           </div>
         )}

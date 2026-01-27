@@ -66,9 +66,10 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
         <div className="bg-[#0f172a] w-full max-w-lg rounded-2xl p-6 border border-gray-800 text-white relative">
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                aria-label="Fechar formulário de meta"
+                className="absolute top-4 right-4 p-3 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
             </button>
 
             <div className="mb-6 flex items-center gap-3">
@@ -146,7 +147,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
                                 key={c}
                                 type="button"
                                 onClick={() => setColor(c)}
-                                className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-white scale-110' : 'border-transparent'}`}
+                                aria-label={`Cor ${c}`}
+                                aria-pressed={color === c}
+                                className={`w-11 h-11 rounded-full border-2 transition-transform ${color === c ? 'border-white scale-110' : 'border-transparent'}`}
                                 style={{ backgroundColor: c }}
                             />
                         ))}
@@ -157,7 +160,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
                                 key={i}
                                 type="button"
                                 onClick={() => setIcon(i)}
-                                className={`w-10 h-10 rounded-xl border flex items-center justify-center flex-shrink-0 transition-all ${icon === i ? 'border-blue-500 bg-blue-500/20 text-blue-400' : 'border-gray-700 bg-[#1e293b] text-gray-500 hover:text-white'}`}
+                                aria-label={`Ícone ${i}`}
+                                aria-pressed={icon === i}
+                                className={`w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 transition-all min-h-[44px] min-w-[44px] ${icon === i ? 'border-blue-500 bg-blue-500/20 text-blue-400' : 'border-gray-700 bg-[#1e293b] text-gray-500 hover:text-white'}`}
                             >
                                 <CategoryIcon iconName={i} size={20} />
                             </button>

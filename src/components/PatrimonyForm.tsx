@@ -60,8 +60,8 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({ onClose, initialData }) =
     return (
         <div className="bg-white w-full p-6 relative rounded-2xl">
             <div className="flex items-center mb-6">
-                <button onClick={onClose} className="mr-4 p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronLeft size={24} />
+                <button onClick={onClose} aria-label="Fechar formulário de patrimônio" className="mr-4 p-3 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+                    <ChevronLeft size={24} aria-hidden="true" />
                 </button>
                 <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Editar Registro' : 'Novo Registro'}</h2>
             </div>

@@ -66,14 +66,14 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({ onClose, initialData })
     return (
         <div className="bg-white w-full p-6 relative rounded-2xl">
             <div className="flex items-center mb-6">
-                <button onClick={onClose} className="mr-4 p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronLeft size={24} />
+                <button onClick={onClose} aria-label="Fechar formulário de investimento" className="mr-4 p-3 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+                    <ChevronLeft size={24} aria-hidden="true" />
                 </button>
                 <h2 className="text-2xl font-bold text-gray-800">{initialData ? 'Editar Ativo' : 'Novo Aporte'}</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ticker / Código</label>
                         <div className="relative">
@@ -114,7 +114,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({ onClose, initialData })
                     />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="col-span-1">
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Quantidade</label>
                         <div className="relative">

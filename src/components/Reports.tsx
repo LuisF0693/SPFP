@@ -194,7 +194,7 @@ export const Reports: React.FC = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="h-[300px]">
+                    <div className="h-[250px] md:h-[300px] lg:h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={historyData}>
                                 <defs>
@@ -227,7 +227,7 @@ export const Reports: React.FC = () => {
                         Distribuição por Categoria
                     </h3>
                     <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div className="h-[250px] w-full md:w-1/2">
+                        <div className="h-[200px] md:h-[250px] w-full md:w-1/2">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie

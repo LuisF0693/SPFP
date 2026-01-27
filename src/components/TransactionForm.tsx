@@ -523,7 +523,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                                     onClick={() => setSentiment(sentiment === s.value ? undefined : s.value)}
                                     aria-label={s.label}
                                     aria-pressed={sentiment === s.value}
-                                    className={`flex flex-col items-center p-2 rounded-xl transition-all flex-1 ${sentiment === s.value ? 'bg-slate-700/50 shadow-lg border border-blue-500/30 scale-105' : 'hover:bg-slate-700/30 opacity-50 hover:opacity-100'}`}
+                                    className={`flex flex-col items-center p-3 rounded-xl transition-all flex-1 min-h-[44px] min-w-[44px] justify-center ${sentiment === s.value ? 'bg-slate-700/50 shadow-lg border border-blue-500/30 scale-105' : 'hover:bg-slate-700/30 opacity-50 hover:opacity-100'}`}
                                 >
                                     <span className="text-2xl mb-1" aria-hidden="true">{s.emoji}</span>
                                     <span className="text-[10px] font-bold text-slate-400">{s.label}</span>
@@ -587,7 +587,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                           onClick={() => setRecurrence('NONE')}
                           aria-label="Transação única, sem recorrência"
                           aria-pressed={recurrence === 'NONE'}
-                          className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'NONE' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
+                          className={`py-3 text-xs font-bold rounded-lg transition-colors min-h-[44px] ${recurrence === 'NONE' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
                         >
                             Único
                         </button>
@@ -596,7 +596,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                           onClick={() => setRecurrence('INSTALLMENT')}
                           aria-label="Transação parcelada"
                           aria-pressed={recurrence === 'INSTALLMENT'}
-                          className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'INSTALLMENT' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
+                          className={`py-3 text-xs font-bold rounded-lg transition-colors min-h-[44px] ${recurrence === 'INSTALLMENT' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
                         >
                             Parcelado
                         </button>
@@ -605,7 +605,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                           onClick={() => setRecurrence('REPEATED')}
                           aria-label="Transação recorrente mensal"
                           aria-pressed={recurrence === 'REPEATED'}
-                          className={`py-2 text-xs font-bold rounded-lg transition-colors ${recurrence === 'REPEATED' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
+                          className={`py-3 text-xs font-bold rounded-lg transition-colors min-h-[44px] ${recurrence === 'REPEATED' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700/50'}`}
                         >
                             Fixo Mensal
                         </button>
@@ -652,7 +652,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                             <button
                               onClick={() => setIsCreatingCategory(false)}
                               aria-label="Fechar criação de categoria"
-                              className="p-2 text-slate-400 hover:text-slate-200 transition-colors"
+                              className="p-3 text-slate-400 hover:text-slate-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                             >
                               <X size={24} aria-hidden="true" />
                             </button>
@@ -681,7 +681,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                                           onClick={() => setNewCatColor(c)}
                                           aria-label={`Cor ${c}`}
                                           aria-pressed={newCatColor === c}
-                                          className={`w-8 h-8 rounded-full border-2 transition-transform active:scale-90 ${newCatColor === c ? 'border-white scale-110 shadow-lg' : 'border-transparent'}`}
+                                          className={`w-11 h-11 rounded-full border-2 transition-transform active:scale-90 ${newCatColor === c ? 'border-white scale-110 shadow-lg' : 'border-transparent'}`}
                                           style={{ backgroundColor: c }}
                                         />
                                     ))}
@@ -692,7 +692,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Ícone Representativo</label>
                                 <div className="grid grid-cols-5 gap-3 max-h-32 overflow-y-auto p-2 border border-slate-700/50 rounded-xl bg-slate-800/30">
                                     {AVAILABLE_ICONS.map(icon => (
-                                        <button key={icon} type="button" onClick={() => setNewCatIcon(icon)} className={`p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === icon ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'}`}>
+                                        <button key={icon} type="button" onClick={() => setNewCatIcon(icon)} className={`p-3 rounded-lg flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${newCatIcon === icon ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'}`}>
                                             <CategoryIcon iconName={icon} size={20} color={newCatIcon === icon ? '#fff' : '#9ca3af'} />
                                         </button>
                                     ))}

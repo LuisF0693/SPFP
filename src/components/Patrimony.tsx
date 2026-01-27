@@ -161,7 +161,7 @@ export const Patrimony: React.FC = () => {
                         <h3 className="font-bold text-lg">Evolução Patrimonial</h3>
                         <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs font-bold">+15% este ano</span>
                     </div>
-                    <div className="h-[200px] w-full">
+                    <div className="h-[180px] md:h-[200px] lg:h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={evolutionData}>
                                 <defs>

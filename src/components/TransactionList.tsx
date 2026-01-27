@@ -274,7 +274,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Desktop: Table View */}
+                <div className="hidden md:overflow-x-auto md:block">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-400">
@@ -399,6 +400,87 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile: Card View */}
+                <div className="md:hidden space-y-3 px-2">
+                    {filteredTransactions.length === 0 ? (
+                        <div className="p-8 text-center text-gray-400 font-medium">
+                            Nenhuma transação encontrada.
+                        </div>
+                    ) : (
+                        filteredTransactions.map(tx => {
+                            const cat = categories.find(c => c.id === tx.categoryId);
+                            const acc = accounts.find(a => a.id === tx.accountId);
+                            const status = getStatus(tx.date, tx.paid);
+                            const StatusIcon = status.icon;
+                            const spender = getSpenderInfo(tx.spender);
+
+                            return (
+                                <div key={tx.id} className={`p-4 rounded-xl border bg-[#0f172a]/50 ${selectedIds.has(tx.id) ? 'border-blue-500/50 bg-blue-900/10' : 'border-gray-800'}`}>
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="flex items-start gap-3 flex-1">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900 mt-0.5"
+                                                checked={selectedIds.has(tx.id)}
+                                                onChange={(e) => {
+                                                    const newSet = new Set(selectedIds);
+                                                    if (e.target.checked) newSet.add(tx.id);
+                                                    else newSet.delete(tx.id);
+                                                    setSelectedIds(newSet);
+                                                }}
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="p-2 bg-[#1e293b] rounded-lg text-white flex-shrink-0">
+                                                        <CategoryIcon iconName={cat?.icon} size={16} />
+                                                    </div>
+                                                    <span className="text-gray-200 font-bold text-sm truncate">{tx.description}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-400">
+                                                    {formatDate(tx.date)} • {acc?.name}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className={`font-bold text-sm whitespace-nowrap flex-shrink-0 ${tx.type === 'INCOME' ? 'text-emerald-500' : 'text-white'}`}>
+                                            {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.value)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium flex-shrink-0" style={{ backgroundColor: `${cat?.color}15`, color: cat?.color }}>
+                                                {cat?.name}
+                                            </div>
+                                            <div className={`flex items-center space-x-1 text-xs font-bold ${status.color}`}>
+                                                <StatusIcon size={12} />
+                                                <span>{status.label}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                              onClick={() => {
+                                                  setEditingTransaction(tx);
+                                                  setIsTransactionModalOpen(true);
+                                              }}
+                                              aria-label={`Editar transação: ${tx.description}`}
+                                              className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                                            >
+                                              <Edit2 size={16} aria-hidden="true" />
+                                            </button>
+                                            <button
+                                              onClick={() => handleDeleteClick(tx)}
+                                              aria-label={`Excluir transação: ${tx.description}`}
+                                              className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                            >
+                                              <Trash2 size={16} aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
 
                 {/* Footer / Pagination Placeholder */}

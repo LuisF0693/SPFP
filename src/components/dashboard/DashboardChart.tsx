@@ -75,7 +75,7 @@ export const DashboardChart = memo<DashboardChartProps>(
             </div>
           </div>
 
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] md:h-[300px] lg:h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={trendData}

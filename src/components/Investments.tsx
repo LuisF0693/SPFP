@@ -249,7 +249,7 @@ export const Investments: React.FC = () => {
                             ))}
                         </div>
                     </div>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[250px] md:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={evolutionData}>
                                 <defs>
@@ -275,7 +275,7 @@ export const Investments: React.FC = () => {
                 {/* Allocation Chart */}
                 <div className="bg-[#0F172A] p-6 rounded-2xl shadow-lg border border-slate-800 text-white">
                     <h3 className="font-bold text-lg mb-6">Alocação de Ativos</h3>
-                    <div className="h-[220px] w-full relative">
+                    <div className="h-[180px] md:h-[220px] w-full relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -335,7 +335,8 @@ export const Investments: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Desktop: Table View */}
+                <div className="hidden md:overflow-x-auto md:block">
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-white/5 text-xs font-bold text-gray-400 uppercase tracking-wider">
                             <tr>
@@ -423,6 +424,72 @@ export const Investments: React.FC = () => {
                             })}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile: Card View */}
+                <div className="md:hidden space-y-3 px-2">
+                    {filteredInvestments.length === 0 ? (
+                        <div className="py-12 text-center text-gray-300">
+                            Nenhum ativo encontrado. Comece adicionando um novo aporte!
+                        </div>
+                    ) : (
+                        filteredInvestments.map((asset) => {
+                            const total = asset.quantity * asset.currentPrice;
+                            const cost = asset.quantity * asset.averagePrice;
+                            const prof = total - cost;
+                            const profPercent = (prof / cost) * 100;
+
+                            return (
+                                <div key={asset.id} className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl">
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="flex items-start gap-3 flex-1">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs flex-shrink-0">
+                                                {asset.ticker.substring(0, 2)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-gray-900 dark:text-white">{asset.ticker}</p>
+                                                <p className="text-xs text-gray-400">{asset.name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right flex-shrink-0">
+                                            <p className="font-bold text-gray-900 dark:text-white">{formatCurrency(total)}</p>
+                                            <p className={`text-sm font-bold ${prof >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                                                {profPercent.toFixed(2)}%
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 dark:border-white/10">
+                                        <div className="space-y-1 text-xs flex-1">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Tipo:</span>
+                                                <span className="font-medium text-gray-900 dark:text-white">{TYPE_LABELS[asset.type] || asset.type}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Preço Atual:</span>
+                                                <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(asset.currentPrice)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleEdit(asset)}
+                                                aria-label={`Editar investimento: ${asset.name}`}
+                                                className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-colors"
+                                            >
+                                                <Edit2 size={16} aria-hidden="true" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(asset.id)}
+                                                aria-label={`Excluir investimento: ${asset.name}`}
+                                                className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 size={16} aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
             </section>
 
