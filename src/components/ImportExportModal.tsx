@@ -169,9 +169,12 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
             headerClassName="rounded-t-2xl"
         >
             {/* Tabs */}
-            <div className="flex border-b border-gray-100 dark:border-gray-800">
+            <div className="flex border-b border-gray-100 dark:border-gray-800" role="tablist">
                     <button
                         onClick={() => setActiveTab('import')}
+                        role="tab"
+                        aria-selected={activeTab === 'import'}
+                        aria-controls="import-panel"
                         className={`flex-1 py-4 text-sm font-medium transition-all ${activeTab === 'import'
                             ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50 dark:bg-emerald-900/10'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -181,6 +184,9 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                     </button>
                     <button
                         onClick={() => setActiveTab('export')}
+                        role="tab"
+                        aria-selected={activeTab === 'export'}
+                        aria-controls="export-panel"
                         className={`flex-1 py-4 text-sm font-medium transition-all ${activeTab === 'export'
                             ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50 dark:bg-emerald-900/10'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -193,6 +199,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                 {/* Content */}
                 <div className="p-6 min-h-[300px]">
                     {activeTab === 'import' ? (
+                        <div id="import-panel" role="tabpanel" aria-labelledby="import-tab">
                         <div className="space-y-6">
                             {!previewData.length ? (
                                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-10 text-center hover:border-emerald-500 transition-colors group relative">
@@ -252,6 +259,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                                                             type="checkbox"
                                                             checked={previewData.length > 0 && selectedIds.size === previewData.length}
                                                             onChange={toggleSelectAll}
+                                                            aria-label="Selecionar todas as transações"
                                                             className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                                         />
                                                     </th>
@@ -316,10 +324,10 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                                                         <td className="p-2 text-center">
                                                             <button
                                                                 onClick={() => importSingle(t.id as string)}
+                                                                aria-label={`Importar transação: ${t.description}`}
                                                                 className="p-1 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-full transition-colors"
-                                                                title="Adicionar apenas este"
                                                             >
-                                                                <Check className="w-4 h-4" />
+                                                                <Check className="w-4 h-4" aria-hidden="true" />
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -331,9 +339,10 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                                     <button
                                         onClick={confirmImport}
                                         disabled={selectedIds.size === 0}
+                                        aria-label={selectedIds.size > 0 ? `Importar ${selectedIds.size} transações selecionadas` : 'Nenhuma transação selecionada'}
                                         className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:scale-100 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 dark:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
                                     >
-                                        <Check className="w-5 h-5" />
+                                        <Check className="w-5 h-5" aria-hidden="true" />
                                         {selectedIds.size > 0
                                             ? `Importar ${selectedIds.size} selecionados`
                                             : 'Selecione itens para importar'}
@@ -342,19 +351,20 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                             )}
 
                             {error && (
-                                <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center gap-3">
-                                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center gap-3" role="alert">
+                                    <AlertCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                                     <p className="text-sm">{error}</p>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div id="export-panel" role="tabpanel" aria-labelledby="export-tab" className="space-y-4">
                             <button
                                 onClick={() => exportTransactionsToCSV(transactions)}
+                                aria-label="Exportar transações como CSV"
                                 className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all flex items-center gap-4 group"
                             >
-                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform" aria-hidden="true">
                                     <FileText className="w-6 h-6" />
                                 </div>
                                 <div className="text-left">
@@ -365,9 +375,10 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
 
                             <button
                                 onClick={() => generatePDFReport(transactions, categories, 'Mês Atual')}
+                                aria-label="Gerar relatório em PDF"
                                 className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all flex items-center gap-4 group"
                             >
-                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center text-red-600 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center text-red-600 group-hover:scale-110 transition-transform" aria-hidden="true">
                                     <FileText className="w-6 h-6" />
                                 </div>
                                 <div className="text-left">

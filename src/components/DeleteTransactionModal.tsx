@@ -144,7 +144,7 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
             variant="dark"
             size="lg"
             headerIcon={
-                <div className="p-2.5 bg-rose-500/10 rounded-xl">
+                <div className="p-2.5 bg-rose-500/10 rounded-xl" aria-hidden="true">
                     <Trash2 size={24} className="text-rose-500" />
                 </div>
             }
@@ -152,6 +152,7 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                 <div className="flex gap-3 w-full">
                     <button
                         onClick={onClose}
+                        aria-label="Cancelar exclusão de transação"
                         className="flex-1 py-3 px-4 text-gray-400 font-bold text-sm hover:bg-white/5 rounded-xl transition-all"
                     >
                         Cancelar
@@ -159,13 +160,14 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                     <button
                         onClick={handleConfirm}
                         disabled={isDeleting}
+                        aria-label={isDeleting ? "Processando exclusão" : "Confirmar exclusão de transação"}
                         className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 group"
                     >
                         {isDeleting ? (
-                            <RefreshCw size={16} className="animate-spin" />
+                            <RefreshCw size={16} className="animate-spin" aria-hidden="true" />
                         ) : (
                             <>
-                                <Trash2 size={16} className="group-hover:animate-shake" />
+                                <Trash2 size={16} className="group-hover:animate-shake" aria-hidden="true" />
                                 Confirmar Exclusão
                             </>
                         )}
@@ -177,7 +179,7 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                     {/* Info Card */}
                     <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center gap-2 text-white font-bold">
-                            {isInstallment ? <Package size={18} className="text-blue-400" /> : <RefreshCw size={18} className="text-indigo-400" />}
+                            {isInstallment ? <Package size={18} className="text-blue-400" aria-hidden="true" /> : <RefreshCw size={18} className="text-indigo-400" aria-hidden="true" />}
                             <span>{baseDescription}</span>
                         </div>
                         <p className="text-sm text-gray-400">
@@ -210,6 +212,8 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                             <button
                                 key={option.value}
                                 onClick={() => setSelectedOption(option.value)}
+                                aria-label={`${option.title}: ${option.subtitle}`}
+                                aria-pressed={selectedOption === option.value}
                                 className={`w-full p-4 rounded-xl border text-left transition-all ${
                                     selectedOption === option.value
                                         ? 'bg-rose-500/10 border-rose-500/40'
@@ -217,11 +221,14 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                                 }`}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                        selectedOption === option.value
-                                            ? 'border-rose-500 bg-rose-500'
-                                            : 'border-gray-600'
-                                    }`}>
+                                    <div
+                                        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                            selectedOption === option.value
+                                                ? 'border-rose-500 bg-rose-500'
+                                                : 'border-gray-600'
+                                        }`}
+                                        aria-hidden="true"
+                                    >
                                         {selectedOption === option.value && (
                                             <div className="w-2 h-2 bg-white rounded-full animate-scale-in" />
                                         )}
@@ -241,8 +248,8 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
 
                     {/* Warning for all delete */}
                     {selectedOption === 'all' && (
-                        <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl animate-fade-in">
-                            <AlertTriangle size={18} className="text-amber-500 shrink-0" />
+                        <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl animate-fade-in" role="alert">
+                            <AlertTriangle size={18} className="text-amber-500 shrink-0" aria-hidden="true" />
                             <p className="text-xs text-amber-400">
                                 Esta ação removerá todo o histórico e não pode ser desfeita.
                             </p>

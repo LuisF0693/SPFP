@@ -15,6 +15,8 @@ interface FormInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
   variant?: 'default' | 'filled';
   helperText?: string;
   required?: boolean;
+  ariaLabel?: string;
+  ariaDescribedBy?: string;
 }
 
 const sizeClasses = {
@@ -46,9 +48,20 @@ export const FormInput: React.FC<FormInputProps> = ({
   className = '',
   id,
   disabled,
+  ariaLabel,
+  ariaDescribedBy,
   ...props
 }) => {
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const errorId = `error-${inputId}`;
+  const hintId = `hint-${inputId}`;
+
+  // Build aria-describedby to link error messages and hints
+  const describedByIds = [
+    error ? errorId : '',
+    hint ? hintId : '',
+    ariaDescribedBy || ''
+  ].filter(Boolean).join(' ');
 
   const inputClasses = `
     w-full
@@ -60,7 +73,7 @@ export const FormInput: React.FC<FormInputProps> = ({
     placeholder-gray-400 dark:placeholder-gray-500
     transition-colors
     focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20
-    ${error ? 'border-red-500 dark:border-red-500 focus:ring-red-500/20' : ''}
+    ${error ? 'border-red-500 dark:border-red-500 focus:ring-red-500/20 aria-invalid:border-red-500' : ''}
     ${iconPosition === 'left' ? 'pl-9' : ''}
     ${iconPosition === 'right' ? 'pr-9' : ''}
     disabled:opacity-50 disabled:cursor-not-allowed
@@ -74,7 +87,7 @@ export const FormInput: React.FC<FormInputProps> = ({
       {label && (
         <label htmlFor={inputId} className="form-label">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
         </label>
       )}
 
@@ -83,22 +96,41 @@ export const FormInput: React.FC<FormInputProps> = ({
           id={inputId}
           type={type}
           disabled={disabled}
+          aria-label={ariaLabel}
+          aria-invalid={!!error}
+          aria-required={required}
+          aria-describedby={describedByIds || undefined}
           className={inputClasses}
           {...props}
         />
 
         {Icon && (
-          <div className={`absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none ${
-            iconPosition === 'left' ? 'left-3' : 'right-3'
-          }`}>
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none ${
+              iconPosition === 'left' ? 'left-3' : 'right-3'
+            }`}
+            aria-hidden="true"
+          >
             {isIconReactNode ? Icon : <Icon size={18} />}
           </div>
         )}
       </div>
 
-      {error && <span className="text-xs text-red-500">{error}</span>}
-      {hint && <span className="text-xs text-gray-500 dark:text-gray-400">{hint}</span>}
-      {helperText && <span className="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>}
+      {error && (
+        <span id={errorId} className="text-xs text-red-500" role="alert">
+          {error}
+        </span>
+      )}
+      {hint && (
+        <span id={hintId} className="text-xs text-gray-500 dark:text-gray-400">
+          {hint}
+        </span>
+      )}
+      {helperText && (
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {helperText}
+        </span>
+      )}
     </div>
   );
 };

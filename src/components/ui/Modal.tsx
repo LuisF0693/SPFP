@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -15,6 +15,8 @@ interface ModalProps {
   variant?: 'dark' | 'light';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   closeButton?: boolean;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
 }
 
 const sizeClasses = {
@@ -42,6 +44,7 @@ const variantClasses = {
 /**
  * Reusable Modal component that consolidates modal implementations
  * Supports dark/light variants with configurable header, content, and footer
+ * WCAG 2.1 AA accessible: aria-modal, aria-labelledby, focus trap, ESC to close
  */
 export const Modal: React.FC<ModalProps> = ({
   isOpen = true,
@@ -57,14 +60,81 @@ export const Modal: React.FC<ModalProps> = ({
   variant = 'dark',
   size = 'lg',
   closeButton = true,
+  ariaLabel,
+  ariaLabelledBy,
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const titleId = useRef(`modal-title-${Math.random().toString(36).substr(2, 9)}`).current;
+
+  // Focus trap and ESC to close handler
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Store the previously focused element so we can restore it
+    const previouslyFocusedElement = document.activeElement as HTMLElement;
+
+    // Focus the modal container
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+
+      // Focus trap: cycle through focusable elements
+      if (e.key === 'Tab') {
+        const focusableElements = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusableElements || focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      // Restore focus when modal closes
+      if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+      }
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const variantStyle = variantClasses[variant];
 
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}>
+    <div
+      role="presentation"
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}
+      onClick={(e) => {
+        // Close on backdrop click
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={ariaLabelledBy || (title ? titleId : undefined)}
+        aria-label={ariaLabel}
         className={`w-full ${sizeClasses[size]} ${variantStyle.modal} rounded-2xl shadow-2xl animate-slide-up overflow-hidden border ${className}`}
         style={variant === 'dark' ? {
           boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
@@ -74,9 +144,9 @@ export const Modal: React.FC<ModalProps> = ({
         {(title || headerIcon || closeButton) && (
           <div className={`flex items-center justify-between p-6 border-b ${variantStyle.header} ${headerClassName}`}>
             <div className="flex items-center gap-3">
-              {headerIcon && <div>{headerIcon}</div>}
+              {headerIcon && <div aria-hidden="true">{headerIcon}</div>}
               {title && (
-                <h2 className={`text-xl font-bold ${variant === 'dark' ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                <h2 id={titleId} className={`text-xl font-bold ${variant === 'dark' ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
                   {title}
                 </h2>
               )}
@@ -84,13 +154,14 @@ export const Modal: React.FC<ModalProps> = ({
             {closeButton && (
               <button
                 onClick={onClose}
+                aria-label="Fechar diálogo"
                 className={`p-2 rounded-xl transition-all ${
                   variant === 'dark'
                     ? 'text-gray-400 hover:text-white hover:bg-white/10'
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
                 }`}
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
               </button>
             )}
           </div>
