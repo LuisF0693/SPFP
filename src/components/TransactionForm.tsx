@@ -25,7 +25,7 @@ type RecurrenceType = 'NONE' | 'INSTALLMENT' | 'REPEATED';
  * expense/income types, categories, accounts, and recurrence logic.
  */
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
-    const { accounts, categories, transactions, addTransaction, addManyTransactions, updateTransaction, addCategory } = useFinance() as any;
+    const { accounts, categories, transactions, addTransaction, addManyTransactions, updateTransaction, addCategory } = useFinance();
 
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');

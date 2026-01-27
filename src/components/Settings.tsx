@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { AIConfig } from '../types';
 import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 
 
@@ -373,7 +374,7 @@ export const Settings: React.FC = () => {
                                 <select
                                     value={formData.aiConfig?.provider || 'google'}
                                     onChange={(e) => {
-                                        const provider = e.target.value as any;
+                                        const provider = e.target.value as AIConfig['provider'];
                                         handleChange('aiConfig', {
                                             ...(formData.aiConfig || {}),
                                             provider,

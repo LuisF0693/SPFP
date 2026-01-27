@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { useMonthNavigation } from '../hooks';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
     Trash2, Edit2, Upload, Download, Search, Filter, ChevronLeft, ChevronRight,
@@ -28,9 +29,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         getTransactionsByGroupId, deleteTransactionGroup, deleteTransactionGroupFromIndex
     } = useFinance();
 
-    // Date State
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    // Month Navigation
+    const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
 
     // Delete Modal State
     const [deleteModalTransaction, setDeleteModalTransaction] = useState<Transaction | null>(null);
@@ -77,15 +77,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         const balance = income - expense;
         return { income, expense, balance };
     }, [filteredTransactions]);
-
-    const changeMonth = (delta: number) => {
-        let newMonth = selectedMonth + delta;
-        let newYear = selectedYear;
-        if (newMonth > 11) { newMonth = 0; newYear++; }
-        else if (newMonth < 0) { newMonth = 11; newYear--; }
-        setSelectedMonth(newMonth);
-        setSelectedYear(newYear);
-    };
 
     const getStatus = React.useCallback((date: string, paid: boolean) => {
         const d = new Date(date);
