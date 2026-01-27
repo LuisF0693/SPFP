@@ -20,6 +20,13 @@ interface GlobalState {
   lastUpdated: number;
 }
 
+// Supabase payload types
+interface SupabasePayload {
+  new: Record<string, unknown> | null;
+  old: Record<string, unknown> | null;
+  eventType: string;
+}
+
 export interface FinanceContextData extends FinanceContextType {
   isSyncing: boolean;
   isInitialLoadComplete: boolean;
@@ -278,8 +285,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           table: 'user_data',
           filter: `user_id=eq.${effectiveUserId}`
         },
-        (payload) => {
-          const newData = payload.new as any;
+        (payload: SupabasePayload) => {
+          const newData = payload.new as Record<string, unknown> | null;
           if (newData && newData.content) {
             const cloudData = newData.content as GlobalState;
             setState(current => {
@@ -515,75 +522,106 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Admin Methods
   const fetchAllUserData = async () => {
-    const { data, error } = await supabase
-      .from('user_data')
-      .select('user_id, content, last_updated');
-    if (error) throw error;
-    return data || [];
+    try {
+      return await retryWithBackoff(
+        async () => {
+          const { data, error } = await supabase
+            .from('user_data')
+            .select('user_id, content, last_updated');
+          if (error) throw error;
+          return data || [];
+        },
+        {
+          maxRetries: 3,
+          initialDelayMs: 1000,
+          timeoutMs: 15000,
+          operationName: 'Supabase Fetch All User Data'
+        }
+      );
+    } catch (error: any) {
+      logDetailedError('Supabase Fetch All User Data Error', error);
+      throw new Error(getErrorMessage(error));
+    }
   };
 
   /**
    * Loads a client's data for admin impersonation.
    * Fetches data from cloud and switches application context to target user.
+   * Implements retry logic for reliable data loading.
+   *
    * @param userId - ID of the user to impersonate
    */
   const loadClientData = async (userId: string) => {
     setIsSyncing(true);
     try {
-      const { data, error } = await supabase
-        .from('user_data')
-        .select('content')
-        .eq('user_id', userId)
-        .single();
+      await retryWithBackoff(
+        async () => {
+          const { data, error } = await supabase
+            .from('user_data')
+            .select('content')
+            .eq('user_id', userId)
+            .single();
 
-      if (error) throw error;
-      if (data && data.content) {
-        // Backup original state before impersonating if not already
-        if (!isImpersonating && user) {
-          // We can optimistically save current state. 
-          // Ideally we just rely on localStorage/re-fetch for admin when they come back
-          // But let's keep the adminOriginalState in memory for quick back button within session
-          setAdminOriginalState(state);
+          if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows found
+
+          if (data && data.content) {
+            // Backup original state before impersonating if not already
+            if (!isImpersonating && user) {
+              // We can optimistically save current state.
+              // Ideally we just rely on localStorage/re-fetch for admin when they come back
+              // But let's keep the adminOriginalState in memory for quick back button within session
+              setAdminOriginalState(state);
+            }
+
+            // Update State
+            const clientContent = data.content as GlobalState;
+            setState({
+              ...clientContent,
+              accounts: Array.isArray(clientContent.accounts) ? clientContent.accounts : INITIAL_ACCOUNTS,
+              transactions: Array.isArray(clientContent.transactions) ? clientContent.transactions : INITIAL_TRANSACTIONS,
+              categories: Array.isArray(clientContent.categories) ? clientContent.categories : INITIAL_CATEGORIES,
+              goals: Array.isArray(clientContent.goals) ? clientContent.goals : [],
+              investments: Array.isArray(clientContent.investments) ? clientContent.investments : [],
+              patrimonyItems: Array.isArray(clientContent.patrimonyItems) ? clientContent.patrimonyItems : [],
+              categoryBudgets: Array.isArray(clientContent.categoryBudgets) ? clientContent.categoryBudgets : [],
+              userProfile: clientContent.userProfile || INITIAL_PROFILE,
+            } as GlobalState);
+            stateUserIdRef.current = userId;
+
+            // PERSIST IMPERSONATION
+            localStorage.setItem(IMPERSONATION_KEY, 'true');
+            localStorage.setItem(IMPERSONATED_USER_ID_KEY, userId);
+
+            setIsImpersonating(true);
+            setImpersonatedUserId(userId);
+
+            // Timeline Logging: Track access by admin
+            if (user) {
+              logInteraction({
+                admin_id: user.id,
+                client_id: userId,
+                action_type: 'ACCESS',
+                description: 'Acesso ao dashboard do cliente',
+                metadata: { timestamp: Date.now() }
+              });
+            }
+
+            window.scrollTo(0, 0);
+            navigate('/dashboard'); // Redirect to Dashboard
+          }
+        },
+        {
+          maxRetries: 3,
+          initialDelayMs: 500,
+          timeoutMs: 10000,
+          operationName: `Load Client Data ${userId}`
         }
-
-        // Update State
-        const clientContent = data.content as any;
-        setState({
-          ...clientContent,
-          accounts: Array.isArray(clientContent.accounts) ? clientContent.accounts : INITIAL_ACCOUNTS,
-          transactions: Array.isArray(clientContent.transactions) ? clientContent.transactions : INITIAL_TRANSACTIONS,
-          categories: Array.isArray(clientContent.categories) ? clientContent.categories : INITIAL_CATEGORIES,
-          goals: Array.isArray(clientContent.goals) ? clientContent.goals : [],
-          investments: Array.isArray(clientContent.investments) ? clientContent.investments : [],
-          patrimonyItems: Array.isArray(clientContent.patrimonyItems) ? clientContent.patrimonyItems : [],
-          categoryBudgets: Array.isArray(clientContent.categoryBudgets) ? clientContent.categoryBudgets : [],
-          userProfile: clientContent.userProfile || INITIAL_PROFILE,
-        } as GlobalState);
-        stateUserIdRef.current = userId;
-
-        // PERSIST IMPERSONATION
-        localStorage.setItem(IMPERSONATION_KEY, 'true');
-        localStorage.setItem(IMPERSONATED_USER_ID_KEY, userId);
-
-        setIsImpersonating(true);
-        setImpersonatedUserId(userId);
-
-        // Timeline Logging: Track access by admin
-        if (user) {
-          logInteraction({
-            admin_id: user.id,
-            client_id: userId,
-            action_type: 'ACCESS',
-            description: 'Acesso ao dashboard do cliente',
-            metadata: { timestamp: Date.now() }
-          });
-        }
-
-        window.scrollTo(0, 0);
-        navigate('/dashboard'); // Redirect to Dashboard
-      }
-    } catch (e) {
-      console.error("Erro ao carregar dados do cliente:", e);
+      );
+    } catch (e: any) {
+      logDetailedError('Load Client Data Error', e, {
+        clientUserId: userId
+      });
+      alert(`Erro ao carregar dados do cliente: ${getErrorMessage(e)}`);
     } finally {
       setIsSyncing(false);
     }

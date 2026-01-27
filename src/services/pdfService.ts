@@ -16,6 +16,16 @@ interface PDFTextItem {
   [key: string]: unknown;
 }
 
+// Type for jsPDF internal API
+interface JsPDFInternal {
+  getNumberOfPages(): number;
+  pageSize: {
+    getWidth(): number;
+    getHeight(): number;
+  };
+  [key: string]: unknown;
+}
+
 // Initialize PDF.js worker
 // Using local bundled worker via Vite to avoid external CDN issues
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -480,7 +490,7 @@ export const generatePDFReport = async (
     });
 
     // --- Footer ---
-    const pageCount = (doc as any).internal.getNumberOfPages();
+    const pageCount = ((doc as unknown) as { internal: JsPDFInternal }).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
