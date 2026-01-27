@@ -5,6 +5,7 @@ import { formatCurrency } from '../utils';
 import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
+import { Modal } from './ui/Modal';
 
 /**
  * Goals component.
@@ -261,53 +262,55 @@ export const Goals: React.FC = () => {
                 </button>
             </section>
 
-            {isFormOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <GoalForm
-                        onClose={() => setIsFormOpen(false)}
-                        onSubmit={addGoal}
-                        onUpdate={updateGoal}
-                        initialData={editingGoal}
+            <Modal
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                title={editingGoal ? 'Editar Meta' : 'Nova Meta'}
+                size="lg"
+                variant="dark"
+            >
+                <GoalForm
+                    onClose={() => setIsFormOpen(false)}
+                    onSubmit={addGoal}
+                    onUpdate={updateGoal}
+                    initialData={editingGoal}
+                />
+            </Modal>
+
+            <Modal
+                isOpen={isTargetModalOpen}
+                onClose={() => setIsTargetModalOpen(false)}
+                title="Definir Economia Mensal Ideal"
+                size="md"
+                variant="dark"
+            >
+                <p className="text-sm text-gray-300 mb-4">Quanto você deseja economizar por mês?</p>
+                <div className="relative mb-6">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+                    <input
+                        type="number"
+                        value={newSavingsTarget}
+                        onChange={(e) => setNewSavingsTarget(Number(e.target.value))}
+                        className="w-full bg-[#1e293b] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white outline-none focus:border-blue-500"
+                        placeholder="0.00"
+                        autoFocus
                     />
                 </div>
-            )}
-
-            {/* Modal para editar meta de economia mensal */}
-            {isTargetModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 text-white relative">
-                        <h3 className="text-lg font-bold mb-4">Definir Economia Mensal Ideal</h3>
-                        <p className="text-sm text-gray-300 mb-4">Quanto você deseja economizar por mês?</p>
-
-                        <div className="relative mb-6">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
-                            <input
-                                type="number"
-                                value={newSavingsTarget}
-                                onChange={(e) => setNewSavingsTarget(Number(e.target.value))}
-                                className="w-full bg-[#1e293b] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white outline-none focus:border-blue-500"
-                                placeholder="0.00"
-                                autoFocus
-                            />
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setIsTargetModalOpen(false)}
-                                className="flex-1 px-4 py-2 rounded-xl font-bold text-gray-300 hover:bg-gray-800 transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveTarget}
-                                className="flex-1 px-4 py-2 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all"
-                            >
-                                Salvar
-                            </button>
-                        </div>
-                    </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setIsTargetModalOpen(false)}
+                        className="flex-1 px-4 py-2 rounded-xl font-bold text-gray-300 hover:bg-gray-800 transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={handleSaveTarget}
+                        className="flex-1 px-4 py-2 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all"
+                    >
+                        Salvar
+                    </button>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 };
