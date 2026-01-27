@@ -285,7 +285,7 @@ export const Insights: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] max-w-5xl mx-auto animate-fade-in relative px-4">
+    <div className="flex flex-col min-h-screen md:h-[calc(100vh-100px)] max-w-5xl mx-auto animate-fade-in relative px-2 md:px-4">
       {/* Header */}
       <div className="flex items-center justify-between p-6 glass rounded-t-[2.5rem] shadow-2xl z-10">
         <div className="flex items-center gap-4">
