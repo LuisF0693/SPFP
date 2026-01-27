@@ -12,6 +12,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
 import { EmojiPicker } from './EmojiPicker';
 import { DeleteTransactionModal } from './DeleteTransactionModal';
+import { Modal } from './ui/Modal';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -549,36 +550,33 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                 </button>
             </div>
 
-            {showCategoryManager && (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    {/* Simplified Category Manager for Context */}
-                    <div className="bg-[#0f172a] w-full max-w-2xl rounded-2xl p-6 border border-gray-800">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-white text-xl">Gerenciar Categorias</h3>
-                            <button onClick={() => setShowCategoryManager(false)} className="text-gray-300 hover:text-white">✕</button>
+            <Modal
+                isOpen={showCategoryManager}
+                onClose={() => setShowCategoryManager(false)}
+                title="Gerenciar Categorias"
+                size="lg"
+                variant="dark"
+            >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto mb-6">
+                    {categories.map(cat => (
+                        <div key={cat.id} className="bg-[#1e293b] p-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-transparent hover:border-gray-600 group relative">
+                            <div className="text-2xl">{cat.icon || '📦'}</div>
+                            <span className="text-xs font-bold text-gray-300 text-center">{cat.name}</span>
+                            <button
+                              onClick={() => deleteCategory(cat.id)}
+                              aria-label={`Excluir categoria: ${cat.name}`}
+                              className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 size={12} aria-hidden="true" />
+                            </button>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto">
-                            {categories.map(cat => (
-                                <div key={cat.id} className="bg-[#1e293b] p-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-transparent hover:border-gray-600 group relative">
-                                    <div className="text-2xl">{cat.icon || '📦'}</div>
-                                    <span className="text-xs font-bold text-gray-300 text-center">{cat.name}</span>
-                                    <button
-                                      onClick={() => deleteCategory(cat.id)}
-                                      aria-label={`Excluir categoria: ${cat.name}`}
-                                      className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"
-                                    >
-                                      <Trash2 size={12} aria-hidden="true" />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-6 pt-6 border-t border-gray-800">
-                            <p className="text-sm text-gray-400 mb-4">Adicionar Nova Categoria</p>
-                            <CategoryCreator />
-                        </div>
-                    </div>
+                    ))}
                 </div>
-            )}
+                <div className="pt-6 border-t border-gray-700">
+                    <p className="text-sm text-gray-400 mb-4">Adicionar Nova Categoria</p>
+                    <CategoryCreator />
+                </div>
+            </Modal>
 
             <ImportExportModal
                 isOpen={isImportModalOpen}
@@ -586,17 +584,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                 initialTab={activeTabModal}
             />
 
-            {/* Local Transaction Modal */}
-            {isTransactionModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto no-scrollbar rounded-2xl shadow-2xl animate-slide-up">
-                        <TransactionForm
-                            onClose={() => setIsTransactionModalOpen(false)}
-                            initialData={editingTransaction}
-                        />
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={isTransactionModalOpen}
+                onClose={() => setIsTransactionModalOpen(false)}
+                title={editingTransaction ? 'Editar Transação' : 'Nova Transação'}
+                size="lg"
+                variant="dark"
+            >
+                <TransactionForm
+                    onClose={() => setIsTransactionModalOpen(false)}
+                    initialData={editingTransaction}
+                />
+            </Modal>
 
             {/* Delete Transaction Modal for Grouped Transactions */}
             {deleteModalTransaction && deleteModalTransaction.groupId && (
@@ -676,30 +675,32 @@ const BulkCategoryModal: React.FC<{
     const [selectedCat, setSelectedCat] = useState(categories[0]?.id || '');
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 shadow-2xl animate-slide-up">
-                <h3 className="font-bold text-white text-lg mb-2">Editar {selectedCount} itens</h3>
-                <p className="text-sm text-gray-300 mb-6">Selecione a nova categoria para os itens selecionados.</p>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 mb-1">Nova Categoria</label>
-                        <select
-                            value={selectedCat}
-                            onChange={(e) => setSelectedCat(e.target.value)}
-                            className="w-full p-3 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-blue-500"
-                        >
-                            {categories.map(c => (
-                                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex gap-3">
-                        <button onClick={onClose} className="flex-1 py-3 text-gray-400 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
-                        <button onClick={() => onApply(selectedCat)} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors">Aplicar</button>
-                    </div>
+        <Modal
+            isOpen={true}
+            onClose={onClose}
+            title={`Editar ${selectedCount} itens`}
+            size="md"
+            variant="dark"
+        >
+            <p className="text-sm text-gray-300 mb-6">Selecione a nova categoria para os itens selecionados.</p>
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1">Nova Categoria</label>
+                    <select
+                        value={selectedCat}
+                        onChange={(e) => setSelectedCat(e.target.value)}
+                        className="w-full p-3 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-blue-500"
+                    >
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                    <button onClick={onClose} className="flex-1 py-3 text-gray-400 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
+                    <button onClick={() => onApply(selectedCat)} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors">Aplicar</button>
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };

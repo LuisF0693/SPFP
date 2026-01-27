@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PatrimonyForm from './PatrimonyForm';
 import { Link } from 'react-router-dom';
+import { Modal } from './ui/Modal';
 
 /**
  * Patrimony component.
@@ -345,14 +346,15 @@ export const Patrimony: React.FC = () => {
                 </div>
             </section>
 
-            {/* Modal */}
-            {isFormOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="w-full max-w-2xl bg-transparent animate-slide-up">
-                        <PatrimonyForm onClose={() => setIsFormOpen(false)} initialData={editingItem} />
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                title={editingItem ? 'Editar Patrimônio' : 'Novo Patrimônio'}
+                size="lg"
+                variant="dark"
+            >
+                <PatrimonyForm onClose={() => setIsFormOpen(false)} initialData={editingItem} />
+            </Modal>
 
         </div>
     );
