@@ -114,7 +114,7 @@ export const Patrimony: React.FC = () => {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <section aria-label="Patrimony Overview" className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Net Worth */}
                 <div className="bg-[#0F172A] p-6 rounded-2xl shadow-lg border border-slate-800 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5">
@@ -151,10 +151,10 @@ export const Patrimony: React.FC = () => {
                         -0.5% redução da dívida
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section aria-label="Patrimony Charts" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Evolution Chart */}
                 <div className="bg-[#0F172A] p-6 rounded-2xl shadow-lg border border-slate-800 text-white">
                     <div className="flex justify-between items-center mb-6">
@@ -216,10 +216,10 @@ export const Patrimony: React.FC = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Assets List */}
-            <div>
+            <section aria-label="Assets">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-gray-100">Ativos (Bens e Direitos)</h2>
                     <button className="text-sm text-blue-600 font-bold hover:underline">Ver Todos</button>
@@ -296,10 +296,10 @@ export const Patrimony: React.FC = () => {
                         <div className="p-8 text-center text-gray-300 text-sm">Nenhum ativo cadastrado.</div>
                     )}
                 </div>
-            </div>
+            </section>
 
             {/* Liabilities List */}
-            <div>
+            <section aria-label="Liabilities">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-gray-100">Passivos (Deveres e Obrigações)</h2>
                 </div>
@@ -343,7 +343,7 @@ export const Patrimony: React.FC = () => {
                         <div className="p-8 text-center text-gray-300 text-sm">Nenhuma dívida cadastrada. Parabéns!</div>
                     )}
                 </div>
-            </div>
+            </section>
 
             {/* Modal */}
             {isFormOpen && (

@@ -172,7 +172,7 @@ export const Investments: React.FC = () => {
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <section aria-label="Investment Metrics" className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Patrimonio Total */}
                 <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -230,10 +230,10 @@ export const Investments: React.FC = () => {
                         <span>Rentabilidade acumulada</span>
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section aria-label="Investment Charts" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Evolution Chart */}
                 <div className="lg:col-span-2 bg-[#0F172A] p-6 rounded-2xl shadow-lg border border-slate-800 text-white">
                     <div className="flex justify-between items-center mb-6">
@@ -311,10 +311,10 @@ export const Investments: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Assets Table */}
-            <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
+            <section aria-label="Assets Table" className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-gray-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Meus Ativos</h2>
                     <div className="flex space-x-2">
@@ -424,7 +424,7 @@ export const Investments: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
 
             {/* Modals */}
             {(isFormOpen) && (

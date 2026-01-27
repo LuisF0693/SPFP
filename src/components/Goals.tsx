@@ -107,7 +107,7 @@ export const Goals: React.FC = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <section aria-label="Goals Summary" className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Total Acumulado */}
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-2 relative z-10">
@@ -166,7 +166,7 @@ export const Goals: React.FC = () => {
                         {nextGoal ? new Date(nextGoal.deadline).toLocaleDateString() : '-'}
                     </p>
                 </div>
-            </div>
+            </section>
 
             {/* Filters */}
             <div className="flex gap-8 border-b border-gray-800 pb-1">
@@ -190,7 +190,7 @@ export const Goals: React.FC = () => {
             </div>
 
             {/* Goals Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <section aria-label="Active Goals" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredGoals.map(goal => {
                     const percent = Math.min(100, Math.max(0, (goal.currentAmount / goal.targetAmount) * 100));
 
@@ -259,7 +259,7 @@ export const Goals: React.FC = () => {
                     </div>
                     <span className="font-bold text-gray-400 group-hover:text-white">Criar Novo Objetivo</span>
                 </button>
-            </div>
+            </section>
 
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">

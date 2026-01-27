@@ -139,29 +139,37 @@ export const Dashboard: React.FC = () => {
         onRecapClick={() => setShowRecap(true)}
       />
 
-      <DashboardAlerts alerts={alerts} />
+      <section aria-label="Financial Alerts">
+        <DashboardAlerts alerts={alerts} />
+      </section>
 
-      <DashboardMetrics
-        totalBalance={totalBalance}
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        categoryBudgets={categoryBudgets}
-        budgetAlertsCritical={budgetAlerts.critical}
-        budgetAlertsWarning={budgetAlerts.warning}
-      />
+      <section aria-label="Financial Metrics">
+        <DashboardMetrics
+          totalBalance={totalBalance}
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
+          categoryBudgets={categoryBudgets}
+          budgetAlertsCritical={budgetAlerts.critical}
+          budgetAlertsWarning={budgetAlerts.warning}
+        />
+      </section>
 
-      <DashboardChart
-        trendData={trendData}
-        categoryData={categoryData}
-        totalExpense={totalExpense}
-        currentMonth={today.toLocaleString('pt-BR', { month: 'short', year: 'numeric' })}
-      />
+      <section aria-label="Financial Charts">
+        <DashboardChart
+          trendData={trendData}
+          categoryData={categoryData}
+          totalExpense={totalExpense}
+          currentMonth={today.toLocaleString('pt-BR', { month: 'short', year: 'numeric' })}
+        />
+      </section>
 
-      <DashboardTransactions
-        accounts={accounts}
-        transactions={transactions}
-        categories={categories}
-      />
+      <section aria-label="Recent Transactions">
+        <DashboardTransactions
+          accounts={accounts}
+          transactions={transactions}
+          categories={categories}
+        />
+      </section>
 
       {showRecap && (
         <MonthlyRecap

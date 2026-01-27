@@ -145,7 +145,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
         <div className="p-6 space-y-8 pb-24 animate-fade-in relative min-h-screen">
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Lançamentos</h2>
                     <p className="text-gray-300 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
@@ -183,10 +183,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         + Novo Lançamento
                     </button>
                 </div>
-            </div>
+            </header>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <section aria-label="Financial Summary" className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                         <span className="text-gray-300 text-sm font-medium">Total Receitas</span>
@@ -253,7 +253,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             </div>
 
             {/* Transactions Table */}
-            <div className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+            <section aria-label="Transactions Table" className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
 
                 {/* Month Navigation within Table Header? Or keep separate? Keeping separate for now or inside header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-800">
@@ -409,7 +409,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-400 cursor-not-allowed">Próximo</button>
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Bulk Actions Floating Bar */}
             {selectedIds.size > 0 && (

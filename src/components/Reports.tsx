@@ -144,7 +144,7 @@ export const Reports: React.FC = () => {
             </div>
 
             {/* Top Summaries Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section aria-label="Monthly Summary" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <SummaryCard
                     label="Receitas"
                     value={totalIncome}
@@ -174,10 +174,10 @@ export const Reports: React.FC = () => {
                     color="bg-indigo-500/10 text-indigo-400"
                     trend="Meta ideal: 20%+"
                 />
-            </div>
+            </section>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section aria-label="Financial Charts" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Evolution Chart */}
                 <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 backdrop-blur-md">
                     <div className="flex items-center justify-between mb-8">
@@ -263,10 +263,10 @@ export const Reports: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Bottom Grid: Goals and Budgets */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section aria-label="Progress Tracking" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Goals Progress */}
                 <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 backdrop-blur-md overflow-hidden relative group">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -358,7 +358,7 @@ export const Reports: React.FC = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     );
 };
