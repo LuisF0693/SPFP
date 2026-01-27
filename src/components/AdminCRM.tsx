@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
+import { AIConfig } from '../types';
 import {
     Users, Search, Eye, Clock, User, Mail, Database,
     ArrowRight, ShieldCheck, AlertCircle, TrendingUp,

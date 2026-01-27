@@ -5,6 +5,16 @@ import autoTable from 'jspdf-autotable';
 import { Transaction, Category } from '../types';
 import { formatCurrency, formatDate, generateId } from '../utils';
 import { parseBankStatementWithAI } from './geminiService';
+import { retryWithBackoff, logDetailedError, getErrorMessage } from './retryService';
+
+// Type for PDF.js text items
+interface PDFTextItem {
+  str: string;
+  transform: number[];
+  width?: number;
+  height?: number;
+  [key: string]: unknown;
+}
 
 // Initialize PDF.js worker
 // Using local bundled worker via Vite to avoid external CDN issues
@@ -12,51 +22,80 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 /**
  * Extracts raw text from a PDF file using PDF.js.
+ * Implements retry logic for PDF processing operations.
+ *
  * @param file - The PDF file to extract text from
  * @returns A promise that resolves to the extracted text
  */
 export const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
+    try {
+        const arrayBuffer = await file.arrayBuffer();
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const items = textContent.items as any[];
-
-        // Group items by their vertical position (Y coordinate) with some tolerance
-        const rows: { y: number, items: any[] }[] = [];
-
-        items.forEach(item => {
-            const y = item.transform[5];
-            let row = rows.find(r => Math.abs(r.y - y) < 3); // 3 units tolerance for Y-alignment
-            if (!row) {
-                row = { y, items: [] };
-                rows.push(row);
+        const pdf = await retryWithBackoff(
+            () => pdfjsLib.getDocument({ data: arrayBuffer }).promise,
+            {
+                maxRetries: 2,
+                initialDelayMs: 500,
+                timeoutMs: 15000,
+                operationName: `PDF.js load ${file.name}`
             }
-            row.items.push(item);
+        );
+
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await retryWithBackoff(
+                () => pdf.getPage(i),
+                {
+                    maxRetries: 1,
+                    initialDelayMs: 300,
+                    timeoutMs: 10000,
+                    operationName: `Extract page ${i}/${pdf.numPages}`
+                }
+            );
+
+            const textContent = await page.getTextContent();
+            const items = textContent.items as PDFTextItem[];
+
+            // Group items by their vertical position (Y coordinate) with some tolerance
+            const rows: { y: number, items: PDFTextItem[] }[] = [];
+
+            items.forEach(item => {
+                const y = item.transform[5];
+                let row = rows.find(r => Math.abs(r.y - y) < 3); // 3 units tolerance for Y-alignment
+                if (!row) {
+                    row = { y, items: [] };
+                    rows.push(row);
+                }
+                row.items.push(item);
+            });
+
+            // Sort rows from top to bottom (Y descending)
+            rows.sort((a, b) => b.y - a.y);
+
+            const pageText = rows.map(row => {
+                // Sort items within each row from left to right (X ascending)
+                return row.items
+                    .sort((a, b) => a.transform[4] - b.transform[4])
+                    .map(item => item.str)
+                    .join(' ');
+            }).join('\n');
+
+            fullText += pageText + '\n';
+        }
+
+        console.log("--- PDF TEXT EXTRACTION COMPLETE ---");
+        console.log(`Extracted ${fullText.length} characters from ${pdf.numPages} pages`);
+        console.log("------------------------------------");
+
+        return fullText;
+    } catch (error: any) {
+        logDetailedError('PDF Text Extraction Error', error, {
+            fileName: file.name,
+            fileSize: file.size
         });
-
-        // Sort rows from top to bottom (Y descending)
-        rows.sort((a, b) => b.y - a.y);
-
-        const pageText = rows.map(row => {
-            // Sort items within each row from left to right (X ascending)
-            return row.items
-                .sort((a, b) => a.transform[4] - b.transform[4])
-                .map(item => item.str)
-                .join(' ');
-        }).join('\n');
-
-        fullText += pageText + '\n';
+        throw new Error(getErrorMessage(error));
     }
-
-    console.log("--- TEXTO EXTRAÍDO DO PDF ---");
-    console.log(fullText);
-    console.log("----------------------------");
-
-    return fullText;
 };
 
 /**
@@ -247,8 +286,10 @@ export const parseBankStatementRules = (text: string): any[] => {
 };
 
 /**
- * Main PDF parsing coordinator. 
+ * Main PDF parsing coordinator.
  * Extracts text and chooses between AI processing (Gemini) or rule-based parsing.
+ * Implements fallback logic with comprehensive error handling.
+ *
  * @param file - The PDF file to parse
  * @param geminiToken - Optional API token for Gemini AI
  */
@@ -262,18 +303,36 @@ export const parsePDF = async (file: File, geminiToken?: string): Promise<any[]>
 
         if (geminiToken) {
             try {
-                console.log("Tentando processamento com IA Gemini...");
-                return await parseBankStatementWithAI(text, geminiToken);
-            } catch (err) {
-                console.warn("IA falhou, tentando via regras:", err);
+                console.log("[PDF Parsing] Attempting AI processing with Gemini...");
+                const aiResult = await retryWithBackoff(
+                    () => parseBankStatementWithAI(text, geminiToken),
+                    {
+                        maxRetries: 1,
+                        initialDelayMs: 1000,
+                        timeoutMs: 30000,
+                        operationName: 'PDF AI Parsing'
+                    }
+                );
+                console.log(`[PDF Parsing] AI processing succeeded, found ${aiResult.length} transactions`);
+                return aiResult;
+            } catch (err: any) {
+                logDetailedError('[PDF Parsing] AI Processing Failed', err, {
+                    fileName: file.name,
+                    textLength: text.length
+                });
+                console.warn("[PDF Parsing] AI parsing failed, falling back to rule-based parsing:", err.message);
             }
         }
 
-        console.log("Usando processamento via regras locais...");
-        return parseBankStatementRules(text);
+        console.log("[PDF Parsing] Using rule-based local processing...");
+        const ruleResult = parseBankStatementRules(text);
+        return ruleResult;
     } catch (err: any) {
-        console.error("Erro no processamento do PDF:", err);
-        throw err;
+        logDetailedError('PDF Parsing Fatal Error', err, {
+            fileName: file.name,
+            fileSize: file.size
+        });
+        throw new Error(getErrorMessage(err));
     }
 };
 

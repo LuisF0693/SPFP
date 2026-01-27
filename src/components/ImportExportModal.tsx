@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, Upload, Download, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Download, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { exportTransactionsToCSV, parseCSV, parseCSVWithAI } from '../services/csvService';
 import { extractTextFromPDF, generatePDFReport, parsePDF } from '../services/pdfService';
 import { parseBankStatementWithAI } from '../services/geminiService';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction } from '../types';
 import { generateId, formatDate, formatCurrency } from '../utils';
+import { Modal } from './ui/Modal';
 
 interface ImportExportModalProps {
     isOpen: boolean;
@@ -153,21 +154,22 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <FileText className="w-6 h-6 text-emerald-600" />
-                        Dados & Relatórios
-                    </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-                        <X className="w-5 h-5" />
-                    </button>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-emerald-600" />
+                    Dados & Relatórios
                 </div>
-
-                {/* Tabs */}
-                <div className="flex border-b border-gray-100 dark:border-gray-800">
+            }
+            variant="light"
+            size="xl"
+            contentClassName="p-0"
+            headerClassName="rounded-t-2xl"
+        >
+            {/* Tabs */}
+            <div className="flex border-b border-gray-100 dark:border-gray-800">
                     <button
                         onClick={() => setActiveTab('import')}
                         className={`flex-1 py-4 text-sm font-medium transition-all ${activeTab === 'import'
@@ -375,8 +377,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                             </button>
                         </div>
                     )}
-                </div>
             </div>
-        </div>
+        </Modal>
     );
 };

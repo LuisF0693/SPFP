@@ -6,6 +6,7 @@ import { generateId } from '../utils';
 import { supabase } from '../supabase';
 import { logInteraction } from '../services/logService';
 import { useAuth } from './AuthContext';
+import { retryWithBackoff, logDetailedError, getErrorMessage } from '../services/retryService';
 
 interface GlobalState {
   accounts: Account[];
@@ -163,22 +164,38 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           lastUpdated: Date.now()
         }));
 
-        const { error } = await supabase
-          .from('user_data')
-          .upsert({
-            user_id: finalTargetUserId,
-            content: dataToSave,
-            last_updated: dataToSave.lastUpdated
-          });
+        // Wrap Supabase upsert with retry logic
+        await retryWithBackoff(
+          async () => {
+            const { error } = await supabase
+              .from('user_data')
+              .upsert({
+                user_id: finalTargetUserId,
+                content: dataToSave,
+                last_updated: dataToSave.lastUpdated
+              });
 
-        if (error) throw error;
+            if (error) throw error;
+          },
+          {
+            maxRetries: 3,
+            initialDelayMs: 500,
+            timeoutMs: 10000,
+            operationName: `Supabase Upsert user_data ${finalTargetUserId}`
+          }
+        );
+
         setIsSyncing(false);
       } catch (e: any) {
-        console.error("Erro ao salvar na nuvem:", e);
+        logDetailedError('Supabase Save Error', e, {
+          userId: finalTargetUserId,
+          isImpersonating
+        });
+
         // Alert the user if it's a permission error or other save failure
         // Use a less intrusive toast in production, but for now specific alert for the admin
         if (isImpersonating || user?.email === 'nando062218@gmail.com') {
-          alert(`Erro ao salvar dados: ${e.message || e.error_description || 'Erro desconhecido'}. Verifique as permissões.`);
+          alert(`Erro ao salvar dados: ${getErrorMessage(e)}. Verifique as permissões.`);
         }
         setIsSyncing(false);
       }
@@ -206,25 +223,46 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setIsSyncing(true);
 
-    // Initial Fetch
+    // Initial Fetch with retry logic
     const fetchData = async () => {
-      const { data, error } = await supabase
-        .from('user_data')
-        .select('content')
-        .eq('user_id', effectiveUserId)
-        .single();
+      try {
+        await retryWithBackoff(
+          async () => {
+            const { data, error } = await supabase
+              .from('user_data')
+              .select('content')
+              .eq('user_id', effectiveUserId)
+              .single();
 
-      if (data && data.content) {
-        const cloudData = data.content as GlobalState;
-        setState(current => {
-          if (cloudData.lastUpdated > current.lastUpdated || current.lastUpdated === 0) {
-            return cloudData;
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows found, which is ok
+
+            if (data && data.content) {
+              const cloudData = data.content as GlobalState;
+              setState(current => {
+                if (cloudData.lastUpdated > current.lastUpdated || current.lastUpdated === 0) {
+                  return cloudData;
+                }
+                return current;
+              });
+            }
+          },
+          {
+            maxRetries: 2,
+            initialDelayMs: 500,
+            timeoutMs: 10000,
+            operationName: `Supabase Fetch user_data ${effectiveUserId}`
           }
-          return current;
+        );
+      } catch (error: any) {
+        logDetailedError('Supabase Initial Fetch Error', error, {
+          userId: effectiveUserId
         });
+        // Continue with local data on error
+        console.warn('Failed to fetch cloud data, using local cache');
+      } finally {
+        setIsInitialLoadComplete(true);
+        setIsSyncing(false);
       }
-      setIsInitialLoadComplete(true);
-      setIsSyncing(false);
     };
 
     fetchData();

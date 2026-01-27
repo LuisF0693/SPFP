@@ -1,3 +1,4 @@
+import { retryWithBackoff, logDetailedError, getErrorMessage } from './retryService';
 
 export interface MarketData {
     symbol: string;
@@ -15,6 +16,7 @@ export const MarketDataService = {
     /**
      * Fetch quotes from Yahoo Finance via a CORS proxy.
      * Handles Brazilian stocks, FIIs, US stocks, and Crypto.
+     * Implements automatic retry logic for each proxy attempt.
      */
     async getQuotes(tickers: string[]): Promise<MarketData[]> {
         if (!tickers.length) return [];
@@ -43,13 +45,29 @@ export const MarketDataService = {
                     ? `${proxyBase}${encodeURIComponent(targetUrl)}`
                     : `${proxyBase}${encodeURIComponent(targetUrl)}`;
 
-                const response = await fetch(finalUrl);
-                if (!response.ok) continue;
+                // Wrap with retry logic
+                const result = await retryWithBackoff(
+                    async () => {
+                        const response = await fetch(finalUrl);
+                        if (!response.ok) {
+                            const error: any = new Error(`HTTP ${response.status}`);
+                            error.status = response.status;
+                            throw error;
+                        }
+                        return response.json();
+                    },
+                    {
+                        maxRetries: 2,
+                        initialDelayMs: 800,
+                        timeoutMs: 10000,
+                        operationName: `Market Data from ${proxyBase}`
+                    }
+                );
 
-                const rawData = await response.json();
-                const data = isAllOrigins ? JSON.parse(rawData.contents) : rawData;
+                const data = isAllOrigins ? JSON.parse(result.contents) : result;
 
                 if (data?.quoteResponse?.result) {
+                    console.log(`[Market Data] Successfully fetched ${data.quoteResponse.result.length} quotes from ${proxyBase}`);
                     return data.quoteResponse.result.map((r: any) => ({
                         symbol: r.symbol.replace('.SA', ''),
                         longName: r.longName || r.shortName || r.symbol,
@@ -57,13 +75,18 @@ export const MarketDataService = {
                         logourl: `https://s.yimg.com/wm/geoblock/hq/${r.symbol.replace('.SA', '')}.png`
                     }));
                 }
-            } catch (error) {
-                console.warn(`Proxy ${proxyBase} failed, trying next...`, error);
+            } catch (error: any) {
+                logDetailedError(
+                    `Market Data Service - Proxy ${proxyBase}`,
+                    error,
+                    { tickers: uniqueTickers.length, proxyBase }
+                );
+                console.warn(`Proxy ${proxyBase} failed, trying next...`, error.message);
                 continue;
             }
         }
 
-        console.error('All MarketDataService proxies failed.');
+        console.error('[Market Data] All proxies failed after retries.');
         return [];
     }
 };
