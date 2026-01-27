@@ -11,6 +11,7 @@ import {
 import { chatWithAI } from '../services/aiService';
 import { getInteractionLogs, InteractionLog } from '../services/logService';
 import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
+import { Modal } from './ui/Modal';
 
 /**
  * Admin CRM component.
@@ -362,65 +363,47 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                 )}
             </div>
 
-            {/* Timeline Overlay/Modal */}
-            {showTimeline && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTimeline(null)}></div>
-                    <div className="relative glass w-full max-w-lg rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-slide-up">
-                        <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Timeline de Interação</h2>
-                                <p className="text-xs text-gray-500">Histórico de acessos e alterações</p>
-                            </div>
-                            <button onClick={() => setShowTimeline(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                <Activity size={20} className="text-gray-400" />
-                            </button>
+            <Modal
+                isOpen={!!showTimeline}
+                onClose={() => setShowTimeline(null)}
+                title="Timeline de Interação"
+                size="lg"
+                variant="dark"
+            >
+                <p className="text-xs text-gray-500 mb-4">Histórico de acessos e alterações</p>
+                <div className="max-h-[60vh] overflow-y-auto space-y-4">
+                    {loadingTimeline ? (
+                        <div className="flex justify-center py-10">
+                            <Loader2 className="animate-spin text-blue-500" size={32} />
                         </div>
-
-                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
-                            {loadingTimeline ? (
-                                <div className="flex justify-center py-10">
-                                    <Loader2 className="animate-spin text-accent" size={32} />
-                                </div>
-                            ) : timelineLogs.length === 0 ? (
-                                <div className="text-center py-10">
-                                    <p className="text-gray-500">Nenhuma interação registrada ainda.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
-                                    {timelineLogs.map((log, i) => (
-                                        <div key={log.id || i} className="relative pl-8">
-                                            <div className={`absolute left-0 top-1.5 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center ${log.action_type === 'ACCESS' ? 'bg-blue-500' : 'bg-amber-500'}`}>
-                                                {log.action_type === 'ACCESS' ? <Eye size={10} className="text-white" /> : <Zap size={10} className="text-white" />}
-                                            </div>
-                                            <div className="glass p-3 rounded-2xl border border-white/5">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${log.action_type === 'ACCESS' ? 'text-blue-400' : 'text-amber-400'}`}>
-                                                        {log.action_type === 'ACCESS' ? 'Acesso' : 'Alteração'}
-                                                    </span>
-                                                    <span className="text-[10px] text-gray-500 font-medium">
-                                                        {new Date(log.created_at || '').toLocaleString()}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-gray-300">{log.description}</p>
-                                            </div>
+                    ) : timelineLogs.length === 0 ? (
+                        <div className="text-center py-10">
+                            <p className="text-gray-500">Nenhuma interação registrada ainda.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
+                            {timelineLogs.map((log, i) => (
+                                <div key={log.id || i} className="relative pl-8">
+                                    <div className={`absolute left-0 top-1.5 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center ${log.action_type === 'ACCESS' ? 'bg-blue-500' : 'bg-amber-500'}`}>
+                                        {log.action_type === 'ACCESS' ? <Eye size={10} className="text-white" /> : <Zap size={10} className="text-white" />}
+                                    </div>
+                                    <div className="glass p-3 rounded-2xl border border-white/5">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${log.action_type === 'ACCESS' ? 'text-blue-400' : 'text-amber-400'}`}>
+                                                {log.action_type === 'ACCESS' ? 'Acesso' : 'Alteração'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 font-medium">
+                                                {new Date(log.created_at || '').toLocaleString()}
+                                            </span>
                                         </div>
-                                    ))}
+                                        <p className="text-xs text-gray-300">{log.description}</p>
+                                    </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
-
-                        <div className="p-4 bg-black/20 border-t border-white/5 flex justify-end">
-                            <button
-                                onClick={() => setShowTimeline(null)}
-                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-sm font-bold transition-all"
-                            >
-                                Fechar
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
-            )}
+            </Modal>
         </div>
     );
 };
