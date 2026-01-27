@@ -65,3 +65,6 @@ Thumbs.db
 # Antigravity Agents (Local Only - DO NOT COMMIT)
 .agent/
 .gemini/
+
+# AIOS Local (AIOS)
+.aios/install-log.txt
