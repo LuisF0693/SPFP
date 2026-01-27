@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
 import { Accounts } from './components/Accounts';
@@ -176,16 +177,19 @@ const AppContent: React.FC = () => {
 /**
  * Root Application component.
  * Provides Context Providers (Auth, Finance) and Router to the application.
+ * Wrapped with ErrorBoundary to catch and handle component errors.
  */
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <FinanceProvider>
-          <AppContent />
-        </FinanceProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <FinanceProvider>
+            <AppContent />
+          </FinanceProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

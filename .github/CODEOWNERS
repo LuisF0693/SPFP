@@ -1,0 +1,61 @@
+# SPFP Code Owners
+# This file determines who is responsible for specific areas of the codebase
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @Antigravity-ai/spfp-team
+
+# Core infrastructure and build
+.github/**                      @Antigravity-ai/devops-team
+package.json                    @Antigravity-ai/devops-team
+package-lock.json               @Antigravity-ai/devops-team
+tsconfig.json                   @Antigravity-ai/devops-team
+vite.config.ts                  @Antigravity-ai/devops-team
+vitest.config.ts                @Antigravity-ai/devops-team
+
+# Documentation
+CLAUDE.md                        @Antigravity-ai/spfp-team
+CONTRIBUTING.md                 @Antigravity-ai/devops-team
+ARCHITECTURE.md                 @Antigravity-ai/architecture-team
+DEPLOYMENT.md                   @Antigravity-ai/devops-team
+README.md                        @Antigravity-ai/spfp-team
+docs/**                         @Antigravity-ai/spfp-team
+
+# Authentication and Security
+src/context/AuthContext.tsx     @Antigravity-ai/security-team @Antigravity-ai/backend-team
+src/services/aiService.ts       @Antigravity-ai/ai-team
+src/services/geminiService.ts   @Antigravity-ai/ai-team
+
+# Database and Supabase
+src/supabase.ts                 @Antigravity-ai/backend-team
+src/context/FinanceContext.tsx  @Antigravity-ai/backend-team @Antigravity-ai/spfp-team
+
+# AI and Insights
+src/components/Insights.tsx     @Antigravity-ai/ai-team
+src/services/aiHistoryService.ts @Antigravity-ai/ai-team
+src/components/AdminCRM.tsx     @Antigravity-ai/backend-team
+
+# UI Components and Layout
+src/components/Layout.tsx       @Antigravity-ai/frontend-team
+src/components/ui/**            @Antigravity-ai/frontend-team
+src/components/Dashboard.tsx    @Antigravity-ai/frontend-team
+
+# Financial features
+src/components/TransactionForm.tsx    @Antigravity-ai/spfp-team @Antigravity-ai/frontend-team
+src/components/TransactionList.tsx    @Antigravity-ai/spfp-team @Antigravity-ai/frontend-team
+src/components/Budget.tsx             @Antigravity-ai/spfp-team
+src/components/Goals.tsx              @Antigravity-ai/spfp-team
+src/components/Investments.tsx        @Antigravity-ai/spfp-team
+src/components/Patrimony.tsx          @Antigravity-ai/spfp-team
+src/components/Accounts.tsx           @Antigravity-ai/spfp-team
+
+# Reports and Export
+src/services/pdfService.ts      @Antigravity-ai/spfp-team
+src/services/csvService.ts      @Antigravity-ai/spfp-team
+src/components/Reports.tsx      @Antigravity-ai/spfp-team
+
+# Tests
+src/test/**                     @Antigravity-ai/qa-team
+**/__tests__/**                 @Antigravity-ai/qa-team
+**/*.test.ts                    @Antigravity-ai/qa-team
+**/*.spec.ts                    @Antigravity-ai/qa-team
