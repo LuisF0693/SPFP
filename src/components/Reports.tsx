@@ -116,18 +116,18 @@ export const Reports: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Painel de Relatórios</h1>
-                    <p className="text-gray-400 font-light">Análise executiva completa do seu patrimônio</p>
+                    <p className="text-gray-300 font-light">Análise executiva completa do seu patrimônio</p>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl p-1 backdrop-blur-md">
-                        <button onClick={() => changeMonth(-1)} className="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                        <button onClick={() => changeMonth(-1)} className="p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all">
                             <ChevronLeft size={20} />
                         </button>
                         <span className="px-6 font-bold text-white text-sm tracking-widest uppercase w-48 text-center border-x border-white/5">
                             {getMonthName(selectedMonth)} {selectedYear}
                         </span>
-                        <button onClick={() => changeMonth(1)} className="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                        <button onClick={() => changeMonth(1)} className="p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all">
                             <ChevronRight size={20} />
                         </button>
                     </div>
@@ -208,7 +208,7 @@ export const Reports: React.FC = () => {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} dy={10} />
                                 <Tooltip
                                     contentStyle={{ background: '#111', border: '1px solid #ffffff10', borderRadius: '16px' }}
                                     formatter={(v: number) => formatCurrency(v)}
@@ -282,11 +282,11 @@ export const Reports: React.FC = () => {
                                 <div className="flex justify-between items-end">
                                     <div>
                                         <p className="text-white font-bold">{goal.name}</p>
-                                        <p className="text-xs text-gray-500 font-light">Meta: {formatCurrency(goal.targetAmount)}</p>
+                                        <p className="text-xs text-gray-400 font-light">Meta: {formatCurrency(goal.targetAmount)}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-emerald-400 font-bold">{Math.round((goal.currentAmount / goal.targetAmount) * 100)}%</p>
-                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">{formatCurrency(goal.currentAmount)} realizados</p>
+                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest">{formatCurrency(goal.currentAmount)} realizados</p>
                                     </div>
                                 </div>
                                 <div className="h-3 w-full bg-white/5 rounded-full p-0.5">
@@ -300,7 +300,7 @@ export const Reports: React.FC = () => {
                             </div>
                         )) : (
                             <div className="py-12 text-center">
-                                <p className="text-gray-500 font-light italic">Nenhum objetivo ativo definido.</p>
+                                <p className="text-gray-400 font-light italic">Nenhum objetivo ativo definido.</p>
                             </div>
                         )}
                     </div>
@@ -329,7 +329,7 @@ export const Reports: React.FC = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center mb-1">
                                             <p className="text-sm font-bold text-white truncate">{cat?.name || 'Categoria'}</p>
-                                            <p className={`text-xs font-bold ${isOver ? 'text-rose-400' : 'text-gray-400'}`}>
+                                            <p className={`text-xs font-bold ${isOver ? 'text-rose-400' : 'text-gray-300'}`}>
                                                 {Math.round(percent)}%
                                             </p>
                                         </div>
@@ -341,7 +341,7 @@ export const Reports: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0 pl-4 border-l border-white/5">
-                                        <p className="text-xs text-gray-400">Restante</p>
+                                        <p className="text-xs text-gray-300">Restante</p>
                                         <p className={`font-bold ${isOver ? 'text-rose-400' : 'text-white'}`}>
                                             {formatCurrency(Math.max(budget.limit - spent, 0))}
                                         </p>
@@ -350,7 +350,7 @@ export const Reports: React.FC = () => {
                             );
                         }) : (
                             <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-3xl">
-                                <p className="text-gray-500 text-sm mb-4">Metas de gastos não configuradas para este período.</p>
+                                <p className="text-gray-400 text-sm mb-4">Metas de gastos não configuradas para este período.</p>
                                 <button className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center justify-center gap-2 mx-auto hover:text-blue-300 transition-colors">
                                     Configurar Metas <ArrowRight size={14} />
                                 </button>
@@ -382,11 +382,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, icon, color, tr
                 {icon}
             </div>
             <div>
-                <p className="text-xs text-gray-500 font-light mb-1">{label}</p>
+                <p className="text-xs text-gray-400 font-light mb-1">{label}</p>
                 <p className="text-2xl font-bold text-white tracking-tight">
                     {isPercentage ? `${value.toFixed(1)}%` : formatCurrency(value)}
                 </p>
-                <div className="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="mt-2 text-[10px] font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500/40"></span>
                     {trend}
                 </div>

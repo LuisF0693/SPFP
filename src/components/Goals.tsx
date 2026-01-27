@@ -91,7 +91,7 @@ export const Goals: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Meus Objetivos</h2>
-                    <p className="text-gray-500 text-sm">Acompanhe o progresso dos seus sonhos e objetivos.</p>
+                    <p className="text-gray-400 text-sm">Acompanhe o progresso dos seus sonhos e objetivos.</p>
                 </div>
                 <button
                     onClick={() => {
@@ -111,7 +111,7 @@ export const Goals: React.FC = () => {
                 {/* Total Acumulado */}
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Total Acumulado</span>
+                        <span className="text-gray-300 text-sm font-medium">Total Acumulado</span>
                         <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Target size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(totalAccumulated)}</h3>
@@ -123,11 +123,11 @@ export const Goals: React.FC = () => {
                 {/* Metas Concluídas */}
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Objetivos Concluídos</span>
+                        <span className="text-gray-300 text-sm font-medium">Objetivos Concluídos</span>
                         <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500"><Trophy size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{completedGoals}</h3>
-                    <p className="text-gray-500 text-xs font-bold relative z-10">
+                    <p className="text-gray-400 text-xs font-bold relative z-10">
                         Parabéns!
                     </p>
                 </div>
@@ -141,13 +141,13 @@ export const Goals: React.FC = () => {
                     className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-all"
                 >
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Economia Ideal/Mês</span>
+                        <span className="text-gray-300 text-sm font-medium">Economia Ideal/Mês</span>
                         <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><TrendingUp size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">
                         {userProfile.monthlySavingsTarget ? formatCurrency(userProfile.monthlySavingsTarget) : 'Definir'}
                     </h3>
-                    <p className="text-gray-400 text-xs font-bold relative z-10">
+                    <p className="text-gray-300 text-xs font-bold relative z-10">
                         Média real: <span className={averageSavings >= (userProfile.monthlySavingsTarget || 0) ? "text-emerald-500" : "text-yellow-500"}>{formatCurrency(averageSavings)}</span>
                     </p>
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -158,11 +158,11 @@ export const Goals: React.FC = () => {
                 {/* Próxima Conclusão */}
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Próxima Conclusão</span>
+                        <span className="text-gray-300 text-sm font-medium">Próxima Conclusão</span>
                         <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500"><Calendar size={20} /></div>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-1 truncate relative z-10">{nextGoal ? nextGoal.name : 'Nenhuma'}</h3>
-                    <p className="text-gray-400 text-xs font-bold relative z-10">
+                    <p className="text-gray-300 text-xs font-bold relative z-10">
                         {nextGoal ? new Date(nextGoal.deadline).toLocaleDateString() : '-'}
                     </p>
                 </div>
@@ -176,7 +176,7 @@ export const Goals: React.FC = () => {
                         onClick={() => setFilter(f)}
                         aria-label={`Filtrar objetivos ${f === 'ALL' ? 'por todas as durações' : f === 'SHORT' ? 'de curto prazo' : f === 'MEDIUM' ? 'de médio prazo' : 'de longo prazo'}`}
                         aria-pressed={filter === f}
-                        className={`pb-3 text-sm font-bold transition-all relative ${filter === f ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        className={`pb-3 text-sm font-bold transition-all relative ${filter === f ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}
                     >
                         {f === 'ALL' && 'Todas'}
                         {f === 'SHORT' && 'Curto Prazo'}
@@ -207,21 +207,21 @@ export const Goals: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-white text-lg">{goal.name}</h3>
-                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filter === 'LONG' ? 'Longo Prazo' : filter === 'SHORT' ? 'Curto Prazo' : 'Objetivo'}</p>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{filter === 'LONG' ? 'Longo Prazo' : filter === 'SHORT' ? 'Curto Prazo' : 'Objetivo'}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setEditingGoal(goal); setIsFormOpen(true); }}
                                         aria-label={`Editar objetivo: ${goal.name}`}
-                                        className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                        className="text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
                                     >
                                         <Edit2 size={18} aria-hidden="true" />
                                     </button>
                                     <button
                                         onClick={(e) => handleDelete(goal.id, e)}
                                         aria-label={`Excluir objetivo: ${goal.name}`}
-                                        className="text-gray-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
+                                        className="text-gray-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
                                     >
                                         <Trash2 size={18} aria-hidden="true" />
                                     </button>
@@ -230,7 +230,7 @@ export const Goals: React.FC = () => {
 
                             <div className="flex items-end gap-2 mb-2">
                                 <span className="text-2xl font-bold text-white">{formatCurrency(goal.currentAmount)}</span>
-                                <span className="text-sm text-gray-500 mb-1 font-medium">de {formatCurrency(goal.targetAmount)}</span>
+                                <span className="text-sm text-gray-400 mb-1 font-medium">de {formatCurrency(goal.targetAmount)}</span>
                             </div>
 
                             <div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-4">
@@ -240,7 +240,7 @@ export const Goals: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="flex justify-between items-center text-xs font-bold text-gray-500">
+                            <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                                 <span className={percent >= 100 ? 'text-emerald-500' : ''}>{percent.toFixed(0)}% concluído</span>
                                 <span>{new Date(goal.deadline).toLocaleDateString()}</span>
                             </div>
@@ -254,10 +254,10 @@ export const Goals: React.FC = () => {
                     aria-label="Criar novo objetivo"
                     className="bg-[#0f172a]/50 border-2 border-dashed border-gray-800 rounded-2xl p-6 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-4 min-h-[200px] group"
                 >
-                    <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-all" aria-hidden="true">
+                    <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 group-hover:bg-blue-500 group-hover:text-white transition-all" aria-hidden="true">
                         <Plus size={32} />
                     </div>
-                    <span className="font-bold text-gray-500 group-hover:text-white">Criar Novo Objetivo</span>
+                    <span className="font-bold text-gray-400 group-hover:text-white">Criar Novo Objetivo</span>
                 </button>
             </div>
 
@@ -277,10 +277,10 @@ export const Goals: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 text-white relative">
                         <h3 className="text-lg font-bold mb-4">Definir Economia Mensal Ideal</h3>
-                        <p className="text-sm text-gray-400 mb-4">Quanto você deseja economizar por mês?</p>
+                        <p className="text-sm text-gray-300 mb-4">Quanto você deseja economizar por mês?</p>
 
                         <div className="relative mb-6">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
                             <input
                                 type="number"
                                 value={newSavingsTarget}
@@ -294,7 +294,7 @@ export const Goals: React.FC = () => {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setIsTargetModalOpen(false)}
-                                className="flex-1 px-4 py-2 rounded-xl font-bold text-gray-400 hover:bg-gray-800 transition-colors"
+                                className="flex-1 px-4 py-2 rounded-xl font-bold text-gray-300 hover:bg-gray-800 transition-colors"
                             >
                                 Cancelar
                             </button>

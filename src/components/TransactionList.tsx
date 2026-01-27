@@ -148,7 +148,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Lançamentos</h2>
-                    <p className="text-gray-500 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
+                    <p className="text-gray-300 text-sm">Gerencie suas receitas e despesas detalhadas.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -156,7 +156,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             setActiveTabModal('import');
                             setIsImportModalOpen(true);
                         }}
-                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
+                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-300 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
                         title="Importar CSV/PDF"
                     >
                         <Upload size={20} />
@@ -167,7 +167,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             setActiveTabModal('export');
                             setIsImportModalOpen(true);
                         }}
-                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
+                        className="p-2.5 bg-[#0f172a] hover:bg-gray-800 text-gray-300 hover:text-white rounded-xl border border-gray-800 transition-all flex items-center gap-2"
                         title="Exportar CSV/PDF"
                     >
                         <Download size={20} />
@@ -189,7 +189,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Total Receitas</span>
+                        <span className="text-gray-300 text-sm font-medium">Total Receitas</span>
                         <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><ArrowUpCircle size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.income)}</h3>
@@ -199,7 +199,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Total Despesas</span>
+                        <span className="text-gray-300 text-sm font-medium">Total Despesas</span>
                         <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500"><ArrowDownCircle size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.expense)}</h3>
@@ -209,7 +209,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
                 <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-400 text-sm font-medium">Saldo Atual</span>
+                        <span className="text-gray-300 text-sm font-medium">Saldo Atual</span>
                         <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Wallet size={20} /></div>
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.balance)}</h3>
@@ -221,7 +221,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             {/* Filters & Search - Dark/Light Compatible but styling towards Dark Ref */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
                         placeholder="Buscar por nome, categoria ou valor..."
@@ -240,7 +240,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             aria-pressed={filterType === type}
                             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${filterType === type
                                 ? 'bg-accent text-white'
-                                : 'bg-[#1e293b] text-gray-400 hover:bg-gray-800'
+                                : 'bg-[#1e293b] text-gray-300 hover:bg-gray-800'
                                 }`}
                         >
                             {type === 'ALL' && 'Todos'}
@@ -260,7 +260,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <button
                       onClick={() => changeMonth(-1)}
                       aria-label="Mês anterior"
-                      className="p-1 hover:bg-gray-800 rounded text-gray-400"
+                      className="p-1 hover:bg-gray-800 rounded text-gray-300"
                     >
                       <ChevronLeft size={20} aria-hidden="true" />
                     </button>
@@ -268,7 +268,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <button
                       onClick={() => changeMonth(1)}
                       aria-label="Próximo mês"
-                      className="p-1 hover:bg-gray-800 rounded text-gray-400"
+                      className="p-1 hover:bg-gray-800 rounded text-gray-300"
                     >
                       <ChevronRight size={20} aria-hidden="true" />
                     </button>
@@ -277,7 +277,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-500">
+                            <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-400">
                                 <th className="p-4 font-medium w-10">
                                     <input
                                         type="checkbox"
@@ -307,7 +307,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         <tbody className="divide-y divide-gray-800">
                             {filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="p-8 text-center text-gray-500 font-medium">
+                                    <td colSpan={9} className="p-8 text-center text-gray-400 font-medium">
                                         Nenhuma transação encontrada.
                                     </td>
                                 </tr>
@@ -334,7 +334,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                                     }}
                                                 />
                                             </td>
-                                            <td className="p-4 text-gray-400 text-sm font-mono whitespace-nowrap">
+                                            <td className="p-4 text-gray-300 text-sm font-mono whitespace-nowrap">
                                                 {formatDate(tx.date)}
                                             </td>
                                             <td className="p-4">
@@ -360,7 +360,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                                     {cat?.name}
                                                 </div>
                                             </td>
-                                            <td className="p-4 text-gray-400 text-sm">
+                                            <td className="p-4 text-gray-300 text-sm">
                                                 {acc?.name}
                                             </td>
                                             <td className="p-4">
@@ -380,14 +380,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                                           setIsTransactionModalOpen(true);
                                                       }}
                                                       aria-label={`Editar transação: ${tx.description}`}
-                                                      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                                                      className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
                                                     >
                                                       <Edit2 size={14} aria-hidden="true" />
                                                     </button>
                                                     <button
                                                       onClick={() => handleDeleteClick(tx)}
                                                       aria-label={`Excluir transação: ${tx.description}`}
-                                                      className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                      className="p-1.5 text-gray-300 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
                                                     >
                                                       <Trash2 size={14} aria-hidden="true" />
                                                     </button>
@@ -402,11 +402,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                 </div>
 
                 {/* Footer / Pagination Placeholder */}
-                <div className="p-4 border-t border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                <div className="p-4 border-t border-gray-800 flex justify-between items-center text-xs text-gray-400">
                     <span>Mostrando <strong>{filteredTransactions.length}</strong> resultados</span>
                     <div className="flex gap-2">
-                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-500 cursor-not-allowed">Anterior</button>
-                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-500 cursor-not-allowed">Próximo</button>
+                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-400 cursor-not-allowed">Anterior</button>
+                        <button disabled className="px-3 py-1.5 rounded bg-[#1e293b] text-gray-400 cursor-not-allowed">Próximo</button>
                     </div>
                 </div>
             </div>
@@ -438,7 +438,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         </button>
                         <button
                             onClick={() => setSelectedIds(new Set())}
-                            className="ml-2 p-1.5 hover:bg-gray-700 rounded-full text-gray-500"
+                            className="ml-2 p-1.5 hover:bg-gray-700 rounded-full text-gray-400"
                         >
                             <X size={16} />
                         </button>
@@ -462,7 +462,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
             {/* Category Manager Reuse Logic (Placeholder for now, assuming external modal or page) */}
             <div className="flex justify-end pt-4">
-                <button onClick={() => setShowCategoryManager(!showCategoryManager)} className="text-sm font-bold text-gray-500 hover:text-white flex items-center gap-2">
+                <button onClick={() => setShowCategoryManager(!showCategoryManager)} className="text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2">
                     <Filter size={16} /> Gerenciar Categorias & Emojis
                 </button>
             </div>
@@ -473,7 +473,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <div className="bg-[#0f172a] w-full max-w-2xl rounded-2xl p-6 border border-gray-800">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-white text-xl">Gerenciar Categorias</h3>
-                            <button onClick={() => setShowCategoryManager(false)} className="text-gray-400 hover:text-white">✕</button>
+                            <button onClick={() => setShowCategoryManager(false)} className="text-gray-300 hover:text-white">✕</button>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto">
                             {categories.map(cat => (
@@ -491,7 +491,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                             ))}
                         </div>
                         <div className="mt-6 pt-6 border-t border-gray-800">
-                            <p className="text-sm text-gray-500 mb-4">Adicionar Nova Categoria</p>
+                            <p className="text-sm text-gray-400 mb-4">Adicionar Nova Categoria</p>
                             <CategoryCreator />
                         </div>
                     </div>
@@ -562,7 +562,7 @@ const CategoryCreator = () => {
     return (
         <form onSubmit={handleCreate} className="flex gap-4 items-end">
             <div className="relative">
-                <label className="block text-xs font-bold text-gray-500 mb-1">Ícone</label>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Ícone</label>
                 <button type="button" onClick={() => setShowPicker(!showPicker)} className="w-12 h-12 bg-[#1e293b] rounded-xl flex items-center justify-center text-2xl border border-gray-700 hover:border-accent">
                     {emoji}
                 </button>
@@ -575,7 +575,7 @@ const CategoryCreator = () => {
                 )}
             </div>
             <div className="flex-1">
-                <label className="block text-xs font-bold text-gray-500 mb-1">Nome</label>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Nome</label>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full h-12 px-4 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-accent" placeholder="Ex: Mercado" required />
             </div>
             <button type="submit" className="h-12 px-6 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors">
@@ -597,11 +597,11 @@ const BulkCategoryModal: React.FC<{
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
             <div className="bg-[#0f172a] w-full max-w-sm rounded-2xl p-6 border border-gray-800 shadow-2xl animate-slide-up">
                 <h3 className="font-bold text-white text-lg mb-2">Editar {selectedCount} itens</h3>
-                <p className="text-sm text-gray-400 mb-6">Selecione a nova categoria para os itens selecionados.</p>
+                <p className="text-sm text-gray-300 mb-6">Selecione a nova categoria para os itens selecionados.</p>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Nova Categoria</label>
+                        <label className="block text-xs font-bold text-gray-400 mb-1">Nova Categoria</label>
                         <select
                             value={selectedCat}
                             onChange={(e) => setSelectedCat(e.target.value)}
@@ -613,7 +613,7 @@ const BulkCategoryModal: React.FC<{
                         </select>
                     </div>
                     <div className="flex gap-3">
-                        <button onClick={onClose} className="flex-1 py-3 text-gray-500 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
+                        <button onClick={onClose} className="flex-1 py-3 text-gray-400 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
                         <button onClick={() => onApply(selectedCat)} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors">Aplicar</button>
                     </div>
                 </div>

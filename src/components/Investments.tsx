@@ -142,7 +142,7 @@ export const Investments: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-serif text-gray-900 dark:text-white">Investimentos</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Gerencie sua carteira, acompanhe rentabilidade e evolução.</p>
+                    <p className="text-gray-400 dark:text-gray-300">Gerencie sua carteira, acompanhe rentabilidade e evolução.</p>
                 </div>
                 <div className="flex space-x-3">
                     <button
@@ -179,7 +179,7 @@ export const Investments: React.FC = () => {
                         <Wallet size={80} />
                     </div>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Patrimônio Total</h3>
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Patrimônio Total</h3>
                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg">
                             <DollarSign size={18} />
                         </div>
@@ -199,7 +199,7 @@ export const Investments: React.FC = () => {
                         <TrendingUp size={80} />
                     </div>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Lucro / Prejuízo Total</h3>
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lucro / Prejuízo Total</h3>
                         <div className={`p-2 rounded-lg ${totalProfit >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
                             {totalProfit >= 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
                         </div>
@@ -207,7 +207,7 @@ export const Investments: React.FC = () => {
                     <div className={`text-3xl font-bold mb-2 ${totalProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                         {totalProfit >= 0 ? '+' : ''} {formatCurrency(totalProfit)}
                     </div>
-                    <div className="flex items-center text-xs font-medium text-gray-400">
+                    <div className="flex items-center text-xs font-medium text-gray-300">
                         <span>Rentabilidade nominal</span>
                     </div>
                 </div>
@@ -218,7 +218,7 @@ export const Investments: React.FC = () => {
                         <PieIcon size={80} />
                     </div>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Retorno da Carteira</h3>
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Retorno da Carteira</h3>
                         <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg">
                             <span className="font-bold text-lg">%</span>
                         </div>
@@ -226,7 +226,7 @@ export const Investments: React.FC = () => {
                     <div className={`text-3xl font-bold mb-2 ${totalReturnPercent >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                         {totalReturnPercent >= 0 ? '+' : ''}{totalReturnPercent.toFixed(2)}%
                     </div>
-                    <div className="flex items-center text-xs font-medium text-gray-400">
+                    <div className="flex items-center text-xs font-medium text-gray-300">
                         <span>Rentabilidade acumulada</span>
                     </div>
                 </div>
@@ -239,11 +239,11 @@ export const Investments: React.FC = () => {
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="font-bold text-lg">Evolução Patrimonial</h3>
-                            <p className="text-xs text-slate-400">Histórico simulado de valorização</p>
+                            <p className="text-xs text-gray-300">Histórico simulado de valorização</p>
                         </div>
                         <div className="flex space-x-1 bg-slate-800/50 p-1 rounded-lg">
                             {['1S', '1M', '6M', '1A', 'Todos'].map(p => (
-                                <button key={p} className={`px-3 py-1 text-xs rounded-md transition-colors ${p === '6M' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                                <button key={p} className={`px-3 py-1 text-xs rounded-md transition-colors ${p === '6M' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'}`}>
                                     {p}
                                 </button>
                             ))}
@@ -295,7 +295,7 @@ export const Investments: React.FC = () => {
                         </ResponsiveContainer>
                         {/* Center Text */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-gray-400 text-xs text-center">Total Investido</span>
+                            <span className="text-gray-300 text-xs text-center">Total Investido</span>
                             <span className="text-xl font-bold text-white">{formatCurrency(totalPatrimony)}</span>
                         </div>
                     </div>
@@ -337,7 +337,7 @@ export const Investments: React.FC = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <thead className="bg-gray-50 dark:bg-white/5 text-xs font-bold text-gray-400 uppercase tracking-wider">
                             <tr>
                                 <th className="px-6 py-4 text-left">Ativo</th>
                                 <th className="px-6 py-4 text-left">Tipo</th>
@@ -352,7 +352,7 @@ export const Investments: React.FC = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
                             {filteredInvestments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
+                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-300">
                                         Nenhum ativo encontrado. Comece adicionando um novo aporte!
                                     </td>
                                 </tr>
@@ -371,11 +371,11 @@ export const Investments: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-gray-900 dark:text-white">{asset.ticker}</p>
-                                                    <p className="text-xs text-gray-500">{asset.name}</p>
+                                                    <p className="text-xs text-gray-400">{asset.name}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                                        <td className="px-6 py-4 text-gray-400 dark:text-gray-300">
                                             <span className="px-2 py-1 bg-gray-100 dark:bg-white/10 rounded-md text-xs font-medium">
                                                 {TYPE_LABELS[asset.type] || asset.type}
                                             </span>
@@ -383,7 +383,7 @@ export const Investments: React.FC = () => {
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">
                                             {asset.quantity}
                                         </td>
-                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                                        <td className="px-6 py-4 text-gray-400 dark:text-gray-300">
                                             {formatCurrency(asset.averagePrice)}
                                         </td>
                                         <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">

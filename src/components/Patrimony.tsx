@@ -80,7 +80,7 @@ export const Patrimony: React.FC = () => {
             case 'MILES': return <Plane className="text-orange-500" />;
             case 'DEBT': return <TrendingDown className="text-red-500" />;
             case 'INVESTMENTS': return <TrendingUp className="text-purple-500" />;
-            default: return <DollarSign className="text-gray-500" />;
+            default: return <DollarSign className="text-gray-400" />;
         }
     };
 
@@ -101,7 +101,7 @@ export const Patrimony: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-serif text-gray-900 dark:text-white">Gestão de Patrimônio</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Acompanhe a evolução dos seus bens e dívidas.</p>
+                    <p className="text-gray-400 dark:text-gray-300">Acompanhe a evolução dos seus bens e dívidas.</p>
                 </div>
                 <button
                     onClick={() => { setEditingItem(null); setIsFormOpen(true); }}
@@ -120,7 +120,7 @@ export const Patrimony: React.FC = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                         <Wallet size={80} />
                     </div>
-                    <div className="mb-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Patrimônio Líquido</div>
+                    <div className="mb-2 text-gray-300 text-xs font-bold uppercase tracking-wider">Patrimônio Líquido</div>
                     <div className="text-3xl font-bold mb-2">{formatCurrency(netWorth)}</div>
                     <div className="inline-flex items-center px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-md text-xs font-bold">
                         <TrendingUp size={12} className="mr-1" />
@@ -133,7 +133,7 @@ export const Patrimony: React.FC = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                         <PieIcon size={80} />
                     </div>
-                    <div className="mb-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Total de Ativos</div>
+                    <div className="mb-2 text-gray-300 text-xs font-bold uppercase tracking-wider">Total de Ativos</div>
                     <div className="text-3xl font-bold mb-2">{formatCurrency(totalAssets)}</div>
                     <div className="inline-flex items-center px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-md text-xs font-bold">
                         +3.1% em ativos consolidados
@@ -145,7 +145,7 @@ export const Patrimony: React.FC = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                         <TrendingDown size={80} />
                     </div>
-                    <div className="mb-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Total de Passivos</div>
+                    <div className="mb-2 text-gray-300 text-xs font-bold uppercase tracking-wider">Total de Passivos</div>
                     <div className="text-3xl font-bold mb-2 text-red-400">{formatCurrency(totalLiabilities)}</div>
                     <div className="inline-flex items-center px-2 py-1 bg-orange-500/20 text-orange-400 rounded-md text-xs font-bold">
                         -0.5% redução da dívida
@@ -188,9 +188,9 @@ export const Patrimony: React.FC = () => {
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="font-bold text-lg">Distribuição de Ativos</h3>
-                            <p className="text-xs text-slate-400">Composição da carteira</p>
+                            <p className="text-xs text-gray-300">Composição da carteira</p>
                         </div>
-                        <MoreHorizontal className="text-slate-400" size={20} />
+                        <MoreHorizontal className="text-gray-300" size={20} />
                     </div>
 
                     <div className="space-y-5">
@@ -225,7 +225,7 @@ export const Patrimony: React.FC = () => {
                     <button className="text-sm text-blue-600 font-bold hover:underline">Ver Todos</button>
                 </div>
                 <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         <div className="col-span-6 md:col-span-5">Item</div>
                         <div className="col-span-4 md:col-span-5 text-right md:text-left">Valor Atual</div>
                         <div className="col-span-2 text-center md:text-right">Ação</div>
@@ -240,14 +240,14 @@ export const Patrimony: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white">Carteira de Investimentos</h4>
-                                    <p className="text-xs text-gray-500">Renda Variável & Fixa • B3</p>
+                                    <p className="text-xs text-gray-400">Renda Variável & Fixa • B3</p>
                                 </div>
                             </div>
                             <div className="col-span-4 md:col-span-5 text-right md:text-left font-bold text-gray-900 dark:text-white">
                                 {formatCurrency(investmentsTotal)}
                             </div>
                             <div className="col-span-2 flex justify-end">
-                                <Link to="/investments" className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
+                                <Link to="/investments" className="p-2 text-gray-300 hover:text-blue-500 transition-colors">
                                     <ArrowUpRight size={18} />
                                 </Link>
                             </div>
@@ -265,7 +265,7 @@ export const Patrimony: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white">{item.name}</h4>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-400">
                                         {item.quantity ? `${item.quantity.toLocaleString()} milhas` : item.description || (item.type === 'REAL_ESTATE' ? 'Imóvel' : 'Bem Durável')}
                                     </p>
                                 </div>
@@ -277,14 +277,14 @@ export const Patrimony: React.FC = () => {
                                 <button
                                   onClick={() => handleEdit(item)}
                                   aria-label={`Editar ativo: ${item.name}`}
-                                  className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                  className="p-2 text-gray-300 hover:text-blue-500 transition-colors"
                                 >
                                     <Edit2 size={16} aria-hidden="true" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(item.id)}
                                   aria-label={`Excluir ativo: ${item.name}`}
-                                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                  className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                                 >
                                     <Trash2 size={16} aria-hidden="true" />
                                 </button>
@@ -293,7 +293,7 @@ export const Patrimony: React.FC = () => {
                     ))}
 
                     {assets.length === 0 && investmentsTotal === 0 && (
-                        <div className="p-8 text-center text-gray-400 text-sm">Nenhum ativo cadastrado.</div>
+                        <div className="p-8 text-center text-gray-300 text-sm">Nenhum ativo cadastrado.</div>
                     )}
                 </div>
             </div>
@@ -315,7 +315,7 @@ export const Patrimony: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white">{item.name}</h4>
-                                    <p className="text-xs text-gray-500">{item.description || 'Dívida de Longo Prazo'}</p>
+                                    <p className="text-xs text-gray-400">{item.description || 'Dívida de Longo Prazo'}</p>
                                 </div>
                             </div>
                             <div className="col-span-4 md:col-span-5 text-right md:text-left font-bold text-red-500">
@@ -325,14 +325,14 @@ export const Patrimony: React.FC = () => {
                                 <button
                                   onClick={() => handleEdit(item)}
                                   aria-label={`Editar dívida: ${item.name}`}
-                                  className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                  className="p-2 text-gray-300 hover:text-blue-500 transition-colors"
                                 >
                                     <Edit2 size={16} aria-hidden="true" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(item.id)}
                                   aria-label={`Excluir dívida: ${item.name}`}
-                                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                  className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                                 >
                                     <Trash2 size={16} aria-hidden="true" />
                                 </button>
@@ -340,7 +340,7 @@ export const Patrimony: React.FC = () => {
                         </div>
                     ))}
                     {liabilities.length === 0 && (
-                        <div className="p-8 text-center text-gray-400 text-sm">Nenhuma dívida cadastrada. Parabéns!</div>
+                        <div className="p-8 text-center text-gray-300 text-sm">Nenhuma dívida cadastrada. Parabéns!</div>
                     )}
                 </div>
             </div>
