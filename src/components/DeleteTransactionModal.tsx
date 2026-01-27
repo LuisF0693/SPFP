@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, Account } from '../types';
 import { formatCurrency, getMonthName } from '../utils';
-import { X, Trash2, Package, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Trash2, Package, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Modal } from './ui/Modal';
 
 type DeleteOption = 'single' | 'future' | 'all';
 
@@ -136,31 +137,43 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
         ];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-            <div
-                className="w-full max-w-lg bg-[#0f172a]/95 backdrop-blur-xl border border-rose-500/20 rounded-2xl shadow-2xl animate-slide-up overflow-hidden"
-                style={{
-                    boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                }}
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-rose-500/10 rounded-xl">
-                            <Trash2 size={24} className="text-rose-500" />
-                        </div>
-                        <h2 className="text-xl font-bold text-white">Excluir Transação</h2>
-                    </div>
+        <Modal
+            isOpen={true}
+            onClose={onClose}
+            title="Excluir Transação"
+            variant="dark"
+            size="lg"
+            headerIcon={
+                <div className="p-2.5 bg-rose-500/10 rounded-xl">
+                    <Trash2 size={24} className="text-rose-500" />
+                </div>
+            }
+            footer={
+                <div className="flex gap-3 w-full">
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                        className="flex-1 py-3 px-4 text-gray-400 font-bold text-sm hover:bg-white/5 rounded-xl transition-all"
                     >
-                        <X size={20} />
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={handleConfirm}
+                        disabled={isDeleting}
+                        className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 group"
+                    >
+                        {isDeleting ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                        ) : (
+                            <>
+                                <Trash2 size={16} className="group-hover:animate-shake" />
+                                Confirmar Exclusão
+                            </>
+                        )}
                     </button>
                 </div>
-
-                {/* Content */}
-                <div className="p-6 space-y-6">
+            }
+        >
+            <div className="space-y-6">
                     {/* Info Card */}
                     <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center gap-2 text-white font-bold">
@@ -235,32 +248,7 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
                             </p>
                         </div>
                     )}
-                </div>
-
-                {/* Footer */}
-                <div className="flex gap-3 p-6 border-t border-white/10 bg-black/20">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-3 px-4 text-gray-400 font-bold text-sm hover:bg-white/5 rounded-xl transition-all"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={handleConfirm}
-                        disabled={isDeleting}
-                        className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 group"
-                    >
-                        {isDeleting ? (
-                            <RefreshCw size={16} className="animate-spin" />
-                        ) : (
-                            <>
-                                <Trash2 size={16} className="group-hover:animate-shake" />
-                                Confirmar Exclusão
-                            </>
-                        )}
-                    </button>
-                </div>
             </div>
-        </div>
+        </Modal>
     );
 };

@@ -128,3 +128,155 @@ body {
 .glass-shimmer:active::after {
   animation: shimmer 1s ease-in-out;
 }
+
+/* === CONSOLIDATED TAILWIND UTILITIES === */
+
+/* Cards & Containers */
+.card-dark {
+  @apply bg-[#0f172a] p-6 rounded-2xl border border-gray-800;
+}
+
+.card-dark-hover {
+  @apply card-dark relative overflow-hidden group hover:border-gray-700 transition-colors;
+}
+
+.card-light {
+  @apply bg-white p-6 rounded-2xl shadow-sm border border-gray-200;
+}
+
+.card-glass {
+  @apply bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-sm;
+}
+
+/* Form Inputs */
+.form-input {
+  @apply w-full p-3 bg-gray-50 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-gray-900 dark:text-white text-sm;
+}
+
+.form-input:focus {
+  @apply border-emerald-500 dark:border-emerald-500;
+}
+
+.form-input-icon {
+  @apply w-full pl-9 p-3 bg-gray-50 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl outline-none;
+}
+
+.form-label {
+  @apply text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1;
+}
+
+.form-field {
+  @apply flex flex-col gap-2;
+}
+
+/* Buttons */
+.btn {
+  @apply py-3 px-4 rounded-xl font-bold text-sm transition-all;
+}
+
+.btn-primary {
+  @apply btn bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply btn bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700;
+}
+
+.btn-danger {
+  @apply btn bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50;
+}
+
+.btn-ghost {
+  @apply btn text-gray-400 hover:bg-white/10 rounded-xl transition-all;
+}
+
+/* Modals & Overlays */
+.modal-overlay {
+  @apply fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm;
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-white/10;
+}
+
+.modal-footer {
+  @apply flex gap-3 p-6 border-t border-white/10 bg-black/20;
+}
+
+/* Icons & Spacing */
+.icon-container {
+  @apply flex items-center justify-center p-2.5 bg-white/10 rounded-xl;
+}
+
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+.flex-start {
+  @apply flex items-center gap-3;
+}
+
+/* Text Utilities */
+.text-label {
+  @apply text-xs font-bold text-gray-500 uppercase;
+}
+
+.text-muted {
+  @apply text-sm text-gray-400;
+}
+
+.text-subtle {
+  @apply text-xs text-gray-500;
+}
+
+/* Animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s var(--transition);
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s var(--transition);
+}
+
+/* Radio/Checkbox Indicators */
+.radio-indicator {
+  @apply w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all;
+}
+
+.radio-indicator-selected {
+  @apply border-rose-500 bg-rose-500;
+}
+
+.radio-indicator-unselected {
+  @apply border-gray-600;
+}
+
+/* Responsive Scrolling */
+.scrollable-modal {
+  @apply max-h-[90vh] overflow-y-auto;

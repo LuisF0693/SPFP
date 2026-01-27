@@ -77,7 +77,7 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
 
             const response = await chatWithAI(
                 [{ role: 'system', content: 'Você é um Analista de CRM Agentico de elite. Seja conciso e direto.' }, { role: 'user', content: prompt }],
-                { provider: provider as any, apiKey: apiKey, model: aiConfig?.model }
+                { provider: provider as AIConfig['provider'], apiKey: apiKey, model: aiConfig?.model }
             );
 
             setBriefings(prev => ({ ...prev, [client.user_id]: response.text }));

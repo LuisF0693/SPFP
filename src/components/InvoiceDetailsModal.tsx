@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { Account, Transaction } from '../types';
 import { useFinance } from '../context/FinanceContext';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
-import { X, ChevronLeft, ChevronRight, Calendar, ShoppingBag, CreditCard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
 import { CategoryIcon } from './CategoryIcon';
+import { Modal } from './ui/Modal';
 
 interface InvoiceDetailsModalProps {
     account: Account;
@@ -46,30 +47,39 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ accoun
     const dueDate = new Date(selectedYear, selectedMonth, account.dueDay || 10);
     const isPastDue = new Date() > dueDate;
 
+    const headerIcon = (
+        <div className="w-12 h-8 rounded-md bg-gradient-to-br from-gray-700 to-gray-900 border border-gray-600 flex items-center justify-center shadow-inner relative overflow-hidden">
+            <div className="absolute w-20 h-2 bg-white/10 rotate-45"></div>
+            <CreditCard size={14} className="text-gray-400 relative z-10" />
+        </div>
+    );
+
+    const footer = (
+        <button onClick={onClose} className="w-full py-3 bg-[#1e293b] hover:bg-[#334155] text-white font-bold rounded-xl transition-colors">
+            Fechar
+        </button>
+    );
+
     return (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#0f172a] w-full max-w-2xl rounded-3xl border border-gray-800 shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
-
-                {/* Header */}
-                <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1e293b]/50 rounded-t-3xl">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-8 rounded-md bg-gradient-to-br from-gray-700 to-gray-900 border border-gray-600 flex items-center justify-center shadow-inner relative overflow-hidden">
-                            {/* Mini Card Rep */}
-                            <div className="absolute w-20 h-2 bg-white/10 rotate-45"></div>
-                            <CreditCard size={14} className="text-gray-400 relative z-10" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white text-lg">{account.name}</h3>
-                            <p className="text-xs text-gray-400 uppercase tracking-widest">Fatura do Cartão</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
-                        <X size={24} />
-                    </button>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex flex-col gap-1">
+                    <span>{account.name}</span>
+                    <span className="text-xs text-gray-400 uppercase tracking-widest font-normal">Fatura do Cartão</span>
                 </div>
-
+            }
+            headerIcon={headerIcon}
+            footer={footer}
+            variant="dark"
+            size="xl"
+            contentClassName="p-0"
+            headerClassName="flex-col items-start gap-2"
+        >
+            <div className="flex flex-col max-h-[60vh]">
                 {/* Month Navigator & Summary */}
-                <div className="p-6 bg-gradient-to-b from-[#1e293b]/30 to-transparent">
+                <div className="p-6 bg-gradient-to-b from-[#1e293b]/30 to-transparent border-b border-gray-800">
                     <div className="flex items-center justify-between mb-8 text-white">
                         <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/10 rounded-full"><ChevronLeft size={24} /></button>
                         <div className="text-center">
@@ -120,15 +130,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ accoun
                         })
                     )}
                 </div>
-
-                {/* Footer Actions */}
-                <div className="p-6 border-t border-gray-800 bg-[#0f172a] rounded-b-3xl">
-                    {/* Placeholder for action, maybe "Pay Invoice" later if needed here, currently just Close */}
-                    <button onClick={onClose} className="w-full py-3 bg-[#1e293b] hover:bg-[#334155] text-white font-bold rounded-xl transition-colors">
-                        Fechar
-                    </button>
-                </div>
             </div>
-        </div>
+        </Modal>
     );
 };
