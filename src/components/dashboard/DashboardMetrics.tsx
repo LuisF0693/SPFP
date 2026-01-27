@@ -52,7 +52,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group glass-shimmer card-hover">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">
                 Patrimônio Líquido
               </p>
               <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">
@@ -67,7 +67,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
             <span className="bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md font-bold text-xs flex items-center mr-2">
               <ArrowUpRight size={12} className="mr-1" /> +2.4%
             </span>
-            <span className="text-gray-400 text-xs">vs mês passado</span>
+            <span className="text-gray-300 text-xs">vs mês passado</span>
           </div>
         </div>
 
@@ -75,7 +75,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm glass-shimmer card-hover">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">
                 Gastos do Mês
               </p>
               <h2 className="text-3xl font-black text-gray-900 dark:text-white mt-1">
@@ -97,7 +97,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
               }}
             />
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-300">
             {totalIncome > 0
               ? `${Math.round((totalExpense / totalIncome) * 100)}% da renda mensal`
               : 'Sem renda registrada este mês'}
@@ -108,10 +108,18 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
         <div
           className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:border-blue-500/30 transition-colors glass-shimmer card-hover"
           onClick={() => navigate('/budget')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              navigate('/budget');
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">
                 Metas Financeiras
               </p>
               {isBudgetSet ? (
@@ -151,7 +159,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
           {isBudgetSet ? (
             <div className="mt-4">
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-gray-400">Progresso Geral</span>
+                <span className="text-gray-300">Progresso Geral</span>
                 <span className="text-white font-bold">
                   {budgetProgress.toFixed(0)}%
                 </span>
@@ -164,14 +172,14 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
                   style={{ width: `${budgetProgress}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 {budgetAlertsCritical > 0
                   ? `${budgetAlertsCritical} categorias excederam o limite.`
                   : 'Você está dentro do planejado.'}
               </p>
             </div>
           ) : (
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-300 mt-2">
               Toque para configurar suas metas mensais.
             </p>
           )}

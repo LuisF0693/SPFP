@@ -32,7 +32,7 @@ export const DashboardChart = memo<DashboardChartProps>(
       return (props: any) => {
         const { payload } = props;
         return (
-          <ul className="flex flex-col space-y-2 text-xs text-gray-400 mt-4">
+          <ul className="flex flex-col space-y-2 text-xs text-gray-300 mt-4">
             {payload.map((entry: any, index: number) => (
               <li
                 key={`item-${index}`}
@@ -47,7 +47,7 @@ export const DashboardChart = memo<DashboardChartProps>(
                     {entry.value}
                   </span>
                 </div>
-                <span className="font-bold text-gray-500">
+                <span className="font-bold text-gray-400">
                   {Math.round(
                     (entry.payload.value / (totalExpense || 1)) * 100
                   )}
@@ -69,7 +69,7 @@ export const DashboardChart = memo<DashboardChartProps>(
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                 Tendência de Fluxo de Caixa
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 Entradas vs Saídas (Últimos 6 Meses)
               </p>
             </div>
@@ -101,13 +101,13 @@ export const DashboardChart = memo<DashboardChartProps>(
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  tick={{ fill: '#d1d5db', fontSize: 12 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  tick={{ fill: '#d1d5db', fontSize: 12 }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -146,7 +146,7 @@ export const DashboardChart = memo<DashboardChartProps>(
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
               Gastos por Categoria
             </h3>
-            <span className="text-xs text-gray-500">{currentMonth}</span>
+            <span className="text-xs text-gray-400">{currentMonth}</span>
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center relative min-h-[200px]">
@@ -185,14 +185,14 @@ export const DashboardChart = memo<DashboardChartProps>(
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center text-gray-400 text-xs italic">
+              <div className="text-center text-gray-300 text-xs italic">
                 Sem dados suficientes
               </div>
             )}
 
             {categoryData.length > 0 && (
               <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <p className="text-xs text-gray-400">Total</p>
+                <p className="text-xs text-gray-300">Total</p>
                 <p className="text-lg font-black text-gray-900 dark:text-white">
                   {formatCurrency(totalExpense)}
                 </p>

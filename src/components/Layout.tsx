@@ -80,6 +80,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
 
   return (
     <div className="flex h-screen bg-bg-dark overflow-hidden w-full font-sans text-text-primary transition-colors duration-300">
+      {/* Skip to Main Content Link */}
+      <a href="#main-content" className="skip-link">
+        Pular para o conteúdo principal
+      </a>
+
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-72 bg-card-dark flex-col shadow-xl z-20 border-r border-white/5 transition-colors duration-300">
         <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-center space-x-4">
@@ -108,7 +113,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
           </div>
         </div>
 
-        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar">
+        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar" aria-label="Main navigation">
           {mode === 'crm' ? (
             // CRM Navigation
             <>
@@ -121,7 +126,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
                     end
                     className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
                       ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
                       }`}
                   >
                     {({ isActive }) => (
@@ -135,10 +140,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
               })}
 
               <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
-                <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acesso Pessoal</p>
+                <p className="px-4 mb-2 text-[10px] font-bold text-gray-300 uppercase tracking-widest">Acesso Pessoal</p>
                 <div
                   onClick={() => stopImpersonating('/dashboard')}
-                  className={`flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      stopImpersonating('/dashboard');
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className={`flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group text-gray-300 hover:bg-white/5 hover:text-white cursor-pointer`}
                 >
                   <ArrowLeftRight size={22} className="mr-3 text-gray-500 group-hover:text-white" />
                   <span className="font-medium text-base">Meus Dados</span>
@@ -156,7 +169,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
                     to={item.path}
                     className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
                       ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
                       }`}
                   >
                     {({ isActive }) => (
@@ -171,7 +184,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
 
               {isAdmin && (
                 <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
-                  <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Administração</p>
+                  <p className="px-4 mb-2 text-[10px] font-bold text-gray-300 uppercase tracking-widest">Administração</p>
                   {adminNavItems.map((item) => {
                     const Icon = item.icon;
                     return (
@@ -180,7 +193,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
                         to={item.path}
                         className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
                           ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                          : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
                           }`}
                       >
                         {({ isActive }) => (
@@ -208,7 +221,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
             <span className="font-medium">Configurações</span>
           </NavLink>
           <div className="mt-4 flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/5 group transition-colors">
-            <div className="flex items-center min-w-0 mr-2 cursor-pointer" onClick={() => navigate('/settings')}>
+            <div
+              className="flex items-center min-w-0 mr-2 cursor-pointer"
+              onClick={() => navigate('/settings')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/settings');
+                }
+              }}
+              role="button"
+              tabIndex={0}
+            >>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold text-sm mr-3 overflow-hidden shadow-lg border border-blue-500/30">
                 {userProfile.avatar ? (
                   <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -218,7 +242,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-800 dark:text-white truncate group-hover:text-accent transition-colors">{userProfile.name || 'Usuário'}</p>
-                <p className="text-[10px] text-gray-500 truncate font-medium">{userProfile.email}</p>
+                <p className="text-[10px] text-gray-400 truncate font-medium">{userProfile.email}</p>
               </div>
             </div>
             <button onClick={handleLogout} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-900/20 transition-all">
@@ -261,14 +285,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 md:p-8 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <main id="main-content" className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 md:p-8 bg-gray-50 dark:bg-black transition-colors duration-300">
           <div className="max-w-7xl mx-auto w-full h-full">
             {children}
           </div>
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="md:hidden absolute bottom-0 w-full bg-[#0a0a0a] border-t border-gray-900 shadow-[0_-5px_10px_rgba(0,0,0,0.5)] z-50 pb-safe">
+        <nav className="md:hidden absolute bottom-0 w-full bg-[#0a0a0a] border-t border-gray-900 shadow-[0_-5px_10px_rgba(0,0,0,0.5)] z-50 pb-safe" aria-label="Mobile navigation">
           <div className="flex justify-around items-center h-16 px-2">
             {mobileNavItems.map((item) => {
               const Icon = item.icon;

@@ -233,6 +233,32 @@ body {
   @apply text-xs text-gray-500;
 }
 
+/* WCAG 2.1 AA Compliant Text Colors */
+.text-secondary-wcag {
+  @apply text-gray-300; /* Replaces text-gray-400 on dark backgrounds */
+}
+
+.text-muted-wcag {
+  @apply text-gray-400; /* Replaces text-gray-500 on dark backgrounds */
+}
+
+.text-label-wcag {
+  @apply text-xs font-bold text-gray-400 uppercase; /* Replaces text-gray-500 labels */
+}
+
+/* Enhanced Focus Indicators - WCAG 2.4.7 */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  @apply ring-2 ring-blue-500 ring-offset-2 ring-offset-black;
+}
+
 /* Animations */
 @keyframes slide-up {
   from {
