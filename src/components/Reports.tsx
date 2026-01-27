@@ -22,26 +22,9 @@ import { generatePDFReport } from '../services/pdfService';
 export const Reports: React.FC = () => {
     const { transactions, categories, totalBalance, categoryBudgets, goals } = useFinance();
 
-    // State for Month Selection
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    // Month Navigation
+    const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
     const [isExporting, setIsExporting] = useState(false);
-
-    const changeMonth = (delta: number) => {
-        let newMonth = selectedMonth + delta;
-        let newYear = selectedYear;
-
-        if (newMonth > 11) {
-            newMonth = 0;
-            newYear++;
-        } else if (newMonth < 0) {
-            newMonth = 11;
-            newYear--;
-        }
-
-        setSelectedMonth(newMonth);
-        setSelectedYear(newYear);
-    };
 
     // Filter data for the SELECTED month
     const currentMonthTx = transactions.filter(t => {

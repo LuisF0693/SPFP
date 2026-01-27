@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Account, Transaction } from '../types';
 import { useFinance } from '../context/FinanceContext';
+import { useMonthNavigation } from '../hooks';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import { ChevronLeft, ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
 import { CategoryIcon } from './CategoryIcon';
@@ -14,20 +15,9 @@ interface InvoiceDetailsModalProps {
 
 export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ account, isOpen, onClose }) => {
     const { transactions, categories } = useFinance();
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
 
     if (!isOpen) return null;
-
-    // Navigation
-    const changeMonth = (delta: number) => {
-        let newMonth = selectedMonth + delta;
-        let newYear = selectedYear;
-        if (newMonth > 11) { newMonth = 0; newYear++; }
-        else if (newMonth < 0) { newMonth = 11; newYear--; }
-        setSelectedMonth(newMonth);
-        setSelectedYear(newYear);
-    };
 
     // Filter Transactions for this Account & Month
     const invoiceTransactions = useMemo(() => {
