@@ -162,9 +162,10 @@ export const Investments: React.FC = () => {
                     </button>
                     <button
                         onClick={() => { setEditingAsset(null); setIsFormOpen(true); }}
+                        aria-label="Criar novo aporte de investimento"
                         className="flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 active:scale-95"
                     >
-                        <Plus size={20} className="mr-2" />
+                        <Plus size={20} className="mr-2" aria-hidden="true" />
                         Novo Aporte
                     </button>
                 </div>
@@ -403,17 +404,17 @@ export const Investments: React.FC = () => {
                                             <div className="flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => handleEdit(asset)}
+                                                    aria-label={`Editar investimento: ${asset.name}`}
                                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="Editar"
                                                 >
-                                                    <Edit2 size={16} />
+                                                    <Edit2 size={16} aria-hidden="true" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(asset.id)}
+                                                    aria-label={`Excluir investimento: ${asset.name}`}
                                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Excluir"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={16} aria-hidden="true" />
                                                 </button>
                                             </div>
                                         </td>
