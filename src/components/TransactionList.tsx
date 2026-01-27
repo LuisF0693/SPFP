@@ -236,6 +236,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         <button
                             key={type}
                             onClick={() => setFilterType(type)}
+                            aria-label={`Filtrar por ${type === 'ALL' ? 'todos os tipos' : type === 'INCOME' ? 'receitas' : type === 'EXPENSE' ? 'despesas' : 'pendentes'}`}
+                            aria-pressed={filterType === type}
                             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${filterType === type
                                 ? 'bg-accent text-white'
                                 : 'bg-[#1e293b] text-gray-400 hover:bg-gray-800'
@@ -255,9 +257,21 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
                 {/* Month Navigation within Table Header? Or keep separate? Keeping separate for now or inside header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                    <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-800 rounded text-gray-400"><ChevronLeft size={20} /></button>
+                    <button
+                      onClick={() => changeMonth(-1)}
+                      aria-label="Mês anterior"
+                      className="p-1 hover:bg-gray-800 rounded text-gray-400"
+                    >
+                      <ChevronLeft size={20} aria-hidden="true" />
+                    </button>
                     <span className="font-bold text-white uppercase tracking-wider text-sm">{getMonthName(selectedMonth)} {selectedYear}</span>
-                    <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-800 rounded text-gray-400"><ChevronRight size={20} /></button>
+                    <button
+                      onClick={() => changeMonth(1)}
+                      aria-label="Próximo mês"
+                      className="p-1 hover:bg-gray-800 rounded text-gray-400"
+                    >
+                      <ChevronRight size={20} aria-hidden="true" />
+                    </button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -267,6 +281,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                 <th className="p-4 font-medium w-10">
                                     <input
                                         type="checkbox"
+                                        aria-label="Selecionar todas as transações"
                                         className="w-4 h-4 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                                         onChange={(e) => {
                                             if (e.target.checked) {
@@ -359,11 +374,23 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                             </td>
                                             <td className="p-4 text-center">
                                                 <div className="flex justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => {
-                                                        setEditingTransaction(tx);
-                                                        setIsTransactionModalOpen(true);
-                                                    }} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"><Edit2 size={14} /></button>
-                                                    <button onClick={() => handleDeleteClick(tx)} className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                                                    <button
+                                                      onClick={() => {
+                                                          setEditingTransaction(tx);
+                                                          setIsTransactionModalOpen(true);
+                                                      }}
+                                                      aria-label={`Editar transação: ${tx.description}`}
+                                                      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                                                    >
+                                                      <Edit2 size={14} aria-hidden="true" />
+                                                    </button>
+                                                    <button
+                                                      onClick={() => handleDeleteClick(tx)}
+                                                      aria-label={`Excluir transação: ${tx.description}`}
+                                                      className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                    >
+                                                      <Trash2 size={14} aria-hidden="true" />
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -392,9 +419,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setIsBulkCategoryModalOpen(true)}
+                            aria-label={`Editar categoria de ${selectedIds.size} transações selecionadas`}
                             className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-700 rounded-lg text-gray-300 transition-colors text-sm font-bold"
                         >
-                            <Edit2 size={16} /> Editar Categoria
+                            <Edit2 size={16} aria-hidden="true" /> Editar Categoria
                         </button>
                         <button
                             onClick={() => {
@@ -403,9 +431,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                     setSelectedIds(new Set());
                                 }
                             }}
+                            aria-label={`Excluir ${selectedIds.size} transações selecionadas`}
                             className="flex items-center gap-2 px-3 py-1.5 hover:bg-rose-500/20 text-rose-500 rounded-lg transition-colors text-sm font-bold"
                         >
-                            <Trash2 size={16} /> Excluir
+                            <Trash2 size={16} aria-hidden="true" /> Excluir
                         </button>
                         <button
                             onClick={() => setSelectedIds(new Set())}
@@ -451,7 +480,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                 <div key={cat.id} className="bg-[#1e293b] p-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-transparent hover:border-gray-600 group relative">
                                     <div className="text-2xl">{cat.icon || '📦'}</div>
                                     <span className="text-xs font-bold text-gray-300 text-center">{cat.name}</span>
-                                    <button onClick={() => deleteCategory(cat.id)} className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"><Trash2 size={12} /></button>
+                                    <button
+                                      onClick={() => deleteCategory(cat.id)}
+                                      aria-label={`Excluir categoria: ${cat.name}`}
+                                      className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"
+                                    >
+                                      <Trash2 size={12} aria-hidden="true" />
+                                    </button>
                                 </div>
                             ))}
                         </div>
