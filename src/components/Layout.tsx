@@ -232,7 +232,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
               }}
               role="button"
               tabIndex={0}
-            >>
+            >
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center text-white font-bold text-sm mr-3 overflow-hidden shadow-lg border border-blue-500/30">
                 {userProfile.avatar ? (
                   <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />

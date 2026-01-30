@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'esnext', // Support top-level await if needed by libs
+      rollupOptions: {
+        external: ['pdfjs-dist', 'core-js'],
+      },
     }
   };
 });

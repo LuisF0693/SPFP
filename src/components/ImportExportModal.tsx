@@ -357,6 +357,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                                 </div>
                             )}
                         </div>
+                        </div>
                     ) : (
                         <div id="export-panel" role="tabpanel" aria-labelledby="export-tab" className="space-y-4">
                             <button

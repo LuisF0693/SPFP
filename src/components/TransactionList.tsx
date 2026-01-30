@@ -217,7 +217,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                     <p className="text-blue-500 text-xs font-bold relative z-10">{stats.balance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}</p>
                     <div className="absolute top-0 right-0 p-8 opacity-5"><Wallet size={100} /></div>
                 </div>
-            </div>
+            </section>
 
             {/* Filters & Search - Dark/Light Compatible but styling towards Dark Ref */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
