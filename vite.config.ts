@@ -23,9 +23,34 @@ export default defineConfig(({ mode }) => {
       include: ['pdfjs-dist'],
     },
     build: {
-      target: 'esnext', // Support top-level await if needed by libs
+      target: 'esnext',
+      chunkSizeWarningLimit: 600,
       rollupOptions: {
-        external: ['pdfjs-dist', 'core-js'],
+        external: ['core-js'],
+        output: {
+          manualChunks: (id) => {
+            // Separate vendor chunks for heavy libraries with granular control
+            if (id.includes('node_modules/recharts')) {
+              return 'recharts-vendor';
+            }
+            if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+              return 'pdf-vendor';
+            }
+            if (id.includes('node_modules/pdfjs-dist')) {
+              return 'pdf-worker';
+            }
+            if (id.includes('node_modules/@supabase')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('node_modules/@google/generative-ai')) {
+              return 'gemini-vendor';
+            }
+            // Group React and core dependencies
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'react-vendor';
+            }
+          }
+        }
       },
     }
   };

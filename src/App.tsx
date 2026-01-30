@@ -1,26 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Layout } from './components/Layout';
-import { Dashboard } from './components/Dashboard';
-import { Accounts } from './components/Accounts';
-import { TransactionForm } from './components/TransactionForm';
-import { TransactionList } from './components/TransactionList';
-import { Reports } from './components/Reports';
-import { Insights } from './components/Insights';
-import { Settings } from './components/Settings';
-import { Login } from './components/Login';
-import { Goals } from './components/Goals';
-import { FutureCashFlow } from './components/FutureCashFlow';
 import Loading from './components/ui/Loading';
-import { Investments } from './components/Investments';
-import { Patrimony } from './components/Patrimony';
-import { AdminCRM } from './components/AdminCRM';
-import { Budget } from './components/Budget';
-import { SalesPage } from './components/SalesPage';
 import { Transaction } from './types';
+
+// Lazy load page components for code splitting
+const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const Accounts = React.lazy(() => import('./components/Accounts').then(m => ({ default: m.Accounts })));
+const TransactionForm = React.lazy(() => import('./components/TransactionForm').then(m => ({ default: m.TransactionForm })));
+const TransactionList = React.lazy(() => import('./components/TransactionList').then(m => ({ default: m.TransactionList })));
+const Reports = React.lazy(() => import('./components/Reports').then(m => ({ default: m.Reports })));
+const Insights = React.lazy(() => import('./components/Insights').then(m => ({ default: m.Insights })));
+const Settings = React.lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
+const Login = React.lazy(() => import('./components/Login').then(m => ({ default: m.Login })));
+const Goals = React.lazy(() => import('./components/Goals').then(m => ({ default: m.Goals })));
+const FutureCashFlow = React.lazy(() => import('./components/FutureCashFlow').then(m => ({ default: m.FutureCashFlow })));
+const Investments = React.lazy(() => import('./components/Investments').then(m => ({ default: m.Investments })));
+const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({ default: m.Patrimony })));
+const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
+const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
+const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -74,103 +76,104 @@ const AppContent: React.FC = () => {
   };
 
   return (
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        <Route path="/login" element={!user ? <Suspense fallback={<Loading />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
 
-    <Routes>
-      <Route path="/login" element={!user ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
+        <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <Suspense fallback={<Loading />}><SalesPage /></Suspense>} />
 
-      <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <SalesPage />} />
-
-      <Route path="/dashboard" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Dashboard />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/accounts" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Accounts />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/transactions" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <TransactionList onEdit={handleEditTransaction} />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/transactions/add" element={
-        <PrivateRoute>
-          <TransactionForm initialData={transactionToEdit} onClose={handleCloseForm} />
-        </PrivateRoute>
-      } />
-      <Route path="/goals" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Goals />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/investments" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Investments />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/patrimony" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Patrimony />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/reports" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Reports />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/insights" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Insights />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/projections" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <FutureCashFlow />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/budget" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Budget />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/settings" element={
-        <PrivateRoute>
-          <Layout mode="personal">
-            <Settings />
-          </Layout>
-        </PrivateRoute>
-      } />
-      <Route path="/admin" element={
-        <AdminRoute>
-          <Layout mode="crm">
-            <AdminCRM />
-          </Layout>
-        </AdminRoute>
-      } />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+        <Route path="/dashboard" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Dashboard />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/accounts" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Accounts />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/transactions" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <TransactionList onEdit={handleEditTransaction} />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/transactions/add" element={
+          <PrivateRoute>
+            <TransactionForm initialData={transactionToEdit} onClose={handleCloseForm} />
+          </PrivateRoute>
+        } />
+        <Route path="/goals" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Goals />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/investments" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Investments />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/patrimony" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Patrimony />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/reports" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Reports />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/insights" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Insights />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/projections" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <FutureCashFlow />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/budget" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Budget />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/settings" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Settings />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <Layout mode="crm">
+              <AdminCRM />
+            </Layout>
+          </AdminRoute>
+        } />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Suspense>
   );
 };
 
