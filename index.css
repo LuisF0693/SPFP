@@ -321,3 +321,4 @@ a:focus-visible,
 /* Responsive Scrolling */
 .scrollable-modal {
   @apply max-h-[90vh] overflow-y-auto;
+}
