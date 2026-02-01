@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { AIConfig } from "../types";
 import { retryWithBackoff, logDetailedError, getErrorMessage } from "./retryService";
+import { errorRecovery } from "./errorRecovery";
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'model' | 'system';
@@ -41,11 +42,23 @@ export const chatWithAI = async (
             return await handleOpenAICompatible(messages, config);
         }
     } catch (error: any) {
+        const context = errorRecovery.captureContext(error, 'Chat with AI', {
+            metadata: {
+                provider,
+                messageCount: messages.length,
+                model: config?.model
+            }
+        });
+
         logDetailedError('AI Service Error', error, {
             provider,
             messageCount: messages.length
         });
-        throw new Error(getErrorMessage(error));
+
+        const userMessage = errorRecovery.getUserMessage(error, 'comunicar com IA');
+        errorRecovery.logError(context, userMessage, 'high', false);
+
+        throw new Error(userMessage);
     }
 };
 

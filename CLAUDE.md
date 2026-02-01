@@ -87,7 +87,9 @@ src/
 │   ├── csvService.ts   # CSV import/export for transactions
 │   ├── MarketDataService.ts # Market data fetching for investments
 │   ├── projectionService.ts # Financial projections
-│   └── logService.ts   # User interaction logging
+│   ├── logService.ts   # User interaction logging
+│   ├── retryService.ts # Retry logic with exponential backoff
+│   └── errorRecovery.ts # Centralized error handling and context management
 ├── data/               # Static data & constants
 │   └── initialData.ts  # Initial accounts, categories, transactions
 ├── utils/              # Utility functions
@@ -134,7 +136,73 @@ src/
 - Handles message history, system prompts, and safety settings
 - Used by Insights component and AI chat features
 
+### Error Recovery Pattern
+
+**errorRecovery.ts** provides centralized error handling with recovery strategies:
+- **Retry Logic**: Exponential backoff for transient errors (network, timeout, rate limit)
+- **Context Capture**: Logs error with user ID, action, timestamp, state snapshot, metadata
+- **User Messaging**: Converts technical errors to user-friendly Portuguese messages
+- **State Rollback**: Restores previous state when operations fail
+- **Error Classification**: Distinguishes between transient (retryable), validation, auth, and critical errors
+- **Monitoring Ready**: Exports error logs for Sentry integration
+
+**Key Services**:
+1. `retryService.ts`: Handles retry logic with exponential backoff
+2. `errorRecovery.ts`: Centralized error handling and context management
+3. Used by: `AuthContext`, `FinanceContext`, `aiService`, `geminiService`
+
 ## Important Implementation Notes
+
+### Error Recovery Best Practices
+
+When implementing async operations, use error recovery:
+
+1. **For critical operations** (API calls, Supabase updates):
+```typescript
+import { withErrorRecovery } from '../services/errorRecovery';
+
+const result = await withErrorRecovery(
+  () => myAsyncOperation(),
+  'Action description',
+  { maxRetries: 3, userId: currentUser?.id }
+);
+```
+
+2. **For operations with state rollback**:
+```typescript
+import errorRecovery from '../services/errorRecovery';
+
+const previousState = { ...state };
+try {
+  await errorRecovery.handleOperation(
+    () => saveData(newState),
+    'Save data',
+    {
+      previousState,
+      onRollback: async (state) => setState(state),
+      maxRetries: 2
+    }
+  );
+} catch (error: any) {
+  // Error is already handled with rollback
+  showErrorToUser(error.userMessage);
+}
+```
+
+3. **For safe fallback operations**:
+```typescript
+const data = await errorRecovery.safeExecute(
+  () => fetchData(),
+  [], // fallback to empty array
+  { action: 'Fetch data', onError: (err) => console.warn(err) }
+);
+```
+
+4. **Error logging guidelines**:
+- High/Critical: Auth failures, data corruption, critical API failures
+- Medium: Network timeout, temporary API failures, transient errors
+- Low: Non-critical UI operations, analytics failures
+- Always include metadata and state snapshot for debugging
 
 ### Adding New Features
 
@@ -144,6 +212,7 @@ When adding features that persist data:
 3. Create add/update/delete functions for that data
 4. Export from `useFinance()` hook
 5. Consider localStorage sync strategy and Supabase table structure
+6. Wrap critical Supabase operations with `retryWithBackoff()` or `errorRecovery.handleOperation()`
 
 ### Admin Impersonation Logic
 
@@ -224,10 +293,25 @@ Transactions with `groupId` are treated as groups:
 - Test location: `src/test/` directory
 - Run: `npm run test` or `npm run test:ui`
 
+## Error Recovery Implementation Status (STY-007)
+
+- ✅ ErrorRecoveryService created with full context capture and logging
+- ✅ Retry logic integrated with exponential backoff
+- ✅ AuthContext updated with error recovery (login, registration, logout)
+- ✅ aiService updated with context capture and user messaging
+- ✅ geminiService updated with error recovery patterns
+- ✅ Comprehensive test suite (50+ tests) created for all recovery scenarios
+- ✅ Error logs store up to 100 entries with severity levels (low/medium/high/critical)
+- ✅ User-friendly error messages in Portuguese
+- ✅ Sentry-ready error export functionality
+- 🔄 Future: Implement error dashboard for monitoring critical errors
+- 🔄 Future: Add error recovery to remaining services (PDF, CSV, Market Data)
+
 ## Notes for Future Development
 
 1. **Real-time Sync**: FinanceContext has `isSyncing` flag but not all data types have Supabase listeners — implement for critical tables (transactions, goals, investments)
 2. **Performance**: Consider pagination for transaction lists (currently loads all in memory)
-3. **Error Handling**: Enhance error messages and recovery UX (especially for AI/Gemini failures)
+3. **Error Monitoring**: Connect error logs to Sentry dashboard for production monitoring and alerting
 4. **Mobile Responsiveness**: Recharts and modals need testing on mobile devices
 5. **Accessibility**: Review ARIA labels and keyboard navigation for financial forms
+6. **Error Dashboard**: Build admin dashboard to view and analyze error patterns across users

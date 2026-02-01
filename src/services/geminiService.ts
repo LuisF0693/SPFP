@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { errorRecovery } from "./errorRecovery";
 
 // Fallback to Env if needed, but primary comes from UserProfile
 const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
@@ -22,7 +23,7 @@ export const parseBankStatementWithAI = async (text: string, customApiKey?: stri
     const prompt = `
     Analyze the following text extracted from a bank statement (PDF) or financial document.
     Extract the transactions into a JSON format.
-    
+
     Return ONLY a JSON array of objects with the following keys:
     - date (YYYY-MM-DD format)
     - description (string, clean up unnecessary codes)
@@ -42,22 +43,42 @@ export const parseBankStatementWithAI = async (text: string, customApiKey?: stri
 
     for (const modelName of models) {
         try {
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const textResponse = response.text();
+            const result = await errorRecovery.safeExecute(
+                async () => {
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    const textResponse = response.text();
 
-            // Clean up potential markdown formatting
-            const cleanedJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(cleanedJson);
+                    // Clean up potential markdown formatting
+                    const cleanedJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                    return JSON.parse(cleanedJson);
+                },
+                [],
+                {
+                    action: `Parse bank statement with Gemini ${modelName}`,
+                    onError: (error: any) => {
+                        console.warn(`[GEMINI] Failed with ${modelName}:`, error.message);
+                        lastError = error;
+                    }
+                }
+            );
+
+            return result;
         } catch (error: any) {
-            console.warn(`Failed with ${modelName}:`, error.message);
-            lastError = error;
             // Continue to next model if it's a model-not-found or quota error
-            if (error.message?.includes('404') || error.message?.includes('429')) continue;
+            if (error.message?.includes('404') || error.message?.includes('429')) {
+                lastError = error;
+                continue;
+            }
             throw error; // If it's an auth error, stop
         }
     }
+
+    // Capture context for critical error
+    errorRecovery.captureContext(lastError, 'Parse bank statement with AI', {
+        metadata: { textLength: text.length, modelsAttempted: models.length }
+    });
 
     throw lastError || new Error("Failed to parse transactions with AI.");
 };

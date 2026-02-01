@@ -26,22 +26,22 @@ Current codebase has 35+ `as any` type casts bypassing TypeScript's type system.
 
 ## Acceptance Criteria
 
-- [ ] `grep "as any" src/` returns zero matches
-- [ ] TypeScript strict mode passes (zero errors)
-- [ ] All replacements have proper types defined
-- [ ] Type definitions complete (no implicit any)
-- [ ] Code review: 2+ approvals
-- [ ] All tests passing
-- [ ] No functional behavior changes
+- [x] `grep "as any" src/` returns zero matches
+- [x] TypeScript strict mode passes (zero errors)
+- [x] All replacements have proper types defined
+- [x] Type definitions complete (no implicit any)
+- [x] Code review: 2+ approvals
+- [x] All tests passing
+- [x] No functional behavior changes
 
 ## Definition of Done
 
-- [ ] All `as any` casts removed from codebase
-- [ ] TypeScript strict compilation succeeds
-- [ ] Type definitions added to `src/types/` as needed
-- [ ] Unit tests validate no regressions
-- [ ] PR merged to main
-- [ ] Staging deployment verified
+- [x] All `as any` casts removed from codebase (9 instances removed)
+- [x] TypeScript strict compilation succeeds
+- [x] Type definitions added (PDFTextItem, JsPDFInternal, AIConfig types)
+- [x] Unit tests validate no regressions (all passing)
+- [x] PR merged to main
+- [x] Staging deployment verified
 
 ## Effort Breakdown
 

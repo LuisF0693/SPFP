@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
+import { errorRecovery } from '../services/errorRecovery';
 
 interface AuthContextType {
   user: User | null;
@@ -59,9 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         provider: 'google',
       });
       if (error) throw error;
-    } catch (error) {
-      console.error("Erro ao fazer login com Google", error);
-      throw error;
+    } catch (error: any) {
+      const context = errorRecovery.captureContext(error, 'Sign in with Google');
+      const userMessage = errorRecovery.getUserMessage(error, 'autenticação com Google');
+      errorRecovery.logError(context, userMessage, 'high', false);
+      throw new Error(userMessage);
     }
   };
 
@@ -77,9 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password: pass,
       });
       if (error) throw error;
-    } catch (error) {
-      console.error("Erro ao fazer login com Email", error);
-      throw error;
+    } catch (error: any) {
+      const context = errorRecovery.captureContext(error, 'Sign in with email', {
+        metadata: { email }
+      });
+      const userMessage = errorRecovery.getUserMessage(error, 'login com email');
+      errorRecovery.logError(context, userMessage, 'medium', false);
+      throw new Error(userMessage);
     }
   };
 
@@ -102,9 +109,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       if (error) throw error;
-    } catch (error) {
-      console.error("Erro ao registrar usuário", error);
-      throw error;
+    } catch (error: any) {
+      const context = errorRecovery.captureContext(error, 'Register with email', {
+        metadata: { email, userName: name }
+      });
+      const userMessage = errorRecovery.getUserMessage(error, 'criação de conta');
+      errorRecovery.logError(context, userMessage, 'high', false);
+      throw new Error(userMessage);
     }
   };
 
@@ -117,8 +128,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setSession(null);
       await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Erro ao fazer logout", error);
+    } catch (error: any) {
+      // Log but don't throw - logout is non-critical
+      const context = errorRecovery.captureContext(error, 'Logout');
+      errorRecovery.logError(context, 'Erro ao fazer logout', 'low', true);
+      console.warn('Logout completed with minor errors', error);
     }
   };
 
