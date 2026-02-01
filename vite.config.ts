@@ -10,6 +10,30 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
     },
     plugins: [react()],
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['src/test/setup.ts'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html', 'lcov'],
+        exclude: [
+          'node_modules/',
+          'src/test/',
+          '**/*.test.ts',
+          '**/*.test.tsx',
+          'dist/',
+          '.next/',
+          'coverage/',
+        ],
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
+      include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+      testTimeout: 10000,
+    },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
