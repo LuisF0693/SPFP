@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { chatWithAI } from '../aiService';
+import { chatWithAI } from '../services/aiService';
 
 // Mock do Google Generative AI
 vi.mock('@google/generative-ai', () => {

@@ -24,8 +24,8 @@ describe('Test Infrastructure Examples', () => {
     it('should create mock transactions', () => {
       const tx = createMockTransaction();
       expect(tx.id).toBeDefined();
-      expect(tx.amount).toBeGreaterThan(0);
-      expect(tx.type).toBe('expense');
+      expect(tx.value).toBeGreaterThan(0);
+      expect(tx.type).toBe('EXPENSE');
     });
 
     it('should create mock accounts', () => {
@@ -35,8 +35,8 @@ describe('Test Infrastructure Examples', () => {
     });
 
     it('should override default values', () => {
-      const tx = createMockTransaction({ amount: 500, description: 'Custom' });
-      expect(tx.amount).toBe(500);
+      const tx = createMockTransaction({ value: 500, description: 'Custom' });
+      expect(tx.value).toBe(500);
       expect(tx.description).toBe('Custom');
     });
   });
@@ -62,7 +62,8 @@ describe('Test Infrastructure Examples', () => {
     });
 
     it('should generate future dates', () => {
-      const future = generators.futureDate(30);
+      const futureStr = generators.futureDate(30);
+      const future = new Date(futureStr);
       const now = new Date();
       expect(future.getTime()).toBeGreaterThan(now.getTime());
     });

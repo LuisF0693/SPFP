@@ -338,6 +338,13 @@ export const EdgeCaseScenarios = {
 };
 
 /**
+ * Helper: Wait for async operations (useful for timing tests)
+ */
+export async function waitForAsync(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Batch operations helpers for testing
  */
 export const BatchOperations = {
