@@ -159,17 +159,18 @@ describe('calculateHealthScore', () => {
     });
 
     it('should handle null content gracefully', () => {
-      const score = calculateHealthScore({
+      const clientWithNullContent = {
         ...mockClient,
-        content: null as any,
-      });
+        content: null as Record<string, unknown>,
+      };
+      const score = calculateHealthScore(clientWithNullContent);
       expect(score).toBe(100);
     });
 
     it('should handle non-array accounts field', () => {
       const score = calculateHealthScore({
         ...mockClient,
-        content: { accounts: 'not-an-array' as any },
+        content: { accounts: 'not-an-array' as unknown as never },
       });
       expect(score).toBe(100);
     });
@@ -177,7 +178,7 @@ describe('calculateHealthScore', () => {
     it('should handle non-array transactions field', () => {
       const score = calculateHealthScore({
         ...mockClient,
-        content: { transactions: 'not-an-array' as any },
+        content: { transactions: 'not-an-array' as unknown as never },
       });
       expect(score).toBe(100);
     });
@@ -185,7 +186,7 @@ describe('calculateHealthScore', () => {
     it('should handle non-array goals field', () => {
       const score = calculateHealthScore({
         ...mockClient,
-        content: { goals: 'not-an-array' as any },
+        content: { goals: 'not-an-array' as unknown as never },
       });
       expect(score).toBe(100);
     });

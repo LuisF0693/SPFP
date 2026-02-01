@@ -207,9 +207,13 @@ describe('Currency Amount Validation', () => {
   });
 
   it('should reject non-number types', () => {
-    expect(validateAmount('100' as any)).toBe(false);
-    expect(validateAmount(null as any)).toBe(false);
-    expect(validateAmount(undefined as any)).toBe(false);
+    const stringValue = '100';
+    const nullValue = null;
+    const undefinedValue = undefined;
+
+    expect(validateAmount(stringValue as number)).toBe(false);
+    expect(validateAmount(nullValue as number)).toBe(false);
+    expect(validateAmount(undefinedValue as number)).toBe(false);
   });
 
   it('should accept zero', () => {
