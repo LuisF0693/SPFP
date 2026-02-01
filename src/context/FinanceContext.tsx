@@ -42,11 +42,36 @@ export interface FinanceContextData extends FinanceContextType {
   getTransactionsByGroupId: (groupId: string) => Transaction[];
   deleteTransactionGroup: (groupId: string) => void;
   deleteTransactionGroupFromIndex: (groupId: string, fromIndex: number) => void;
+  // Soft Delete Recovery
+  recoverTransaction: (id: string) => void;
+  recoverAccount: (id: string) => void;
+  recoverGoal: (id: string) => void;
+  recoverInvestment: (id: string) => void;
+  recoverPatrimonyItem: (id: string) => void;
+  getDeletedTransactions: () => Transaction[];
+  getDeletedAccounts: () => Account[];
+  getDeletedGoals: () => Goal[];
+  getDeletedInvestments: () => InvestmentAsset[];
+  getDeletedPatrimonyItems: () => PatrimonyItem[];
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
 
 const getStorageKey = (userId?: string) => userId ? `visao360_v2_data_${userId}` : 'visao360_v2_data';
+
+/**
+ * Helper to filter out soft-deleted items (items with deletedAt timestamp)
+ */
+const filterActive = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+  return items.filter(item => !item.deletedAt);
+};
+
+/**
+ * Helper to get soft-deleted items only
+ */
+const filterDeleted = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+  return items.filter(item => item.deletedAt);
+};
 
 const DEFAULT_LAYOUT: DashboardWidget[] = [
   { id: 'upcoming_bills', visible: true },
@@ -419,30 +444,32 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   /**
-   * Deletes a single transaction and reverts its effect on the account balance.
+   * Soft-deletes a single transaction and reverts its effect on the account balance.
    * @param id - ID of the transaction to delete
    */
   const deleteTransaction = (id: string) => {
     const tx = state.transactions.find(t => t.id === id);
-    if (!tx) return;
+    if (!tx || tx.deletedAt) return; // Skip if not found or already deleted
     const nextAcc = state.accounts.map(a => (a.id === tx.accountId && shouldAffectBalanceNow(tx.date)) ? { ...a, balance: a.balance + (tx.type === 'INCOME' ? -tx.value : tx.value) } : a);
-    updateAndSync({ accounts: nextAcc, transactions: state.transactions.filter(t => t.id !== id) });
+    const nextTx = state.transactions.map(t => t.id === id ? { ...t, deletedAt: Date.now() } : t);
+    updateAndSync({ accounts: nextAcc, transactions: nextTx });
   };
 
   /**
-   * Deletes multiple transactions and reverts their effects on balances in bulk.
+   * Soft-deletes multiple transactions and reverts their effects on balances in bulk.
    * @param ids - Array of transaction IDs to delete
    */
   const deleteTransactions = (ids: string[]) => {
     let nextAcc = [...state.accounts];
     let nextTx = [...state.transactions];
+    const idSet = new Set(ids);
     ids.forEach(id => {
       const tx = nextTx.find(t => t.id === id);
-      if (tx) {
+      if (tx && !tx.deletedAt) {
         if (shouldAffectBalanceNow(tx.date)) nextAcc = nextAcc.map(a => a.id === tx.accountId ? { ...a, balance: a.balance + (tx.type === 'INCOME' ? -tx.value : tx.value) } : a);
-        nextTx = nextTx.filter(t => t.id !== id);
       }
     });
+    nextTx = nextTx.map(t => idSet.has(t.id) && !t.deletedAt ? { ...t, deletedAt: Date.now() } : t);
     updateAndSync({ accounts: nextAcc, transactions: nextTx });
   };
 
@@ -455,11 +482,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   /**
-   * Deletes ALL transactions in a group (parcelado/recorrente).
+   * Soft-deletes ALL transactions in a group (parcelado/recorrente).
    * @param groupId - The group ID to delete
    */
   const deleteTransactionGroup = (groupId: string) => {
-    const groupTxs = state.transactions.filter(t => t.groupId === groupId);
+    const groupTxs = state.transactions.filter(t => t.groupId === groupId && !t.deletedAt);
     if (groupTxs.length === 0) return;
 
     const ids = groupTxs.map(t => t.id);
@@ -467,12 +494,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   /**
-   * Deletes transactions in a group from a specific index onwards (this + future).
+   * Soft-deletes transactions in a group from a specific index onwards (this + future).
    * @param groupId - The group ID
    * @param fromIndex - Delete from this index onwards (inclusive)
    */
   const deleteTransactionGroupFromIndex = (groupId: string, fromIndex: number) => {
-    const groupTxs = state.transactions.filter(t => t.groupId === groupId && (t.groupIndex || 0) >= fromIndex);
+    const groupTxs = state.transactions.filter(t => t.groupId === groupId && (t.groupIndex || 0) >= fromIndex && !t.deletedAt);
     if (groupTxs.length === 0) return;
 
     const ids = groupTxs.map(t => t.id);
@@ -481,7 +508,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addAccount = (d: Omit<Account, 'id'>) => updateAndSync({ accounts: [...state.accounts, { ...d, id: generateId() }] });
   const updateAccount = (u: Account) => updateAndSync({ accounts: state.accounts.map(a => a.id === u.id ? u : a) });
-  const deleteAccount = (id: string) => updateAndSync({ transactions: state.transactions.filter(t => t.accountId !== id), accounts: state.accounts.filter(a => a.id !== id) });
+  const deleteAccount = (id: string) => {
+    const account = state.accounts.find(a => a.id === id);
+    if (!account || account.deletedAt) return;
+    // Soft delete transactions associated with this account
+    const nextTx = state.transactions.map(t => t.accountId === id && !t.deletedAt ? { ...t, deletedAt: Date.now() } : t);
+    // Soft delete the account itself
+    const nextAcc = state.accounts.map(a => a.id === id ? { ...a, deletedAt: Date.now() } : a);
+    updateAndSync({ transactions: nextTx, accounts: nextAcc });
+  };
 
   const addCategory = (d: Omit<Category, 'id'>) => {
     const id = generateId();
@@ -490,22 +525,42 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateCategory = (u: Category) => updateAndSync({ categories: state.categories.map(c => c.id === u.id ? u : c) });
-  const deleteCategory = (id: string) => updateAndSync({ categories: state.categories.filter(c => c.id !== id) });
+  const deleteCategory = (id: string) => {
+    const category = state.categories.find(c => c.id === id);
+    if (!category || category.deletedAt) return;
+    const nextCat = state.categories.map(c => c.id === id ? { ...c, deletedAt: Date.now() } : c);
+    updateAndSync({ categories: nextCat });
+  };
 
   // Goal Logic
   const addGoal = (g: Omit<Goal, 'id'>) => updateAndSync({ goals: [...state.goals, { ...g, id: generateId() }] });
   const updateGoal = (u: Goal) => updateAndSync({ goals: state.goals.map(g => g.id === u.id ? u : g) });
-  const deleteGoal = (id: string) => updateAndSync({ goals: state.goals.filter(g => g.id !== id) });
+  const deleteGoal = (id: string) => {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal || goal.deletedAt) return;
+    const nextGoals = state.goals.map(g => g.id === id ? { ...g, deletedAt: Date.now() } : g);
+    updateAndSync({ goals: nextGoals });
+  };
 
   // Investment Logic
   const addInvestment = (i: Omit<InvestmentAsset, 'id'>) => updateAndSync({ investments: [...state.investments, { ...i, id: generateId() }] });
   const updateInvestment = (u: InvestmentAsset) => updateAndSync({ investments: state.investments.map(i => i.id === u.id ? u : i) });
-  const deleteInvestment = (id: string) => updateAndSync({ investments: state.investments.filter(i => i.id !== id) });
+  const deleteInvestment = (id: string) => {
+    const investment = state.investments.find(i => i.id === id);
+    if (!investment || investment.deletedAt) return;
+    const nextInv = state.investments.map(i => i.id === id ? { ...i, deletedAt: Date.now() } : i);
+    updateAndSync({ investments: nextInv });
+  };
 
   // Patrimony Logic
   const addPatrimonyItem = (item: Omit<PatrimonyItem, 'id'>) => updateAndSync({ patrimonyItems: [...state.patrimonyItems, { ...item, id: generateId() }] });
   const updatePatrimonyItem = (item: PatrimonyItem) => updateAndSync({ patrimonyItems: state.patrimonyItems.map(i => i.id === item.id ? item : i) });
-  const deletePatrimonyItem = (id: string) => updateAndSync({ patrimonyItems: state.patrimonyItems.filter(i => i.id !== id) });
+  const deletePatrimonyItem = (id: string) => {
+    const item = state.patrimonyItems.find(i => i.id === id);
+    if (!item || item.deletedAt) return;
+    const nextItems = state.patrimonyItems.map(i => i.id === id ? { ...i, deletedAt: Date.now() } : i);
+    updateAndSync({ patrimonyItems: nextItems });
+  };
 
   // Budgeting Logic
   const updateCategoryBudget = (categoryId: string, limit: number) => {
@@ -647,24 +702,118 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     navigate(redirectPath);
   };
 
+  // Soft Delete Recovery Functions
+  /**
+   * Recovers a soft-deleted transaction by clearing its deletedAt flag.
+   * @param id - ID of the transaction to recover
+   */
+  const recoverTransaction = (id: string) => {
+    const tx = state.transactions.find(t => t.id === id);
+    if (!tx || !tx.deletedAt) return; // Skip if not found or not deleted
+
+    // Restore the balance impact when recovering
+    const nextAcc = state.accounts.map(a => (a.id === tx.accountId && shouldAffectBalanceNow(tx.date)) ? { ...a, balance: a.balance + (tx.type === 'INCOME' ? tx.value : -tx.value) } : a);
+    const nextTx = state.transactions.map(t => t.id === id ? { ...t, deletedAt: undefined } : t);
+    updateAndSync({ accounts: nextAcc, transactions: nextTx });
+  };
+
+  /**
+   * Recovers a soft-deleted account by clearing its deletedAt flag.
+   * @param id - ID of the account to recover
+   */
+  const recoverAccount = (id: string) => {
+    const account = state.accounts.find(a => a.id === id);
+    if (!account || !account.deletedAt) return;
+    const nextAcc = state.accounts.map(a => a.id === id ? { ...a, deletedAt: undefined } : a);
+    updateAndSync({ accounts: nextAcc });
+  };
+
+  /**
+   * Recovers a soft-deleted goal by clearing its deletedAt flag.
+   * @param id - ID of the goal to recover
+   */
+  const recoverGoal = (id: string) => {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal || !goal.deletedAt) return;
+    const nextGoals = state.goals.map(g => g.id === id ? { ...g, deletedAt: undefined } : g);
+    updateAndSync({ goals: nextGoals });
+  };
+
+  /**
+   * Recovers a soft-deleted investment by clearing its deletedAt flag.
+   * @param id - ID of the investment to recover
+   */
+  const recoverInvestment = (id: string) => {
+    const investment = state.investments.find(i => i.id === id);
+    if (!investment || !investment.deletedAt) return;
+    const nextInv = state.investments.map(i => i.id === id ? { ...i, deletedAt: undefined } : i);
+    updateAndSync({ investments: nextInv });
+  };
+
+  /**
+   * Recovers a soft-deleted patrimony item by clearing its deletedAt flag.
+   * @param id - ID of the patrimony item to recover
+   */
+  const recoverPatrimonyItem = (id: string) => {
+    const item = state.patrimonyItems.find(i => i.id === id);
+    if (!item || !item.deletedAt) return;
+    const nextItems = state.patrimonyItems.map(i => i.id === id ? { ...i, deletedAt: undefined } : i);
+    updateAndSync({ patrimonyItems: nextItems });
+  };
+
+  /**
+   * Gets all soft-deleted transactions
+   */
+  const getDeletedTransactions = (): Transaction[] => {
+    return filterDeleted(state.transactions);
+  };
+
+  /**
+   * Gets all soft-deleted accounts
+   */
+  const getDeletedAccounts = (): Account[] => {
+    return filterDeleted(state.accounts);
+  };
+
+  /**
+   * Gets all soft-deleted goals
+   */
+  const getDeletedGoals = (): Goal[] => {
+    return filterDeleted(state.goals);
+  };
+
+  /**
+   * Gets all soft-deleted investments
+   */
+  const getDeletedInvestments = (): InvestmentAsset[] => {
+    return filterDeleted(state.investments);
+  };
+
+  /**
+   * Gets all soft-deleted patrimony items
+   */
+  const getDeletedPatrimonyItems = (): PatrimonyItem[] => {
+    return filterDeleted(state.patrimonyItems);
+  };
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
       updateUserProfile: (p) => updateAndSync({ userProfile: p }),
-      accounts: state.accounts,
-      transactions: state.transactions,
-      categories: state.categories,
-      goals: state.goals,
-      investments: state.investments,
+      accounts: filterActive(state.accounts),
+      transactions: filterActive(state.transactions),
+      categories: filterActive(state.categories),
+      goals: filterActive(state.goals),
+      investments: filterActive(state.investments),
       addTransaction, addManyTransactions, updateTransaction, deleteTransaction, deleteTransactions,
       addAccount, updateAccount, deleteAccount, addCategory, updateCategory, deleteCategory,
       addGoal, updateGoal, deleteGoal,
       addInvestment, updateInvestment, deleteInvestment,
       updateTransactions,
-      patrimonyItems: state.patrimonyItems,
+      patrimonyItems: filterActive(state.patrimonyItems),
       addPatrimonyItem, updatePatrimonyItem, deletePatrimonyItem,
-      getAccountBalance: (id) => state.accounts.find(a => a.id === id)?.balance || 0,
-      totalBalance: state.accounts.reduce((acc, curr) => acc + curr.balance, 0),
+      getAccountBalance: (id) => filterActive(state.accounts).find(a => a.id === id)?.balance || 0,
+      totalBalance: filterActive(state.accounts).reduce((acc, curr) => acc + curr.balance, 0),
       isSyncing,
       isInitialLoadComplete,
       isImpersonating,
@@ -673,9 +822,19 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fetchAllUserData,
       categoryBudgets: state.categoryBudgets || [],
       updateCategoryBudget,
-      getTransactionsByGroupId,
+      getTransactionsByGroupId: (groupId: string) => filterActive(state.transactions.filter(t => t.groupId === groupId)).sort((a, b) => (a.groupIndex || 0) - (b.groupIndex || 0)),
       deleteTransactionGroup,
-      deleteTransactionGroupFromIndex
+      deleteTransactionGroupFromIndex,
+      recoverTransaction,
+      recoverAccount,
+      recoverGoal,
+      recoverInvestment,
+      recoverPatrimonyItem,
+      getDeletedTransactions,
+      getDeletedAccounts,
+      getDeletedGoals,
+      getDeletedInvestments,
+      getDeletedPatrimonyItems
     }}>
       {children}
     </FinanceContext.Provider>

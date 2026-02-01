@@ -70,6 +70,7 @@ export interface Account {
   network?: CardNetwork;
   closingDay?: number;
   dueDay?: number;
+  deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
 /**
@@ -107,6 +108,7 @@ export interface Transaction {
   groupType?: TransactionGroupType; // Tipo: parcelado ou recorrente
   groupIndex?: number; // Índice atual (1, 2, 3...)
   groupTotal?: number; // Total de parcelas (null para recorrente infinito)
+  deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
 /**
@@ -121,6 +123,7 @@ export interface Goal {
   color: string;
   icon?: string;
   status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED';
+  deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
 export type InvestmentType = 'STOCK' | 'FII' | 'ETF' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
@@ -138,6 +141,7 @@ export interface InvestmentAsset {
   type: InvestmentType;
   sector?: string;
   lastUpdate: string;
+  deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
 export type PatrimonyType = 'REAL_ESTATE' | 'VEHICLE' | 'MILES' | 'DEBT' | 'FINANCIAL' | 'OTHER';
@@ -153,6 +157,7 @@ export interface PatrimonyItem {
   value: number;
   quantity?: number; // Only for MILES
   acquisitionDate?: string;
+  deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
 export interface CategoryBudget {
@@ -195,4 +200,15 @@ export interface FinanceContextType {
   // Budgeting
   categoryBudgets: CategoryBudget[];
   updateCategoryBudget: (categoryId: string, limit: number) => void;
+  // Soft Delete Recovery
+  recoverTransaction: (id: string) => void;
+  recoverAccount: (id: string) => void;
+  recoverGoal: (id: string) => void;
+  recoverInvestment: (id: string) => void;
+  recoverPatrimonyItem: (id: string) => void;
+  getDeletedTransactions: () => Transaction[];
+  getDeletedAccounts: () => Account[];
+  getDeletedGoals: () => Goal[];
+  getDeletedInvestments: () => InvestmentAsset[];
+  getDeletedPatrimonyItems: () => PatrimonyItem[];
 }
