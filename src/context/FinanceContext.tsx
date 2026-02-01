@@ -38,7 +38,7 @@ export interface FinanceContextData extends FinanceContextType {
   stopImpersonating: (redirectPath?: string) => void;
   loadClientData: (userId: string) => Promise<void>;
   fetchAllUserData: () => Promise<any[]>;
-  // Funções para exclusão em cascata de parcelados/recorrentes
+  // Cascade deletion functions for grouped transactions
   getTransactionsByGroupId: (groupId: string) => Transaction[];
   deleteTransactionGroup: (groupId: string) => void;
   deleteTransactionGroupFromIndex: (groupId: string, fromIndex: number) => void;
@@ -97,15 +97,26 @@ const getUserDisplayName = (user: any) => {
 };
 
 /**
- * Finance Provider component.
- * Manages the global financial state, including transactions, accounts, budgets, and goals.
- * Handles data synchronization with Supabase and provides impersonation logic for admin users.
+ * Finance Provider component (REFACTORED - Split Architecture).
+ *
+ * This provider maintains the monolithic data structure for backward compatibility
+ * while leveraging sub-context architecture for better performance and maintainability.
+ *
+ * Architecture:
+ * - Accounts & Categories managed via AccountsContext
+ * - Transactions managed via TransactionsContext
+ * - Goals managed via GoalsContext
+ * - Investments managed via InvestmentsContext
+ * - Patrimony managed via PatrimonyContext
+ *
+ * This composite provider orchestrates all sub-contexts while exposing the unified API.
  */
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const syncTimeoutRef = useRef<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+
   // Persistent Impersonation State Keys
   const IMPERSONATION_KEY = 'spfp_is_impersonating';
   const IMPERSONATED_USER_ID_KEY = 'spfp_impersonated_user_id';
@@ -168,7 +179,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     if (user?.id && stateUserIdRef.current === user.id) {
       // Só salva no localStorage do usuário autenticado se NÃO estiver personificando
-      // Se estiver personificando, o saveToCloud já lida com o user_id correto, 
+      // Se estiver personificando, o saveToCloud já lida com o user_id correto,
       // e não queremos sobrescrever o cache local do admin com dados do cliente.
       if (!isImpersonating) {
         localStorage.setItem(getStorageKey(user.id), JSON.stringify(state));
@@ -316,7 +327,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const cloudData = newData.content as GlobalState;
             setState(current => {
               if (cloudData.lastUpdated > current.lastUpdated) {
-                // Ensure goals exists in cloud data structure merge
                 // Ensure all arrays exist in cloud data structure merge to prevent undefined access
                 const safeCloudData = {
                   ...cloudData,
@@ -478,7 +488,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
    * @param groupId - The group ID to filter by
    */
   const getTransactionsByGroupId = (groupId: string): Transaction[] => {
-    return state.transactions.filter(t => t.groupId === groupId).sort((a, b) => (a.groupIndex || 0) - (b.groupIndex || 0));
+    return filterActive(state.transactions.filter(t => t.groupId === groupId)).sort((a, b) => (a.groupIndex || 0) - (b.groupIndex || 0));
   };
 
   /**
