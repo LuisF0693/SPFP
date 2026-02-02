@@ -22,9 +22,9 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
   onAddNew,
 }) => {
   return (
-    <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
+    <section className="pt-8 border-t border-gray-200 dark:border-gray-800" aria-label="Outras Contas Bancárias" role="region">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <header className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
           <Building className="mr-2 text-gray-400" size={24} />
           Outras Contas Bancárias
@@ -35,7 +35,7 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
         >
           + Adicionar Conta
         </button>
-      </div>
+      </header>
 
       {/* Accounts Grid */}
       {accounts.length === 0 ? (
@@ -95,6 +95,6 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };

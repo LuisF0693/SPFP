@@ -69,11 +69,12 @@ export const FormInput: React.FC<FormInputProps> = ({
     ${variantClasses[variant]}
     rounded-xl
     outline-none
+    min-h-[44px]
     text-gray-900 dark:text-white
     placeholder-gray-400 dark:placeholder-gray-500
     transition-colors
-    focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20
-    ${error ? 'border-red-500 dark:border-red-500 focus:ring-red-500/20 aria-invalid:border-red-500' : ''}
+    focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500 dark:focus:ring-emerald-400
+    ${error ? 'border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-400' : ''}
     ${iconPosition === 'left' ? 'pl-9' : ''}
     ${iconPosition === 'right' ? 'pr-9' : ''}
     disabled:opacity-50 disabled:cursor-not-allowed

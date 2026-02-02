@@ -65,17 +65,17 @@ export const AccountsList: React.FC<AccountsListProps> = ({
   const cardCategoryData = getCardCategoryData(cardIds, transactions, categories);
 
   return (
-    <div>
+    <section aria-label="Cartões de Crédito" role="region">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <div>
+        <header>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Meus Cartões
           </h2>
           <p className="text-gray-500 text-sm">
             Gerencie seus limites e faturas em um só lugar
           </p>
-        </div>
+        </header>
         <div className="flex space-x-3">
           <button className="hidden md:flex items-center space-x-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">
             <Download size={16} /> <span>Exportar</span>
@@ -367,6 +367,6 @@ export const AccountsList: React.FC<AccountsListProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

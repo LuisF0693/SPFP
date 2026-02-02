@@ -68,34 +68,54 @@ export const Modal: React.FC<ModalProps> = ({
 
   // Focus trap and ESC to close handler
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !modalRef.current) return;
 
     // Store the previously focused element so we can restore it
     const previouslyFocusedElement = document.activeElement as HTMLElement;
 
-    // Focus the modal container
+    // Get all focusable elements within modal
+    const getFocusableElements = () => {
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [role="button"]';
+      return Array.from(modalRef.current?.querySelectorAll(focusableSelectors) || []) as HTMLElement[];
+    };
+
+    // Focus the first focusable element in modal
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length > 0) {
+      // Find first element that's not the close button or hidden
+      const firstFocusable = focusableElements.find(el => {
+        const isCloseBtn = el.getAttribute('aria-label')?.includes('Fechar');
+        return !isCloseBtn && el.offsetParent !== null;
+      }) || focusableElements[0];
+
+      setTimeout(() => firstFocusable?.focus(), 0);
+    }
+
+    // Keyboard handlers
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      // ESC key closes modal
+      if (e.key === 'Escape' && e.target !== document.body) {
+        e.preventDefault();
         onClose();
+        return;
       }
 
       // Focus trap: cycle through focusable elements
       if (e.key === 'Tab') {
-        const focusableElements = modalRef.current?.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (!focusableElements || focusableElements.length === 0) return;
+        const focusable = getFocusableElements();
+        if (focusable.length === 0) return;
 
-        const firstElement = focusableElements[0] as HTMLElement;
-        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+        const activeElement = document.activeElement as HTMLElement;
 
         if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
+          if (activeElement === firstElement) {
             e.preventDefault();
             lastElement.focus();
           }
         } else {
-          if (document.activeElement === lastElement) {
+          if (activeElement === lastElement) {
             e.preventDefault();
             firstElement.focus();
           }
@@ -103,12 +123,16 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
 
+    // Add event listener to modal instead of document for better isolation
+    modalRef.current.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
+      modalRef.current?.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keydown', handleKeyDown);
+
       // Restore focus when modal closes
-      if (previouslyFocusedElement) {
+      if (previouslyFocusedElement && previouslyFocusedElement.offsetParent !== null) {
         previouslyFocusedElement.focus();
       }
     };

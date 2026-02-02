@@ -143,7 +143,7 @@ export const Accounts: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 min-h-full space-y-8 animate-fade-in pb-24">
+    <main className="p-4 md:p-6 min-h-full space-y-8 animate-fade-in pb-24" role="main" aria-label="Gerenciamento de Contas">
       {/* Form Modal */}
       <Modal
         isOpen={showForm}
@@ -249,6 +249,6 @@ export const Accounts: React.FC = () => {
           onClose={() => setViewingInvoiceAccount(null)}
         />
       )}
-    </div>
+    </main>
   );
 };

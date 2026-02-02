@@ -52,25 +52,32 @@ export const Card: React.FC<CardProps> = ({
   isClickable = false,
   icon,
   className = '',
+  role = isClickable ? 'button' : 'article',
+  tabIndex = isClickable ? 0 : undefined,
   ...props
 }) => {
   const cardClasses = `
     ${variantClasses[variant]}
     ${sizeClasses[size]}
     ${isHoverable ? hoverClasses[variant] : ''}
-    ${isClickable ? 'cursor-pointer' : ''}
+    ${isClickable ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400' : ''}
     overflow-hidden
     relative group
     ${className}
   `.trim();
 
   return (
-    <div className={cardClasses} {...props}>
+    <div
+      className={cardClasses}
+      role={role}
+      tabIndex={tabIndex}
+      {...props}
+    >
       {/* Header */}
       {header && (
         <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-current border-opacity-10">
           <div className="flex items-center gap-3">
-            {icon && <div className="text-xl">{icon}</div>}
+            {icon && <div className="text-xl" aria-hidden="true">{icon}</div>}
             <div>{header}</div>
           </div>
         </div>

@@ -76,17 +76,24 @@ export const Dashboard: React.FC = memo(() => {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
+    <main className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in" role="main" aria-label="Painel de Controle Financeiro">
       {/* Header Section */}
-      <DashboardHeader
-        userName={userName}
-        currentMonth={currentMonth}
-        onRecapClick={() => setShowRecap(true)}
-      />
+      <header>
+        <DashboardHeader
+          userName={userName}
+          currentMonth={currentMonth}
+          onRecapClick={() => setShowRecap(true)}
+        />
+      </header>
 
       {/* Admin Alert (if applicable) */}
       {isAdmin && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg animate-pulse">
+        <div
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg animate-pulse"
+          role="alert"
+          aria-live="assertive"
+          aria-label="Alerta de acesso administrativo"
+        >
           <p className="text-blue-900 dark:text-blue-100 text-sm font-medium">
             🔐 Acesso de Administrador Ativo
           </p>
@@ -94,32 +101,40 @@ export const Dashboard: React.FC = memo(() => {
       )}
 
       {/* Top Metrics */}
-      <DashboardMetrics
-        totalBalance={totalBalance}
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        categoryBudgets={categoryBudgets}
-        budgetAlertsCritical={critical}
-        budgetAlertsWarning={warning}
-      />
+      <section aria-label="Métricas Principais" role="region">
+        <DashboardMetrics
+          totalBalance={totalBalance}
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
+          categoryBudgets={categoryBudgets}
+          budgetAlertsCritical={critical}
+          budgetAlertsWarning={warning}
+        />
+      </section>
 
       {/* Alerts Section */}
-      <DashboardAlerts alerts={alerts} />
+      <section aria-label="Alertas" role="region" aria-live="polite">
+        <DashboardAlerts alerts={alerts} />
+      </section>
 
       {/* Charts Section */}
-      <DashboardChart
-        trendData={trendData}
-        categoryData={categoryData}
-        totalExpense={totalExpense}
-        currentMonth={currentMonth}
-      />
+      <section aria-label="Análise de Gastos" role="region">
+        <DashboardChart
+          trendData={trendData}
+          categoryData={categoryData}
+          totalExpense={totalExpense}
+          currentMonth={currentMonth}
+        />
+      </section>
 
       {/* Recent Transactions + Accounts */}
-      <DashboardTransactions
-        accounts={accounts}
-        transactions={transactions}
-        categories={categories}
-      />
+      <section aria-label="Transações Recentes e Contas" role="region">
+        <DashboardTransactions
+          accounts={accounts}
+          transactions={transactions}
+          categories={categories}
+        />
+      </section>
 
       {/* Monthly Recap Modal */}
       {showRecap && (
@@ -140,7 +155,7 @@ export const Dashboard: React.FC = memo(() => {
           }}
         />
       )}
-    </div>
+    </main>
   );
 });
 
