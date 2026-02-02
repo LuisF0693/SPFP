@@ -160,21 +160,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
   };
 
   return (
-    <div className="glass w-full p-6 relative rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50">
-      <div className="flex items-center mb-6">
+    <div className="glass w-full p-4 sm:p-6 relative rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50">
+      <div className="flex items-center mb-4 sm:mb-6">
         <button
           onClick={onClose}
           aria-label="Fechar formulário de transação"
-          className="mr-4 p-2 -ml-2 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-full transition-colors"
+          className="mr-3 sm:mr-4 p-2 -ml-2 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
-          <ChevronLeft size={24} aria-hidden="true" />
+          <ChevronLeft size={20} sm:size={24} aria-hidden="true" />
         </button>
-        <h2 className="text-2xl font-bold text-slate-100">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-100">
           {initialData ? 'Editar Transação' : 'Nova Transação'}
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Basic Form Fields */}
         <TransactionBasicForm
           description={state.description}
@@ -233,7 +233,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         {/* Submit Button */}
         <button
           type="submit"
-          className={`w-full py-4 text-white font-bold text-lg rounded-xl shadow-lg transition active:scale-95 ${
+          className={`w-full py-3 sm:py-4 text-sm sm:text-base text-white font-bold rounded-xl shadow-lg transition active:scale-95 min-h-[44px] ${
             state.type === 'INCOME'
               ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/20'
               : 'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 shadow-rose-500/20'
