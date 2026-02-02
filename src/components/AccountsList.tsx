@@ -90,7 +90,7 @@ export const AccountsList: React.FC<AccountsListProps> = ({
       </div>
 
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div className="bg-white dark:bg-[#0f172a] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 relative overflow-hidden">
           <div className="relative z-10">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
@@ -152,9 +152,9 @@ export const AccountsList: React.FC<AccountsListProps> = ({
       </div>
 
       {/* Main Content: Cards List & Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Left Column: Cards List */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Seus Cartões</h3>
           </div>

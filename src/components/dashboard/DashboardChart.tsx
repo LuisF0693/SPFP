@@ -61,12 +61,12 @@ export const DashboardChart = memo<DashboardChartProps>(
     }, [totalExpense]);
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Cash Flow Trends Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
+        <div className="md:col-span-2 lg:col-span-2 bg-white dark:bg-[#111827] p-4 sm:p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex justify-between items-start mb-4 sm:mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                 Tendência de Fluxo de Caixa
               </h3>
               <p className="text-xs text-gray-400">
@@ -75,7 +75,7 @@ export const DashboardChart = memo<DashboardChartProps>(
             </div>
           </div>
 
-          <div className="h-[250px] md:h-[300px] lg:h-[350px] w-full">
+          <div className="h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={trendData}
@@ -141,9 +141,9 @@ export const DashboardChart = memo<DashboardChartProps>(
         </div>
 
         {/* Spending by Category Chart */}
-        <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
+        <div className="bg-white dark:bg-[#111827] p-4 sm:p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
               Gastos por Categoria
             </h3>
             <span className="text-xs text-gray-400">{currentMonth}</span>

@@ -47,7 +47,7 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
       : 0;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Card 1: Total Net Worth */}
         <div className="bg-white dark:bg-[#111827] p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group glass-shimmer card-hover">
           <div className="flex justify-between items-start mb-4">

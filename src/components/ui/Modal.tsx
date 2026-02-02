@@ -145,7 +145,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div
       role="presentation"
-      className={`fixed inset-0 z-[100] flex md:items-center items-end justify-center p-2 md:p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}
+      className={`fixed inset-0 z-[100] flex md:items-center items-end justify-center p-0 md:p-4 ${variantStyle.overlay} backdrop-blur-sm animate-fade-in`}
       onClick={(e) => {
         // Close on backdrop click
         if (e.target === e.currentTarget) {
@@ -159,7 +159,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={ariaLabelledBy || (title ? titleId : undefined)}
         aria-label={ariaLabel}
-        className={`w-full ${sizeClasses[size]} ${variantStyle.modal} md:rounded-2xl rounded-t-2xl shadow-2xl animate-slide-up md:animate-slide-up animate-slide-from-bottom overflow-hidden border max-h-[85vh] md:max-h-[90vh] ${className}`}
+        className={`w-full md:w-auto md:${sizeClasses[size]} ${variantStyle.modal} rounded-t-2xl md:rounded-2xl shadow-2xl animate-slide-up md:animate-slide-up animate-slide-from-bottom overflow-hidden border max-h-[100vh] md:max-h-[90vh] md:max-w-lg ${className}`}
         style={variant === 'dark' ? {
           boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         } : undefined}
