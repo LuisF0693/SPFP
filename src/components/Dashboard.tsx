@@ -15,6 +15,7 @@ import {
   useCategoryChartData
 } from './dashboard';
 import { AlertTriangle, Zap } from 'lucide-react';
+import { Skeleton } from './ui/Skeleton';
 
 /**
  * Dashboard Container Component (STY-011)
@@ -35,11 +36,14 @@ export const Dashboard: React.FC = memo(() => {
     transactions,
     categories,
     categoryBudgets,
-    accounts
+    accounts,
+    isSyncing,
+    isInitialLoadComplete
   } = useFinance();
   const { isAdmin } = useAuth();
 
   const [showRecap, setShowRecap] = useState(false);
+  const isLoading = !isInitialLoadComplete || isSyncing;
 
   // Custom hooks for data calculations
   const { totalIncome, totalExpense } = useMonthlyMetrics(transactions);
@@ -102,14 +106,18 @@ export const Dashboard: React.FC = memo(() => {
 
       {/* Top Metrics */}
       <section aria-label="Métricas Principais" role="region">
-        <DashboardMetrics
-          totalBalance={totalBalance}
-          totalIncome={totalIncome}
-          totalExpense={totalExpense}
-          categoryBudgets={categoryBudgets}
-          budgetAlertsCritical={critical}
-          budgetAlertsWarning={warning}
-        />
+        {isLoading ? (
+          <Skeleton variant="card" count={3} />
+        ) : (
+          <DashboardMetrics
+            totalBalance={totalBalance}
+            totalIncome={totalIncome}
+            totalExpense={totalExpense}
+            categoryBudgets={categoryBudgets}
+            budgetAlertsCritical={critical}
+            budgetAlertsWarning={warning}
+          />
+        )}
       </section>
 
       {/* Alerts Section */}
@@ -119,21 +127,35 @@ export const Dashboard: React.FC = memo(() => {
 
       {/* Charts Section */}
       <section aria-label="Análise de Gastos" role="region">
-        <DashboardChart
-          trendData={trendData}
-          categoryData={categoryData}
-          totalExpense={totalExpense}
-          currentMonth={currentMonth}
-        />
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Skeleton variant="chart" className="md:col-span-2" />
+            <Skeleton variant="chart" />
+          </div>
+        ) : (
+          <DashboardChart
+            trendData={trendData}
+            categoryData={categoryData}
+            totalExpense={totalExpense}
+            currentMonth={currentMonth}
+          />
+        )}
       </section>
 
       {/* Recent Transactions + Accounts */}
       <section aria-label="Transações Recentes e Contas" role="region">
-        <DashboardTransactions
-          accounts={accounts}
-          transactions={transactions}
-          categories={categories}
-        />
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton variant="table-row" count={5} className="lg:col-span-2" />
+            <Skeleton variant="card" count={4} />
+          </div>
+        ) : (
+          <DashboardTransactions
+            accounts={accounts}
+            transactions={transactions}
+            categories={categories}
+          />
+        )}
       </section>
 
       {/* Monthly Recap Modal */}

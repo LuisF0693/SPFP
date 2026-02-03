@@ -6,18 +6,20 @@ import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { Modal } from './ui/Modal';
+import { Skeleton } from './ui/Skeleton';
 
 /**
  * Goals component.
  * Manages financial goals, tracking progress and allowing the creation of new objectives.
  */
 export const Goals: React.FC = () => {
-    const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile } = useFinance();
+    const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile, isSyncing, isInitialLoadComplete } = useFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [filter, setFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
     const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
     const [newSavingsTarget, setNewSavingsTarget] = useState(userProfile.monthlySavingsTarget || 0);
+    const isLoading = !isInitialLoadComplete || isSyncing;
 
     // Safety check in case goals isn't loaded yet or is undefined
     const safeGoals = Array.isArray(goals) ? goals : [];
@@ -109,64 +111,70 @@ export const Goals: React.FC = () => {
 
             {/* Summary Cards */}
             <section aria-label="Goals Summary" className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Total Acumulado */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Total Acumulado</span>
-                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Target size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(totalAccumulated)}</h3>
-                    <p className="text-emerald-500 text-xs font-bold relative z-10">
-                        {totalProgress.toFixed(1)}% do total
-                    </p>
-                </div>
+                {isLoading ? (
+                    <Skeleton variant="card" count={4} />
+                ) : (
+                    <>
+                        {/* Total Acumulado */}
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Total Acumulado</span>
+                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Target size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(totalAccumulated)}</h3>
+                            <p className="text-emerald-500 text-xs font-bold relative z-10">
+                                {totalProgress.toFixed(1)}% do total
+                            </p>
+                        </div>
 
-                {/* Metas Concluídas */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Objetivos Concluídos</span>
-                        <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500"><Trophy size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{completedGoals}</h3>
-                    <p className="text-gray-400 text-xs font-bold relative z-10">
-                        Parabéns!
-                    </p>
-                </div>
+                        {/* Metas Concluídas */}
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Objetivos Concluídos</span>
+                                <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500"><Trophy size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{completedGoals}</h3>
+                            <p className="text-gray-400 text-xs font-bold relative z-10">
+                                Parabéns!
+                            </p>
+                        </div>
 
-                {/* Economia Mensal / Meta de Economia */}
-                <div
-                    onClick={() => {
-                        setNewSavingsTarget(userProfile.monthlySavingsTarget || 0);
-                        setIsTargetModalOpen(true);
-                    }}
-                    className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-all"
-                >
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Economia Ideal/Mês</span>
-                        <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><TrendingUp size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">
-                        {userProfile.monthlySavingsTarget ? formatCurrency(userProfile.monthlySavingsTarget) : 'Definir'}
-                    </h3>
-                    <p className="text-gray-300 text-xs font-bold relative z-10">
-                        Média real: <span className={averageSavings >= (userProfile.monthlySavingsTarget || 0) ? "text-emerald-500" : "text-yellow-500"}>{formatCurrency(averageSavings)}</span>
-                    </p>
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="bg-gray-700 p-1 rounded-full text-xs text-white">Editar</div>
-                    </div>
-                </div>
+                        {/* Economia Mensal / Meta de Economia */}
+                        <div
+                            onClick={() => {
+                                setNewSavingsTarget(userProfile.monthlySavingsTarget || 0);
+                                setIsTargetModalOpen(true);
+                            }}
+                            className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-all"
+                        >
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Economia Ideal/Mês</span>
+                                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><TrendingUp size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">
+                                {userProfile.monthlySavingsTarget ? formatCurrency(userProfile.monthlySavingsTarget) : 'Definir'}
+                            </h3>
+                            <p className="text-gray-300 text-xs font-bold relative z-10">
+                                Média real: <span className={averageSavings >= (userProfile.monthlySavingsTarget || 0) ? "text-emerald-500" : "text-yellow-500"}>{formatCurrency(averageSavings)}</span>
+                            </p>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="bg-gray-700 p-1 rounded-full text-xs text-white">Editar</div>
+                            </div>
+                        </div>
 
-                {/* Próxima Conclusão */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Próxima Conclusão</span>
-                        <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500"><Calendar size={20} /></div>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-1 truncate relative z-10">{nextGoal ? nextGoal.name : 'Nenhuma'}</h3>
-                    <p className="text-gray-300 text-xs font-bold relative z-10">
-                        {nextGoal ? new Date(nextGoal.deadline).toLocaleDateString() : '-'}
-                    </p>
-                </div>
+                        {/* Próxima Conclusão */}
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Próxima Conclusão</span>
+                                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500"><Calendar size={20} /></div>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-1 truncate relative z-10">{nextGoal ? nextGoal.name : 'Nenhuma'}</h3>
+                            <p className="text-gray-300 text-xs font-bold relative z-10">
+                                {nextGoal ? new Date(nextGoal.deadline).toLocaleDateString() : '-'}
+                            </p>
+                        </div>
+                    </>
+                )}
             </section>
 
             {/* Filters */}
@@ -192,7 +200,11 @@ export const Goals: React.FC = () => {
 
             {/* Goals Grid */}
             <section aria-label="Active Goals" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredGoals.map(goal => {
+                {isLoading ? (
+                    <Skeleton variant="card" count={3} />
+                ) : (
+                    <>
+                        {filteredGoals.map(goal => {
                     const percent = Math.min(100, Math.max(0, (goal.currentAmount / goal.targetAmount) * 100));
 
                     return (
@@ -247,10 +259,10 @@ export const Goals: React.FC = () => {
                             </div>
                         </div>
                     );
-                })}
+                        })}
 
-                {/* Card "Criar Nova Meta" Placeholder style */}
-                <button
+                        {/* Card "Criar Nova Meta" Placeholder style */}
+                        <button
                     onClick={() => { setEditingGoal(null); setIsFormOpen(true); }}
                     aria-label="Criar novo objetivo"
                     className="bg-[#0f172a]/50 border-2 border-dashed border-gray-800 rounded-2xl p-6 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-4 min-h-[200px] group"
@@ -259,7 +271,9 @@ export const Goals: React.FC = () => {
                         <Plus size={32} />
                     </div>
                     <span className="font-bold text-gray-400 group-hover:text-white">Criar Novo Objetivo</span>
-                </button>
+                        </button>
+                    </>
+                )}
             </section>
 
             <Modal

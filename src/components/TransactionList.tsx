@@ -13,6 +13,7 @@ import { ImportExportModal } from './ImportExportModal';
 import { EmojiPicker } from './EmojiPicker';
 import { DeleteTransactionModal } from './DeleteTransactionModal';
 import { Modal } from './ui/Modal';
+import { Skeleton } from './ui/Skeleton';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -27,8 +28,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
     const {
         transactions, categories, deleteTransaction, deleteTransactions, updateTransactions,
         addCategory, updateCategory, deleteCategory, accounts, userProfile,
-        getTransactionsByGroupId, deleteTransactionGroup, deleteTransactionGroupFromIndex
+        getTransactionsByGroupId, deleteTransactionGroup, deleteTransactionGroupFromIndex,
+        isSyncing, isInitialLoadComplete
     } = useFinance();
+
+    const isLoading = !isInitialLoadComplete || isSyncing;
 
     // Month Navigation
     const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
@@ -188,35 +192,41 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
 
             {/* Stats Cards */}
             <section aria-label="Financial Summary" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Total Receitas</span>
-                        <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><ArrowUpCircle size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.income)}</h3>
-                    <p className="text-emerald-500 text-xs font-bold relative z-10">+12% vs mês anterior</p>
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowUpCircle size={100} /></div>
-                </div>
+                {isLoading ? (
+                    <Skeleton variant="card" count={3} />
+                ) : (
+                    <>
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Total Receitas</span>
+                                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><ArrowUpCircle size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.income)}</h3>
+                            <p className="text-emerald-500 text-xs font-bold relative z-10">+12% vs mês anterior</p>
+                            <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowUpCircle size={100} /></div>
+                        </div>
 
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Total Despesas</span>
-                        <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500"><ArrowDownCircle size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.expense)}</h3>
-                    <p className="text-rose-500 text-xs font-bold relative z-10">+5% vs mês anterior</p>
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowDownCircle size={100} /></div>
-                </div>
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Total Despesas</span>
+                                <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500"><ArrowDownCircle size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.expense)}</h3>
+                            <p className="text-rose-500 text-xs font-bold relative z-10">+5% vs mês anterior</p>
+                            <div className="absolute top-0 right-0 p-8 opacity-5"><ArrowDownCircle size={100} /></div>
+                        </div>
 
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-gray-300 text-sm font-medium">Saldo Atual</span>
-                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Wallet size={20} /></div>
-                    </div>
-                    <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.balance)}</h3>
-                    <p className="text-blue-500 text-xs font-bold relative z-10">{stats.balance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}</p>
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><Wallet size={100} /></div>
-                </div>
+                        <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative group overflow-hidden">
+                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                <span className="text-gray-300 text-sm font-medium">Saldo Atual</span>
+                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Wallet size={20} /></div>
+                            </div>
+                            <h3 className="text-3xl font-bold text-white mb-1 relative z-10">{formatCurrency(stats.balance)}</h3>
+                            <p className="text-blue-500 text-xs font-bold relative z-10">{stats.balance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}</p>
+                            <div className="absolute top-0 right-0 p-8 opacity-5"><Wallet size={100} /></div>
+                        </div>
+                    </>
+                )}
             </section>
 
             {/* Filters & Search - Dark/Light Compatible but styling towards Dark Ref */}
@@ -257,64 +267,71 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             <section aria-label="Transactions Table" className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
 
                 {/* Month Navigation within Table Header? Or keep separate? Keeping separate for now or inside header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                    <button
-                      onClick={() => changeMonth(-1)}
-                      aria-label="Mês anterior"
-                      className="p-1 hover:bg-gray-800 rounded text-gray-300"
-                    >
-                      <ChevronLeft size={20} aria-hidden="true" />
-                    </button>
-                    <span className="font-bold text-white uppercase tracking-wider text-sm">{getMonthName(selectedMonth)} {selectedYear}</span>
-                    <button
-                      onClick={() => changeMonth(1)}
-                      aria-label="Próximo mês"
-                      className="p-1 hover:bg-gray-800 rounded text-gray-300"
-                    >
-                      <ChevronRight size={20} aria-hidden="true" />
-                    </button>
-                </div>
+                {!isLoading && (
+                    <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                        <button
+                          onClick={() => changeMonth(-1)}
+                          aria-label="Mês anterior"
+                          className="p-1 hover:bg-gray-800 rounded text-gray-300"
+                        >
+                          <ChevronLeft size={20} aria-hidden="true" />
+                        </button>
+                        <span className="font-bold text-white uppercase tracking-wider text-sm">{getMonthName(selectedMonth)} {selectedYear}</span>
+                        <button
+                          onClick={() => changeMonth(1)}
+                          aria-label="Próximo mês"
+                          className="p-1 hover:bg-gray-800 rounded text-gray-300"
+                        >
+                          <ChevronRight size={20} aria-hidden="true" />
+                        </button>
+                    </div>
+                )}
 
                 {/* Desktop: Table View */}
                 <div className="hidden md:overflow-x-auto md:block">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-400">
-                                <th className="p-4 font-medium w-10">
-                                    <input
-                                        type="checkbox"
-                                        aria-label="Selecionar todas as transações"
-                                        className="w-4 h-4 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                const ids = filteredTransactions.map(t => t.id);
-                                                setSelectedIds(new Set(ids));
-                                            } else {
-                                                setSelectedIds(new Set());
-                                            }
-                                        }}
-                                        checked={filteredTransactions.length > 0 && selectedIds.size === filteredTransactions.length}
-                                    />
-                                </th>
-                                <th className="p-4 font-medium">Data</th>
-                                <th className="p-4 font-medium">Resp.</th>
-                                <th className="p-4 font-medium">Descrição</th>
-                                <th className="p-4 font-medium">Categoria</th>
-                                <th className="p-4 font-medium">Conta</th>
-                                <th className="p-4 font-medium">Status</th>
-                                <th className="p-4 font-medium text-right">Valor</th>
-                                <th className="p-4 font-medium text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800">
-                            {filteredTransactions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={9} className="p-8 text-center text-gray-400 font-medium">
-                                        Nenhuma transação encontrada.
-                                    </td>
+                    {isLoading ? (
+                        <div className="p-4">
+                            <Skeleton variant="table-row" count={8} />
+                        </div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-gray-800 text-xs uppercase tracking-wider text-gray-400">
+                                    <th className="p-4 font-medium w-10">
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Selecionar todas as transações"
+                                            className="w-4 h-4 rounded border-gray-600 bg-[#0f172a] text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    const ids = filteredTransactions.map(t => t.id);
+                                                    setSelectedIds(new Set(ids));
+                                                } else {
+                                                    setSelectedIds(new Set());
+                                                }
+                                            }}
+                                            checked={filteredTransactions.length > 0 && selectedIds.size === filteredTransactions.length}
+                                        />
+                                    </th>
+                                    <th className="p-4 font-medium">Data</th>
+                                    <th className="p-4 font-medium">Resp.</th>
+                                    <th className="p-4 font-medium">Descrição</th>
+                                    <th className="p-4 font-medium">Categoria</th>
+                                    <th className="p-4 font-medium">Conta</th>
+                                    <th className="p-4 font-medium">Status</th>
+                                    <th className="p-4 font-medium text-right">Valor</th>
+                                    <th className="p-4 font-medium text-center">Ações</th>
                                 </tr>
-                            ) : (
-                                filteredTransactions.map(tx => {
+                            </thead>
+                            <tbody className="divide-y divide-gray-800">
+                                {filteredTransactions.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={9} className="p-8 text-center text-gray-400 font-medium">
+                                            Nenhuma transação encontrada.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredTransactions.map(tx => {
                                     const cat = categories.find(c => c.id === tx.categoryId);
                                     const acc = accounts.find(a => a.id === tx.accountId);
                                     const status = getStatus(tx.date, tx.paid);
@@ -397,15 +414,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                             </td>
                                         </tr>
                                     );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Mobile: Card View */}
                 <div className="md:hidden space-y-3 px-2">
-                    {filteredTransactions.length === 0 ? (
+                    {isLoading ? (
+                        <Skeleton variant="table-row" count={8} />
+                    ) : filteredTransactions.length === 0 ? (
                         <div className="p-8 text-center text-gray-400 font-medium">
                             Nenhuma transação encontrada.
                         </div>
