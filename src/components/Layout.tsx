@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 import { Logo } from './Logo';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
@@ -19,13 +20,12 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
   const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useFinance();
   const { logout, isAdmin } = useAuth();
+  const { isDark } = useUI();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    // Force dark mode for premium feel
-    document.documentElement.classList.add('dark');
-  }, []);
+  // Note: Theme is already applied by UIProvider.
+  // No need to apply it again here.
 
   const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
     { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Início' },

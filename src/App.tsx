@@ -2,6 +2,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { UIProvider } from './context/UIContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Layout } from './components/Layout';
 import Loading from './components/ui/Loading';
@@ -185,13 +186,15 @@ const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <FinanceProvider>
-            <AppContent />
-          </FinanceProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <UIProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <FinanceProvider>
+              <AppContent />
+            </FinanceProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </UIProvider>
     </ErrorBoundary>
   );
 };
