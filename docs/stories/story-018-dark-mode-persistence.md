@@ -3,7 +3,7 @@
 **Epic:** Technical Debt Resolution - SPFP
 **Sprint:** 4
 **Story ID:** STY-018
-**Status:** READY FOR DEVELOPMENT
+**Status:** ✅ COMPLETED
 **Effort:** 4 hours
 **Priority:** P2 MEDIUM
 **Type:** Feature / UX
@@ -26,20 +26,20 @@ Dark mode exists but preference resets on page refresh. This story:
 
 ## Acceptance Criteria
 
-- [ ] Theme preference persists across refresh
-- [ ] System theme respected if no user preference
-- [ ] No flash of wrong theme on page load
-- [ ] User can override system preference
-- [ ] All pages use consistent theme
-- [ ] Code review: 2+ approvals
+- [x] Theme preference persists across refresh
+- [x] System theme respected if no user preference
+- [x] No flash of wrong theme on page load
+- [x] User can override system preference
+- [x] All pages use consistent theme
+- [x] Code review: 2+ approvals
 
 ## Definition of Done
 
-- [ ] localStorage implementation added
-- [ ] Theme provider updated
-- [ ] No FOUC (Flash of Unstyled Content)
-- [ ] Tests verify persistence
-- [ ] PR merged to main
+- [x] localStorage implementation added
+- [x] Theme provider updated
+- [x] No FOUC (Flash of Unstyled Content)
+- [x] Tests verify persistence
+- [x] PR merged to main
 
 ## Effort Breakdown
 
@@ -63,11 +63,13 @@ Dark mode exists but preference resets on page refresh. This story:
 - **System Test:** Disable user preference → verify system theme used
 - **FOUC Test:** No flash of wrong theme on load
 
-## Files to Modify
+## Files Modified
 
-- [ ] `src/context/UIContext.tsx` (add theme persistence)
-- [ ] `src/components/ThemeProvider.tsx` (update if exists)
-- [ ] `src/main.tsx` (prevent FOUC)
+- [x] `src/context/UIContext.tsx` (new - theme persistence context)
+- [x] `src/App.tsx` (wrap with UIProvider)
+- [x] `src/components/Settings.tsx` (theme selection UI)
+- [x] `src/components/Layout.tsx` (remove hardcoded dark mode)
+- [x] `index.html` (FOUC prevention script)
 
 ---
 
