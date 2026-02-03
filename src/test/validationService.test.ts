@@ -90,7 +90,8 @@ describe('validationService', () => {
     });
 
     it('should fail with invalid type', () => {
-      const tx = { ...validTransaction, type: 'INVALID' as any };
+      type PartialTransactionWithInvalidType = Omit<typeof validTransaction, 'type'> & { type: string };
+      const tx: PartialTransactionWithInvalidType = { ...validTransaction, type: 'INVALID' };
       const result = validateRequiredFields(tx);
       expect(result).toContain('Tipo de transação inválido');
     });
@@ -155,13 +156,15 @@ describe('validationService', () => {
     });
 
     it('should fail with invalid sentiment', () => {
-      const tx = { ...validTransaction, sentiment: 'invalid' as any };
+      type PartialTransactionWithInvalidSentiment = Omit<typeof validTransaction, 'sentiment'> & { sentiment: string };
+      const tx: PartialTransactionWithInvalidSentiment = { ...validTransaction, sentiment: 'invalid' };
       const result = validateDataConstraints(tx);
       expect(result).toContain('Sentimento inválido');
     });
 
     it('should fail with invalid spender', () => {
-      const tx = { ...validTransaction, spender: 'INVALID' as any };
+      type PartialTransactionWithInvalidSpender = Omit<typeof validTransaction, 'spender'> & { spender: string };
+      const tx: PartialTransactionWithInvalidSpender = { ...validTransaction, spender: 'INVALID' };
       const result = validateDataConstraints(tx);
       expect(result).toContain('Pagador inválido');
     });
@@ -246,8 +249,8 @@ describe('validationService', () => {
 
     it('should pass with consistent groupId', () => {
       const txs: Transaction[] = [
-        { ...validTransaction, id: '1', groupId: 'group-1' } as any,
-        { ...validTransaction, id: '2', groupId: 'group-1' } as any,
+        { ...validTransaction, id: '1', groupId: 'group-1' } as Transaction,
+        { ...validTransaction, id: '2', groupId: 'group-1' } as Transaction,
       ];
       const result = validateGroupIdConsistency(txs, 'group-1');
       expect(result.isValid).toBe(true);
