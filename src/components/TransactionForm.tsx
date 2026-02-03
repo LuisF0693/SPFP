@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Transaction } from '../types';
 import { generateId } from '../utils';
@@ -12,6 +12,7 @@ import {
   generateSingleTransaction,
   validateRecurrence,
 } from '../services/transactionService';
+import { validateTransaction } from '../services/validationService';
 
 interface TransactionFormProps {
   onClose: () => void;
@@ -25,6 +26,8 @@ interface TransactionFormProps {
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
   const { accounts, categories, addTransaction, addManyTransactions, updateTransaction, addCategory, userProfile } =
     useFinance();
+
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const {
     state,
@@ -82,17 +85,30 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-    if (!state.description || !state.value || !state.accountId || !state.categoryId) {
+    // Comprehensive validation using validationService
+    const transactionData = {
+      description: state.description,
+      value: parseFloat(state.value) || 0,
+      date: state.date,
+      type: state.type,
+      categoryId: state.categoryId,
+      accountId: state.accountId,
+      recurrence: state.recurrence,
+      installments: state.installments,
+      spender: state.spender,
+      sentiment: state.sentiment,
+      paid: state.paid,
+    };
+
+    const validationResult = validateTransaction(transactionData, accounts, categories);
+
+    if (!validationResult.isValid) {
+      setValidationErrors(validationResult.errors);
       return;
     }
 
-    // Validate recurrence
-    const recurrenceErrors = validateRecurrence(state.recurrence, state.installments);
-    if (recurrenceErrors.length > 0) {
-      console.error('Recurrence validation errors:', recurrenceErrors);
-      return;
-    }
+    // Clear errors on successful validation
+    setValidationErrors([]);
 
     const rawValue = parseFloat(state.value);
     const baseDate = getTargetDate(state.date, isCreditCardExpense ? state.invoiceOffset : 0);
@@ -175,6 +191,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        {/* Validation Errors Display */}
+        {validationErrors.length > 0 && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h3 className="text-sm font-bold text-red-400 mb-2">Erros na validação:</h3>
+            <ul className="space-y-1">
+              {validationErrors.map((error, idx) => (
+                <li key={idx} className="text-sm text-red-300 flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{error}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Basic Form Fields */}
         <TransactionBasicForm
           description={state.description}
