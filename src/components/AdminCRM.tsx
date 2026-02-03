@@ -206,7 +206,7 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
             </div>
 
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row gap-4 sticky top-4 z-40">
+            <div className="flex flex-col md:flex-row gap-4 sticky top-4 z-40" data-testid="admin-crm-filters">
                 <div className="flex-1 relative group glass rounded-2xl shadow-lg shadow-black/20">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Search className="text-gray-500 group-focus-within:text-accent transition-colors" size={20} />
@@ -217,6 +217,7 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                         className="w-full bg-transparent border-none py-4 pl-12 pr-4 text-white placeholder-gray-500 outline-none focus:ring-0 font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        data-testid="admin-crm-search-input"
                     />
                 </div>
                 <div className="flex space-x-2">

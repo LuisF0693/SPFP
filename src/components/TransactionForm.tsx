@@ -182,6 +182,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           onClick={onClose}
           aria-label="Fechar formulário de transação"
           className="mr-3 sm:mr-4 p-2 -ml-2 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          data-testid="transaction-form-close-btn"
         >
           <ChevronLeft size={20} sm:size={24} aria-hidden="true" />
         </button>
@@ -190,10 +191,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" data-testid="transaction-form">
         {/* Validation Errors Display */}
         {validationErrors.length > 0 && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4" data-testid="transaction-validation-errors">
             <h3 className="text-sm font-bold text-red-400 mb-2">Erros na validação:</h3>
             <ul className="space-y-1">
               {validationErrors.map((error, idx) => (
@@ -269,6 +270,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
               ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/20'
               : 'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 shadow-rose-500/20'
           }`}
+          data-testid="transaction-form-submit-btn"
         >
           {initialData ? 'Salvar Alterações' : state.type === 'INCOME' ? 'Receber Valor' : 'Pagar Agora'}
         </button>

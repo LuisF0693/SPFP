@@ -274,3 +274,104 @@ export const performanceHelpers = {
     });
   },
 };
+
+/**
+ * Test data cleanup helpers
+ */
+export const testCleanup = {
+  /**
+   * Clear all localStorage data
+   */
+  async clearAllLocalStorage(page: Page) {
+    await page.evaluate(() => localStorage.clear());
+  },
+
+  /**
+   * Clear specific localStorage keys
+   */
+  async clearLocalStorageKeys(page: Page, keys: string[]) {
+    await page.evaluate(
+      (keysToRemove) => {
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      },
+      keys
+    );
+  },
+
+  /**
+   * Clear session storage
+   */
+  async clearSessionStorage(page: Page) {
+    await page.evaluate(() => sessionStorage.clear());
+  },
+
+  /**
+   * Clear all cookies
+   */
+  async clearAllCookies(page: Page) {
+    const cookies = await page.context().cookies();
+    await page.context().clearCookies();
+  },
+
+  /**
+   * Clear browser cache for page
+   */
+  async clearPageCache(page: Page) {
+    // For E2E tests, we clear IndexedDB and LocalStorage
+    await page.evaluate(() => {
+      // Clear IndexedDB
+      if (window.indexedDB) {
+        const dbs = ['spfp_db'];
+        dbs.forEach((db) => {
+          indexedDB.deleteDatabase(db);
+        });
+      }
+    });
+  },
+
+  /**
+   * Delete test user via Supabase Admin API
+   * Note: This requires proper authentication/admin credentials
+   */
+  async deleteTestUser(userId: string, adminToken?: string) {
+    if (!adminToken) {
+      console.warn('Admin token not provided - cannot delete test user');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Failed to delete test user:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Complete test cleanup routine
+   */
+  async completeCleanup(page: Page, options?: { deleteUser?: boolean; userId?: string; adminToken?: string }) {
+    try {
+      // Clear browser storage
+      await this.clearAllLocalStorage(page);
+      await this.clearSessionStorage(page);
+      await this.clearAllCookies(page);
+      await this.clearPageCache(page);
+
+      // Delete user if requested
+      if (options?.deleteUser && options?.userId && options?.adminToken) {
+        await this.deleteTestUser(options.userId, options.adminToken);
+      }
+    } catch (error) {
+      console.error('Error during test cleanup:', error);
+    }
+  },
+};

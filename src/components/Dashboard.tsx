@@ -80,9 +80,14 @@ export const Dashboard: React.FC = memo(() => {
   }
 
   return (
-    <main className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in" role="main" aria-label="Painel de Controle Financeiro">
+    <main
+      className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in"
+      role="main"
+      aria-label="Painel de Controle Financeiro"
+      data-testid="dashboard-main"
+    >
       {/* Header Section */}
-      <header>
+      <header data-testid="dashboard-header">
         <DashboardHeader
           userName={userName}
           currentMonth={currentMonth}
@@ -97,6 +102,7 @@ export const Dashboard: React.FC = memo(() => {
           role="alert"
           aria-live="assertive"
           aria-label="Alerta de acesso administrativo"
+          data-testid="dashboard-admin-alert"
         >
           <p className="text-blue-900 dark:text-blue-100 text-sm font-medium">
             🔐 Acesso de Administrador Ativo
@@ -105,7 +111,7 @@ export const Dashboard: React.FC = memo(() => {
       )}
 
       {/* Top Metrics */}
-      <section aria-label="Métricas Principais" role="region">
+      <section aria-label="Métricas Principais" role="region" data-testid="dashboard-metrics-section">
         {isLoading ? (
           <Skeleton variant="card" count={3} />
         ) : (
@@ -121,12 +127,12 @@ export const Dashboard: React.FC = memo(() => {
       </section>
 
       {/* Alerts Section */}
-      <section aria-label="Alertas" role="region" aria-live="polite">
+      <section aria-label="Alertas" role="region" aria-live="polite" data-testid="dashboard-alerts-section">
         <DashboardAlerts alerts={alerts} />
       </section>
 
       {/* Charts Section */}
-      <section aria-label="Análise de Gastos" role="region">
+      <section aria-label="Análise de Gastos" role="region" data-testid="dashboard-charts-section">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Skeleton variant="chart" className="md:col-span-2" />
@@ -143,7 +149,7 @@ export const Dashboard: React.FC = memo(() => {
       </section>
 
       {/* Recent Transactions + Accounts */}
-      <section aria-label="Transações Recentes e Contas" role="region">
+      <section aria-label="Transações Recentes e Contas" role="region" data-testid="dashboard-transactions-section">
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Skeleton variant="table-row" count={5} className="lg:col-span-2" />

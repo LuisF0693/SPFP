@@ -230,7 +230,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             </section>
 
             {/* Filters & Search - Dark/Light Compatible but styling towards Dark Ref */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4" data-testid="transaction-filters">
                 <div className="relative w-full md:w-96">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
@@ -239,6 +239,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-[#0f172a] border border-gray-800 text-white pl-10 pr-4 py-3 rounded-xl outline-none focus:border-accent text-sm placeholder-gray-500"
+                        data-testid="transaction-search-input"
                     />
                 </div>
 
@@ -253,6 +254,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
                                 ? 'bg-accent text-white'
                                 : 'bg-[#1e293b] text-gray-300 hover:bg-gray-800'
                                 }`}
+                            data-testid={`transaction-filter-${type.toLowerCase()}`}
                         >
                             {type === 'ALL' && 'Todos'}
                             {type === 'INCOME' && 'Receitas'}
@@ -264,7 +266,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEdit }) => {
             </div>
 
             {/* Transactions Table */}
-            <section aria-label="Transactions Table" className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+            <section aria-label="Transactions Table" className="bg-[#0f172a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl" data-testid="transactions-list">
 
                 {/* Month Navigation within Table Header? Or keep separate? Keeping separate for now or inside header */}
                 {!isLoading && (

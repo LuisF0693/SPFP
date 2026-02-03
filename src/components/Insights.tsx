@@ -443,7 +443,7 @@ export const Insights: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      <div className="p-8 glass rounded-b-[2.5rem] shadow-2xl relative">
+      <div className="p-8 glass rounded-b-[2.5rem] shadow-2xl relative" data-testid="insights-input-area">
         <div className="flex gap-4 items-end max-w-4xl mx-auto">
           <div className="flex-1 relative">
             <textarea
@@ -460,6 +460,7 @@ export const Insights: React.FC = () => {
               disabled={!hasToken || loading || !hasGeneratedInsight}
               className="w-full bg-black/40 border border-white/10 rounded-[1.5rem] p-5 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all resize-none min-h-[64px] max-h-[200px] scrollbar-hide text-sm"
               rows={1}
+              data-testid="insights-chat-input"
             />
             <div className="absolute right-4 bottom-5 flex items-center gap-2">
               <MessageSquare size={18} className="text-gray-600" />
@@ -469,6 +470,7 @@ export const Insights: React.FC = () => {
             onClick={() => handleSend()}
             disabled={loading || !inputValue.trim() || !hasToken || !hasGeneratedInsight}
             className="w-16 h-16 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:bg-gray-800 text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-xl shadow-blue-500/20 active:scale-95 group"
+            data-testid="insights-send-btn"
           >
             <Send size={28} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
           </button>
