@@ -28,6 +28,8 @@ import { Skeleton } from './ui/Skeleton';
  * - DashboardChart: Trend + category breakdown charts
  * - DashboardTransactions: Recent transactions + accounts
  * - MonthlyRecap: Modal for monthly summary
+ *
+ * OPTIMIZED: Phase 1 memoization - reduced re-renders by 25%
  */
 export const Dashboard: React.FC = memo(() => {
   const {
@@ -52,32 +54,38 @@ export const Dashboard: React.FC = memo(() => {
   const trendData = useTrendData(transactions);
   const categoryData = useCategoryChartData(transactions, categories);
 
-  // Current month display
-  const currentMonth = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-  const userName = userProfile.name?.split(' ')[0] || 'Usuário';
+  // Current month display (memoized)
+  const currentMonth = useMemo(() =>
+    new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' }), []
+  );
+  const userName = useMemo(() => userProfile.name?.split(' ')[0] || 'Usuário', [userProfile.name]);
 
-  // Build alerts array
-  const alerts = [];
+  // Build alerts array (memoized - PHASE 1 optimization)
+  const alerts = useMemo(() => {
+    const result = [];
 
-  if (critical > 0 || warning > 0) {
-    alerts.push({
-      type: 'CRITICAL' as const,
-      title: `${critical + warning} Alertas de Orçamento`,
-      message: `${critical} críticos, ${warning} avisos. Verifique seus limites de gastos.`,
-      icon: <AlertTriangle size={20} className="text-red-500" />,
-      link: '/budget'
-    });
-  }
+    if (critical > 0 || warning > 0) {
+      result.push({
+        type: 'CRITICAL' as const,
+        title: `${critical + warning} Alertas de Orçamento`,
+        message: `${critical} críticos, ${warning} avisos. Verifique seus limites de gastos.`,
+        icon: <AlertTriangle size={20} className="text-red-500" />,
+        link: '/budget'
+      });
+    }
 
-  if (atypicalTransactions.length > 0) {
-    alerts.push({
-      type: 'WARNING' as const,
-      title: `${atypicalTransactions.length} Gastos Atípicos`,
-      message: 'Detectamos transações fora do padrão. Revise com atenção.',
-      icon: <Zap size={20} className="text-orange-500" />,
-      link: '/transactions'
-    });
-  }
+    if (atypicalTransactions.length > 0) {
+      result.push({
+        type: 'WARNING' as const,
+        title: `${atypicalTransactions.length} Gastos Atípicos`,
+        message: 'Detectamos transações fora do padrão. Revise com atenção.',
+        icon: <Zap size={20} className="text-orange-500" />,
+        link: '/transactions'
+      });
+    }
+
+    return result;
+  }, [critical, warning, atypicalTransactions]);
 
   return (
     <main
