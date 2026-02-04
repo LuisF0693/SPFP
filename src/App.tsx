@@ -1,11 +1,14 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { I18nextProvider } from 'react-i18next';
+import i18next from './i18n/config';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UIProvider } from './context/UIContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Layout } from './components/Layout';
 import Loading from './components/ui/Loading';
+import { RouteLoadingBoundary } from './components/ui/RouteLoadingBoundary';
 import { Transaction } from './types';
 
 // Lazy load page components for code splitting
@@ -77,11 +80,11 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<RouteLoadingBoundary />}>
       <Routes>
-        <Route path="/login" element={!user ? <Suspense fallback={<Loading />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
+        <Route path="/login" element={!user ? <Suspense fallback={<RouteLoadingBoundary />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
 
-        <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <Suspense fallback={<Loading />}><SalesPage /></Suspense>} />
+        <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <Suspense fallback={<RouteLoadingBoundary />}><SalesPage /></Suspense>} />
 
         <Route path="/dashboard" element={
           <PrivateRoute>
@@ -186,15 +189,17 @@ const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <UIProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <FinanceProvider>
-              <AppContent />
-            </FinanceProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </UIProvider>
+      <I18nextProvider i18n={i18next}>
+        <UIProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <FinanceProvider>
+                <AppContent />
+              </FinanceProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </UIProvider>
+      </I18nextProvider>
     </ErrorBoundary>
   );
 };

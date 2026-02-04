@@ -1,0 +1,201 @@
+{
+  "app": {
+    "title": "SPFP - Personal Financial Planning System",
+    "description": "Intelligent personal finance management with AI insights"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "accounts": "Accounts",
+    "transactions": "Transactions",
+    "goals": "Goals",
+    "investments": "Investments",
+    "patrimony": "Patrimony",
+    "reports": "Reports",
+    "insights": "Insights",
+    "projections": "Projections",
+    "budget": "Budget",
+    "settings": "Settings",
+    "admin": "Administration",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome!",
+    "totalBalance": "Total Balance",
+    "income": "Income",
+    "expenses": "Expenses",
+    "savingsRate": "Savings Rate",
+    "recentTransactions": "Recent Transactions"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "addAccount": "Add Account",
+    "editAccount": "Edit Account",
+    "deleteAccount": "Delete Account",
+    "noAccounts": "No accounts found",
+    "accountName": "Account Name",
+    "accountType": "Account Type",
+    "initialBalance": "Initial Balance",
+    "currency": "Currency"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "addTransaction": "Add Transaction",
+    "editTransaction": "Edit Transaction",
+    "deleteTransaction": "Delete Transaction",
+    "noTransactions": "No transactions found",
+    "date": "Date",
+    "description": "Description",
+    "category": "Category",
+    "amount": "Amount",
+    "type": "Type",
+    "income": "Income",
+    "expense": "Expense",
+    "account": "Account",
+    "recurring": "Recurring",
+    "frequency": "Frequency",
+    "filter": "Filter",
+    "search": "Search"
+  },
+  "goals": {
+    "title": "Goals",
+    "addGoal": "Add Goal",
+    "editGoal": "Edit Goal",
+    "deleteGoal": "Delete Goal",
+    "noGoals": "No goals found",
+    "goalName": "Goal Name",
+    "targetAmount": "Target Amount",
+    "currentAmount": "Current Amount",
+    "deadline": "Deadline",
+    "progress": "Progress"
+  },
+  "investments": {
+    "title": "Investments",
+    "addInvestment": "Add Investment",
+    "editInvestment": "Edit Investment",
+    "deleteInvestment": "Delete Investment",
+    "noInvestments": "No investments found",
+    "ticker": "Ticker",
+    "quantity": "Quantity",
+    "purchasePrice": "Purchase Price",
+    "currentPrice": "Current Price",
+    "gain": "Gain/Loss"
+  },
+  "patrimony": {
+    "title": "Patrimony",
+    "totalWorth": "Total Worth",
+    "assets": "Assets",
+    "liabilities": "Liabilities",
+    "netWorth": "Net Worth"
+  },
+  "reports": {
+    "title": "Reports",
+    "generateReport": "Generate Report",
+    "exportPDF": "Export PDF",
+    "exportCSV": "Export CSV",
+    "dateRange": "Date Range",
+    "from": "From",
+    "to": "To"
+  },
+  "insights": {
+    "title": "Insights",
+    "aiAnalysis": "AI Analysis",
+    "askQuestion": "Ask a Question",
+    "askForAnalysis": "Request Analysis",
+    "chatHistory": "Chat History"
+  },
+  "projections": {
+    "title": "Projections",
+    "futureCashFlow": "Future Cash Flow",
+    "projection": "Projection"
+  },
+  "budget": {
+    "title": "Budget",
+    "categoryBudget": "Budget by Category",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "setBudget": "Set Budget"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "currency": "Currency",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "security": "Security",
+    "logout": "Logout"
+  },
+  "login": {
+    "title": "Sign In",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "register": "Register",
+    "forgotPassword": "Forgot Password?",
+    "signInWithGoogle": "Sign In with Google",
+    "noAccount": "Don't have an account?",
+    "createOne": "Create one"
+  },
+  "register": {
+    "title": "Register",
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signUp": "Sign Up",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign In"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email",
+    "passwordMismatch": "Passwords do not match",
+    "networkError": "Network error. Please try again.",
+    "authError": "Authentication error",
+    "operationFailed": "Operation failed",
+    "tryAgain": "Try Again",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "noData": "No data",
+    "confirm": "Confirm",
+    "confirmDelete": "Are you sure you want to delete?",
+    "confirmLogout": "Are you sure you want to logout?",
+    "success": "Success!",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "admin": {
+    "title": "Administration",
+    "clients": "Clients",
+    "impersonate": "Impersonate",
+    "stopImpersonating": "Stop Impersonating",
+    "userList": "User List",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User"
+  },
+  "validation": {
+    "minLength": "Minimum {{count}} characters",
+    "maxLength": "Maximum {{count}} characters",
+    "minValue": "Minimum value {{value}}",
+    "maxValue": "Maximum value {{value}}",
+    "invalidFormat": "Invalid format"
+  },
+  "sync": {
+    "syncing": "Syncing...",
+    "syncError": "Sync error",
+    "lastSync": "Last sync",
+    "syncFailed": "Sync failed",
+    "retrying": "Retrying..."
+  }
+}

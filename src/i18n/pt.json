@@ -1,0 +1,201 @@
+{
+  "app": {
+    "title": "SPFP - Sistema de Planejamento Financeiro Pessoal",
+    "description": "Gestão inteligente de finanças pessoais com insights de IA"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "accounts": "Contas",
+    "transactions": "Transações",
+    "goals": "Metas",
+    "investments": "Investimentos",
+    "patrimony": "Patrimônio",
+    "reports": "Relatórios",
+    "insights": "Insights",
+    "projections": "Projeções",
+    "budget": "Orçamento",
+    "settings": "Configurações",
+    "admin": "Administração",
+    "logout": "Sair"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bem-vindo!",
+    "totalBalance": "Saldo Total",
+    "income": "Receitas",
+    "expenses": "Despesas",
+    "savingsRate": "Taxa de Poupança",
+    "recentTransactions": "Transações Recentes"
+  },
+  "accounts": {
+    "title": "Contas",
+    "addAccount": "Adicionar Conta",
+    "editAccount": "Editar Conta",
+    "deleteAccount": "Deletar Conta",
+    "noAccounts": "Nenhuma conta encontrada",
+    "accountName": "Nome da Conta",
+    "accountType": "Tipo de Conta",
+    "initialBalance": "Saldo Inicial",
+    "currency": "Moeda"
+  },
+  "transactions": {
+    "title": "Transações",
+    "addTransaction": "Adicionar Transação",
+    "editTransaction": "Editar Transação",
+    "deleteTransaction": "Deletar Transação",
+    "noTransactions": "Nenhuma transação encontrada",
+    "date": "Data",
+    "description": "Descrição",
+    "category": "Categoria",
+    "amount": "Valor",
+    "type": "Tipo",
+    "income": "Receita",
+    "expense": "Despesa",
+    "account": "Conta",
+    "recurring": "Recorrente",
+    "frequency": "Frequência",
+    "filter": "Filtrar",
+    "search": "Buscar"
+  },
+  "goals": {
+    "title": "Metas",
+    "addGoal": "Adicionar Meta",
+    "editGoal": "Editar Meta",
+    "deleteGoal": "Deletar Meta",
+    "noGoals": "Nenhuma meta encontrada",
+    "goalName": "Nome da Meta",
+    "targetAmount": "Valor Alvo",
+    "currentAmount": "Valor Atual",
+    "deadline": "Prazo",
+    "progress": "Progresso"
+  },
+  "investments": {
+    "title": "Investimentos",
+    "addInvestment": "Adicionar Investimento",
+    "editInvestment": "Editar Investimento",
+    "deleteInvestment": "Deletar Investimento",
+    "noInvestments": "Nenhum investimento encontrado",
+    "ticker": "Código",
+    "quantity": "Quantidade",
+    "purchasePrice": "Preço de Compra",
+    "currentPrice": "Preço Atual",
+    "gain": "Ganho/Perda"
+  },
+  "patrimony": {
+    "title": "Patrimônio",
+    "totalWorth": "Patrimônio Total",
+    "assets": "Ativos",
+    "liabilities": "Passivos",
+    "netWorth": "Patrimônio Líquido"
+  },
+  "reports": {
+    "title": "Relatórios",
+    "generateReport": "Gerar Relatório",
+    "exportPDF": "Exportar PDF",
+    "exportCSV": "Exportar CSV",
+    "dateRange": "Período",
+    "from": "De",
+    "to": "Até"
+  },
+  "insights": {
+    "title": "Insights",
+    "aiAnalysis": "Análise de IA",
+    "askQuestion": "Faça uma pergunta",
+    "askForAnalysis": "Solicitar Análise",
+    "chatHistory": "Histórico de Chat"
+  },
+  "projections": {
+    "title": "Projeções",
+    "futureCashFlow": "Fluxo de Caixa Futuro",
+    "projection": "Projeção"
+  },
+  "budget": {
+    "title": "Orçamento",
+    "categoryBudget": "Orçamento por Categoria",
+    "spent": "Gasto",
+    "remaining": "Restante",
+    "setBudget": "Definir Orçamento"
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "theme": "Tema",
+    "darkMode": "Modo Escuro",
+    "lightMode": "Modo Claro",
+    "currency": "Moeda",
+    "notifications": "Notificações",
+    "profile": "Perfil",
+    "security": "Segurança",
+    "logout": "Sair da Conta"
+  },
+  "login": {
+    "title": "Entrar",
+    "email": "Email",
+    "password": "Senha",
+    "signIn": "Entrar",
+    "register": "Registrar",
+    "forgotPassword": "Esqueceu a Senha?",
+    "signInWithGoogle": "Entrar com Google",
+    "noAccount": "Não tem uma conta?",
+    "createOne": "Crie uma"
+  },
+  "register": {
+    "title": "Registrar",
+    "fullName": "Nome Completo",
+    "email": "Email",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "signUp": "Registrar",
+    "haveAccount": "Já tem uma conta?",
+    "signIn": "Entre aqui"
+  },
+  "errors": {
+    "required": "Este campo é obrigatório",
+    "invalidEmail": "Email inválido",
+    "passwordMismatch": "As senhas não correspondem",
+    "networkError": "Erro de conexão. Tente novamente.",
+    "authError": "Erro de autenticação",
+    "operationFailed": "Operação falhou",
+    "tryAgain": "Tente Novamente",
+    "cancel": "Cancelar",
+    "delete": "Deletar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "loading": "Carregando...",
+    "noData": "Sem dados",
+    "confirm": "Confirmar",
+    "confirmDelete": "Tem certeza que deseja deletar?",
+    "confirmLogout": "Tem certeza que deseja sair?",
+    "success": "Sucesso!",
+    "warning": "Aviso",
+    "info": "Informação"
+  },
+  "admin": {
+    "title": "Administração",
+    "clients": "Clientes",
+    "impersonate": "Impersonar",
+    "stopImpersonating": "Parar Impersonação",
+    "userList": "Lista de Usuários",
+    "addUser": "Adicionar Usuário",
+    "editUser": "Editar Usuário",
+    "deleteUser": "Deletar Usuário"
+  },
+  "validation": {
+    "minLength": "Mínimo {{count}} caracteres",
+    "maxLength": "Máximo {{count}} caracteres",
+    "minValue": "Valor mínimo {{value}}",
+    "maxValue": "Valor máximo {{value}}",
+    "invalidFormat": "Formato inválido"
+  },
+  "sync": {
+    "syncing": "Sincronizando...",
+    "syncError": "Erro ao sincronizar",
+    "lastSync": "Última sincronização",
+    "syncFailed": "Sincronização falhou",
+    "retrying": "Tentando novamente..."
+  }
+}
