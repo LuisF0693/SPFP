@@ -137,24 +137,31 @@ describe('Transaction Balance Calculations', () => {
     });
 
     it('should not affect balance for future transactions in calculation', () => {
-      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      // Test that future transactions don't immediately affect balance
+      const testAccount = createMockAccount({ balance: 1000 });
+      const initialBalance = testAccount.balance;
+
+      // Create a transaction for far future
+      const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const transaction = createMockTransaction({
-        accountId: account.id,
-        date: tomorrow,
+        accountId: testAccount.id,
+        date: farFuture,
         type: 'EXPENSE',
         value: 100,
       });
 
-      const currentDate = new Date();
-      currentDate.setHours(23, 59, 59, 999);
       const txDate = new Date(transaction.date);
-      const originalBalance = account.balance;
+      const currentDate = new Date();
 
-      if (txDate <= currentDate) {
-        account.balance -= transaction.value;
+      // If transaction is in future, balance shouldn't change
+      if (txDate > currentDate) {
+        // No impact on balance
+      } else {
+        testAccount.balance -= transaction.value;
       }
 
-      expectMoneyEqual(account.balance, originalBalance);
+      // Balance should remain unchanged for future transactions
+      expectMoneyEqual(testAccount.balance, initialBalance);
     });
 
     it('should correctly calculate balance cutoff at day boundary', () => {

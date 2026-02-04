@@ -256,7 +256,7 @@ export const errorRecovery = {
         ...error,
         userMessage: errorRecovery.getUserMessage(error, action),
         errorId: errorLog.id,
-        context,
+        context: { ...context, attempts },
         isTransient,
         recovered: errorLog.recovered
       };

@@ -86,14 +86,14 @@ describe('validationService', () => {
     it('should fail without type', () => {
       const tx = { ...validTransaction, type: undefined };
       const result = validateRequiredFields(tx);
-      expect(result).toContain('Tipo de transação inválido');
+      expect(result).toContain('Tipo de transação inválido (INCOME ou EXPENSE)');
     });
 
     it('should fail with invalid type', () => {
       type PartialTransactionWithInvalidType = Omit<typeof validTransaction, 'type'> & { type: string };
       const tx: PartialTransactionWithInvalidType = { ...validTransaction, type: 'INVALID' };
       const result = validateRequiredFields(tx);
-      expect(result).toContain('Tipo de transação inválido');
+      expect(result).toContain('Tipo de transação inválido (INCOME ou EXPENSE)');
     });
 
     it('should fail without categoryId', () => {
@@ -222,7 +222,7 @@ describe('validationService', () => {
 
     it('should fail with invalid recurrence type', () => {
       const result = validateRecurrence('INVALID', 0);
-      expect(result).toContain('Tipo de recorrência inválido');
+      expect(result).toContain('Tipo de recorrência inválido (NONE, INSTALLMENT ou REPEATED)');
     });
 
     it('should fail with installments < 2 for INSTALLMENT', () => {
@@ -237,7 +237,7 @@ describe('validationService', () => {
 
     it('should fail with installments > 360 for INSTALLMENT', () => {
       const result = validateRecurrence('INSTALLMENT', 361);
-      expect(result).toContain('Parcelamentos não podem exceder 360 meses');
+      expect(result).toContain('Parcelamentos não podem exceder 360 meses (30 anos)');
     });
   });
 
