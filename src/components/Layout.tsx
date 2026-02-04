@@ -86,7 +86,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
       </a>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 bg-card-dark flex-col shadow-xl z-20 border-r border-white/5 transition-colors duration-300">
+      <aside
+        className="hidden md:flex w-72 bg-card-dark flex-col shadow-xl z-20 border-r border-white/5 transition-colors duration-300"
+        role="complementary"
+        aria-label="Navegação Lateral"
+      >
         <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-center space-x-4">
           <div className="p-2 shrink-0">
             <Logo size={42} />
@@ -113,7 +117,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
           </div>
         </div>
 
-        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar" aria-label="Main navigation">
+        <nav
+          className="flex-1 py-6 px-4 space-y-2 overflow-y-auto no-scrollbar"
+          aria-label="Main navigation"
+          role="navigation"
+        >
           {mode === 'crm' ? (
             // CRM Navigation
             <>
