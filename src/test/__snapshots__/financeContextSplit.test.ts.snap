@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Split Finance Contexts - Snapshot Tests > AccountsContextType > should have correct shape for AccountsContext 1`] = `
+[
+  "accounts",
+  "categories",
+  "addAccount",
+  "updateAccount",
+  "deleteAccount",
+  "addCategory",
+  "updateCategory",
+  "deleteCategory",
+  "getAccountBalance",
+  "totalBalance",
+  "recoverAccount",
+  "getDeletedAccounts",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > GoalsContextType > should have correct shape for GoalsContext 1`] = `
+[
+  "goals",
+  "addGoal",
+  "updateGoal",
+  "deleteGoal",
+  "recoverGoal",
+  "getDeletedGoals",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > InvestmentsContextType > should have correct shape for InvestmentsContext 1`] = `
+[
+  "investments",
+  "addInvestment",
+  "updateInvestment",
+  "deleteInvestment",
+  "recoverInvestment",
+  "getDeletedInvestments",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > PatrimonyContextType > should have correct shape for PatrimonyContext 1`] = `
+[
+  "patrimonyItems",
+  "addPatrimonyItem",
+  "updatePatrimonyItem",
+  "deletePatrimonyItem",
+  "recoverPatrimonyItem",
+  "getDeletedPatrimonyItems",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > Soft Delete Architecture > should support querying deleted items across all contexts 1`] = `
+[
+  "getDeletedTransactions",
+  "getDeletedAccounts",
+  "getDeletedGoals",
+  "getDeletedInvestments",
+  "getDeletedPatrimonyItems",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > Soft Delete Architecture > should support soft delete recovery across all contexts 1`] = `
+[
+  "recoverTransaction",
+  "recoverAccount",
+  "recoverGoal",
+  "recoverInvestment",
+  "recoverPatrimonyItem",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > TransactionsContextType > should have correct shape for TransactionsContext 1`] = `
+[
+  "transactions",
+  "categoryBudgets",
+  "addTransaction",
+  "addManyTransactions",
+  "updateTransaction",
+  "deleteTransaction",
+  "deleteTransactions",
+  "updateTransactions",
+  "getTransactionsByGroupId",
+  "deleteTransactionGroup",
+  "deleteTransactionGroupFromIndex",
+  "updateCategoryBudget",
+  "recoverTransaction",
+  "getDeletedTransactions",
+]
+`;
+
+exports[`Split Finance Contexts - Snapshot Tests > localStorage Key Strategy > should have separate localStorage keys per context 1`] = `
+[
+  "visao360_v2_data_",
+  "visao360_v2_accounts_",
+  "visao360_v2_transactions_",
+  "visao360_v2_goals_",
+  "visao360_v2_investments_",
+  "visao360_v2_patrimony_",
+]
+`;

@@ -1,0 +1,100 @@
+
+[41m[1m FAIL [22m[49m src/test/errorRecovery.test.ts[2m > [22mErrorRecoveryService[2m > [22mhandleOperation[2m > [22mshould call onRetry callback during retries
+{
+  code: 'UNKNOWN',
+  isRetryable: false,
+  originalError: {
+    stack: 'Error: Error\n' +
+      '    at D:/Projetos Antigravity/SPFP/SPFP/src/test/errorRecovery.test.ts:246:32\n' +
+      '    at file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+      '    at file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+      '    at file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+      '    at new Promise (<anonymous>)\n' +
+      '    at runWithTimeout (file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:1209:10)\n' +
+      '    at file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:1653:37\n' +
+      '    at Traces.$ (file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)\n' +
+      '    at trace (file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)\n' +
+      '    at runTest (file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:1653:12)',
+    message: 'Error',
+    constructor: 'Function<Error>',
+    name: 'Error',
+    toString: 'Function<toString>'
+  },
+  attempts: 1,
+  lastAttemptTime: 1770163560533,
+  userMessage: 'Erro ao Test: [UNKNOWN] Error',
+  errorId: 'error_1770163560535_galh3376o',
+  context: {
+    userId: undefined,
+    action: 'Test',
+    timestamp: 1770163560534,
+    errorType: 'UNKNOWN',
+    originalError: {
+      stack: 'Error: [UNKNOWN] Error\n' +
+        '    at retryWithBackoff (D:/Projetos Antigravity/SPFP/SPFP/src/services/retryService.ts:190:40)\n' +
+        '    at Object.handleOperation (D:/Projetos Antigravity/SPFP/SPFP/src/services/errorRecovery.ts:191:24)\n' +
+        '    at D:/Projetos Antigravity/SPFP/SPFP/src/test/errorRecovery.test.ts:250:7\n' +
+        '    at file:///D:/Projetos%20Antigravity/SPFP/SPFP/node_modules/@vitest/runner/dist/index.js:915:20',
+      message: '[UNKNOWN] Error',
+      code: 'UNKNOWN',
+      isRetryable: false,
+      originalError: [Object],
+      attempts: 1,
+      lastAttemptTime: 1770163560533,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    stateSnapshot: undefined,
+    metadata: undefined,
+    attempts: 1
+  },
+  isTransient: false,
+  recovered: false,
+  stacks: []
+}
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/26]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/Skeleton.test.tsx[2m > [22mSkeleton Component[2m > [22mrenders table-row variant with correct structure
+[31m[1mError[22m: [2mexpect([22m[31mreceived[31m[2m).toBeInTheDocument()[22m
+
+[31mreceived[31m value must be an HTMLElement or an SVGElement.
+Received has type:  Null
+Received has value: [31mnull[31m[39m
+[36m [2m❯[22m src/test/Skeleton.test.tsx:[2m34:30[22m[39m
+    [90m 32| [39m    // Just verify the skeleton element exists (class selector with sp…
+    [90m 33| [39m    [35mconst[39m tableRowSkeleton [33m=[39m container[33m.[39m[34mquerySelector[39m([32m'.animate-pulse'[39m)[33m;[39m
+    [90m 34| [39m    [34mexpect[39m(tableRowSkeleton)[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 35| [39m  })[33m;[39m
+    [90m 36| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/26]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: [vitest-pool]: Worker forks emitted error.[39m
+[90m [2m❯[22m EventEmitter.<anonymous> ../../../Projetos%20Antigravity/SPFP/SPFP/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:[2m8043:22[22m[39m
+[90m [2m❯[22m EventEmitter.emit node:events:[2m508:20[22m[39m
+[90m [2m❯[22m ChildProcess.emitUnexpectedExit ../../../Projetos%20Antigravity/SPFP/SPFP/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:[2m7610:22[22m[39m
+[90m [2m❯[22m ChildProcess.emit node:events:[2m508:20[22m[39m
+[90m [2m❯[22m Process.ChildProcess._handle.onexit node:internal/child_process:[2m293:12[22m[39m
+
+[31m[1mCaused by: Error[22m: Worker exited unexpectedly[39m
+[90m [2m❯[22m ChildProcess.emitUnexpectedExit ../../../Projetos%20Antigravity/SPFP/SPFP/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:[2m7609:33[22m[39m
+[90m [2m❯[22m ChildProcess.emit node:events:[2m508:20[22m[39m
+[90m [2m❯[22m Process.ChildProcess._handle.onexit node:internal/child_process:[2m293:12[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (22)[39m
+[2m      Tests [22m [1m[31m25 failed[39m[22m[2m | [22m[1m[32m481 passed[39m[22m[2m | [22m[33m10 skipped[39m[90m (542)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 21:05:51
+[2m   Duration [22m 167.74s[2m (transform 4.34s, setup 19.57s, import 5.23s, tests 6.26s, environment 93.11s)[22m
+

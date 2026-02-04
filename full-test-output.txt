@@ -1,0 +1,347 @@
+
+> spfp@0.0.0 test
+> vitest --run --no-coverage
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mD:/Projetos Antigravity/SPFP/SPFP[39m
+
+ [31m❯[39m src/test/ErrorBoundary.test.tsx [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m src/test/dataValidation.test.ts [2m([22m[2m39 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 53[2mms[22m[39m
+     [32m✓[39m should accept valid email addresses[32m 2[2mms[22m[39m
+     [32m✓[39m should reject invalid email addresses[32m 1[2mms[22m[39m
+     [32m✓[39m should accept email with subdomain[32m 0[2mms[22m[39m
+     [32m✓[39m should handle case insensitivity[32m 0[2mms[22m[39m
+     [32m✓[39m should reject whitespace in email[32m 0[2mms[22m[39m
+     [32m✓[39m should validate valid CPF[32m 0[2mms[22m[39m
+     [32m✓[39m should reject CPF with all same digits[32m 0[2mms[22m[39m
+     [32m✓[39m should reject CPF with wrong length[32m 0[2mms[22m[39m
+     [32m✓[39m should accept CPF with formatting (dots and hyphens)[32m 0[2mms[22m[39m
+     [32m✓[39m should reject invalid check digits[32m 0[2mms[22m[39m
+     [32m✓[39m should accept cleaned CPF[32m 0[2mms[22m[39m
+[31m     [31m×[31m should accept valid phone numbers[39m[32m 19[2mms[22m[39m
+     [32m✓[39m should reject invalid phone numbers[32m 2[2mms[22m[39m
+     [32m✓[39m should extract digits from formatted phone[32m 6[2mms[22m[39m
+     [32m✓[39m should accept positive amounts[32m 0[2mms[22m[39m
+     [32m✓[39m should reject negative amounts[32m 0[2mms[22m[39m
+     [32m✓[39m should reject non-numeric values[32m 0[2mms[22m[39m
+     [32m✓[39m should reject non-number types[32m 0[2mms[22m[39m
+     [32m✓[39m should accept zero[32m 0[2mms[22m[39m
+     [32m✓[39m should validate decimal precision[32m 0[2mms[22m[39m
+     [32m✓[39m should handle very large amounts[32m 0[2mms[22m[39m
+     [32m✓[39m should handle very small amounts[32m 0[2mms[22m[39m
+     [32m✓[39m should accept valid ISO format dates[32m 0[2mms[22m[39m
+[31m     [31m×[31m should reject invalid date formats[39m[32m 2[2mms[22m[39m
+     [32m✓[39m should validate date range[32m 0[2mms[22m[39m
+     [32m✓[39m should reject date outside range[32m 0[2mms[22m[39m
+     [32m✓[39m should handle boundary dates[32m 0[2mms[22m[39m
+[31m     [31m×[31m should validate leap year dates[39m[32m 1[2mms[22m[39m
+     [32m✓[39m should validate complete transaction[32m 8[2mms[22m[39m
+     [32m✓[39m should reject transaction with missing id[32m 1[2mms[22m[39m
+     [32m✓[39m should reject transaction with zero value[32m 0[2mms[22m[39m
+     [32m✓[39m should reject transaction with invalid type[32m 0[2mms[22m[39m
+     [32m✓[39m should reject transaction with invalid date[32m 0[2mms[22m[39m
+     [32m✓[39m should reject transaction with empty description[32m 0[2mms[22m[39m
+     [32m✓[39m should reject transaction with negative value[32m 0[2mms[22m[39m
+     [32m✓[39m should validate complete account[32m 2[2mms[22m[39m
+     [32m✓[39m should accept negative balance (overdraft)[32m 0[2mms[22m[39m
+     [32m✓[39m should reject account with missing required fields[32m 0[2mms[22m[39m
+     [32m✓[39m should reject account with non-numeric balance[32m 0[2mms[22m[39m
+ [31m❯[39m src/test/financeContextLogic.test.ts [2m([22m[2m34 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 87[2mms[22m[39m
+       [32m✓[39m should decrease balance for expense[32m 8[2mms[22m[39m
+       [32m✓[39m should increase balance for income[32m 1[2mms[22m[39m
+       [32m✓[39m should not affect other accounts[32m 0[2mms[22m[39m
+       [32m✓[39m should update balance for multiple expenses[32m 1[2mms[22m[39m
+       [32m✓[39m should update balance for mixed income and expenses[32m 1[2mms[22m[39m
+       [32m✓[39m should handle bulk account updates[32m 1[2mms[22m[39m
+       [32m✓[39m should update balance when transaction is modified[32m 0[2mms[22m[39m
+       [32m✓[39m should update balance when moving transaction to different account[32m 0[2mms[22m[39m
+       [32m✓[39m should restore balance when transaction is deleted[32m 0[2mms[22m[39m
+       [32m✓[39m should restore balance when multiple transactions are deleted[32m 0[2mms[22m[39m
+       [32m✓[39m should save and retrieve financial state[32m 3[2mms[22m[39m
+       [32m✓[39m should update existing state in localStorage[32m 0[2mms[22m[39m
+       [32m✓[39m should handle missing localStorage key gracefully[32m 1[2mms[22m[39m
+       [32m✓[39m should maintain separate storage per user[32m 1[2mms[22m[39m
+       [32m✓[39m should return different keys for different users[32m 2[2mms[22m[39m
+       [32m✓[39m should preserve complex data structures in storage[32m 1[2mms[22m[39m
+       [32m✓[39m should handle arrays in storage[32m 23[2mms[22m[39m
+       [32m✓[39m should handle null values in state[32m 0[2mms[22m[39m
+       [32m✓[39m should use default data when storage is empty[32m 0[2mms[22m[39m
+       [32m✓[39m should validate stored data before using[32m 1[2mms[22m[39m
+       [32m✓[39m should recover from corrupted storage[32m 0[2mms[22m[39m
+       [32m✓[39m should save impersonation state[32m 1[2mms[22m[39m
+       [32m✓[39m should restore impersonation state on load[32m 0[2mms[22m[39m
+       [32m✓[39m should clear impersonation state[32m 0[2mms[22m[39m
+       [32m✓[39m should add category with generated ID[32m 2[2mms[22m[39m
+       [32m✓[39m should prevent duplicate category names[32m 0[2mms[22m[39m
+       [32m✓[39m should filter categories by group[32m 0[2mms[22m[39m
+       [32m✓[39m should get all category names[32m 2[2mms[22m[39m
+       [32m✓[39m should add budget for category[32m 2[2mms[22m[39m
+       [32m✓[39m should update spent amount in budget[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate total budgeted[32m 0[2mms[22m[39m
+[31m       [31m×[31m should add goal[39m[32m 22[2mms[22m[39m
+       [32m✓[39m should update goal progress[32m 0[2mms[22m[39m
+       [32m✓[39m should identify completed goals[32m 1[2mms[22m[39m
+ [31m❯[39m src/test/transactionCalculations.test.ts [2m([22m[2m25 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 49[2mms[22m[39m
+       [32m✓[39m should increase balance for income transactions[32m 3[2mms[22m[39m
+       [32m✓[39m should decrease balance for expense transactions[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate correct balance for multiple transactions[32m 0[2mms[22m[39m
+       [32m✓[39m should handle zero balance correctly[32m 0[2mms[22m[39m
+       [32m✓[39m should handle negative balance (overdraft)[32m 0[2mms[22m[39m
+       [32m✓[39m should correctly distribute transactions across accounts[32m 1[2mms[22m[39m
+       [32m✓[39m should handle bulk transaction updates across multiple accounts[32m 1[2mms[22m[39m
+       [32m✓[39m should calculate current balance for today's transaction[32m 0[2mms[22m[39m
+[31m       [31m×[31m should not affect balance for future transactions in calculation[39m[32m 8[2mms[22m[39m
+       [32m✓[39m should correctly calculate balance cutoff at day boundary[32m 0[2mms[22m[39m
+       [32m✓[39m should correctly update balance when modifying transaction[32m 0[2mms[22m[39m
+       [32m✓[39m should correctly update balance when changing transaction type[32m 0[2mms[22m[39m
+       [32m✓[39m should correctly update balance when changing transaction account[32m 0[2mms[22m[39m
+       [32m✓[39m should handle complex transaction update scenario[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate balance changes for multiple additions[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate balance for bulk deletions[32m 0[2mms[22m[39m
+       [32m✓[39m should preserve account balances during partial transaction deletion[32m 0[2mms[22m[39m
+       [32m✓[39m should handle decimal precision in balance calculations[32m 0[2mms[22m[39m
+       [32m✓[39m should maintain precision across multiple operations[32m 17[2mms[22m[39m
+       [32m✓[39m should handle very small transactions[32m 5[2mms[22m[39m
+       [32m✓[39m should handle large transaction amounts[32m 0[2mms[22m[39m
+       [32m✓[39m should identify valid expense transaction[32m 3[2mms[22m[39m
+       [32m✓[39m should identify valid income transaction[32m 1[2mms[22m[39m
+       [32m✓[39m should validate transaction has required fields[32m 2[2mms[22m[39m
+       [32m✓[39m should validate amount is positive[32m 0[2mms[22m[39m
+ [31m❯[39m src/test/crmUtils.test.ts [2m([22m[2m29 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 94[2mms[22m[39m
+       [32m✓[39m should return 100 for recently updated client with no data[32m 5[2mms[22m[39m
+       [32m✓[39m should apply -15 penalty for 8 days of inactivity[32m 1[2mms[22m[39m
+       [32m✓[39m should apply -30 penalty for 16 days of inactivity[32m 0[2mms[22m[39m
+       [32m✓[39m should apply -60 penalty for 31 days of inactivity[32m 0[2mms[22m[39m
+       [32m✓[39m should not exceed 100[32m 2[2mms[22m[39m
+       [32m✓[39m should not go below 0[32m 1[2mms[22m[39m
+[31m       [31m×[31m should add +5 bonus for having accounts[39m[32m 18[2mms[22m[39m
+[31m       [31m×[31m should add +5 bonus for having 50+ transactions[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should not add bonus for less than 50 transactions[32m 0[2mms[22m[39m
+[31m       [31m×[31m should add +5 bonus for having goals[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should combine all bonuses[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should cap combined score at 100[32m 0[2mms[22m[39m
+[31m       [31m×[31m should apply inactivity penalty before bonuses[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should apply all penalties and bonuses together[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should handle empty content object[32m 0[2mms[22m[39m
+       [32m✓[39m should handle null content gracefully[32m 0[2mms[22m[39m
+       [32m✓[39m should handle non-array accounts field[32m 0[2mms[22m[39m
+       [32m✓[39m should handle non-array transactions field[32m 0[2mms[22m[39m
+       [32m✓[39m should handle non-array goals field[32m 0[2mms[22m[39m
+       [32m✓[39m should handle exactly 7 days of inactivity boundary[32m 0[2mms[22m[39m
+[31m       [31m×[31m should handle exactly 15 days of inactivity boundary[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should handle exactly 30 days of inactivity boundary[32m 1[2mms[22m[39m
+       [32m✓[39m should return integer score[32m 0[2mms[22m[39m
+       [32m✓[39m should handle very old last_updated timestamp[32m 0[2mms[22m[39m
+[31m       [31m×[31m should handle multiple accounts (only 1 bonus)[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should handle exactly 50 transactions for bonus threshold[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should handle thousands of transactions[39m[32m 48[2mms[22m[39m
+       [32m✓[39m should produce reasonable scores for inactive clients[32m 0[2mms[22m[39m
+       [32m✓[39m should produce high scores for active clients with data[32m 0[2mms[22m[39m
+ [31m❯[39m src/test/aiService.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 38[2mms[22m[39m
+[31m     [31m×[31m should call Gemini AI when provider is google[39m[32m 6[2mms[22m[39m
+[31m     [31m×[31m should throw error if apiKey is missing[39m[32m 26[2mms[22m[39m
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mrollbackState[2m > [22m[2mshould call onRollback with previous state
+[22m[39m[STATE ROLLBACK] State restored successfully { data: [32m'original'[39m }
+
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mrollbackState[2m > [22m[2mshould handle rollback without callback
+[22m[39m[STATE ROLLBACK] State restored successfully { data: [32m'original'[39m }
+
+[90mstdout[2m | src/services/retryService.test.ts[2m > [22m[2mretryService[2m > [22m[2mretryWithBackoff[2m > [22m[2mshould retry on network error and succeed
+[22m[39m[RETRY SUCCESS] API Operation succeeded on attempt 2/3 { totalTimeMs: [33m103[39m }
+
+ [31m❯[39m src/test/budgetAndGoals.test.ts [2m([22m[2m44 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 83[2mms[22m[39m
+       [32m✓[39m should calculate progress percentage correctly[32m 2[2mms[22m[39m
+       [32m✓[39m should handle progress at 0%[32m 1[2mms[22m[39m
+       [32m✓[39m should handle progress at 100%[32m 0[2mms[22m[39m
+       [32m✓[39m should handle progress exceeding 100%[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate remaining amount needed[32m 0[2mms[22m[39m
+       [32m✓[39m should handle goal with no target (edge case)[32m 1[2mms[22m[39m
+       [32m✓[39m should update goal progress when adding funds[32m 1[2mms[22m[39m
+       [32m✓[39m should update goal when withdrawing funds[32m 0[2mms[22m[39m
+       [32m✓[39m should handle reaching goal target[32m 1[2mms[22m[39m
+       [32m✓[39m should handle surpassing goal target[32m 1[2mms[22m[39m
+       [32m✓[39m should handle multiple deposits[32m 0[2mms[22m[39m
+       [32m✓[39m should identify quarter milestones[32m 1[2mms[22m[39m
+       [32m✓[39m should track which milestones are achieved[32m 2[2mms[22m[39m
+       [32m✓[39m should identify next milestone[32m 1[2mms[22m[39m
+[31m       [31m×[31m should calculate progress to next milestone[39m[32m 24[2mms[22m[39m
+       [32m✓[39m should identify goals approaching deadline[32m 1[2mms[22m[39m
+       [32m✓[39m should identify overdue goals[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate required monthly savings[32m 1[2mms[22m[39m
+       [32m✓[39m should flag urgent goals (deadline within 7 days)[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate total across all goals[32m 0[2mms[22m[39m
+       [32m✓[39m should rank goals by priority (progress)[32m 0[2mms[22m[39m
+       [32m✓[39m should filter goals by category[32m 1[2mms[22m[39m
+       [32m✓[39m should identify completed goals[32m 0[2mms[22m[39m
+       [32m✓[39m should validate goal has required fields[32m 2[2mms[22m[39m
+       [32m✓[39m should validate currentAmount does not exceed reasonable bounds[32m 0[2mms[22m[39m
+       [32m✓[39m should validate targetAmount is positive[32m 1[2mms[22m[39m
+       [32m✓[39m should validate deadline is valid date[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate budget usage for category[32m 0[2mms[22m[39m
+       [32m✓[39m should identify over-budget categories[32m 17[2mms[22m[39m
+       [32m✓[39m should calculate overspend amount[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate remaining budget[32m 0[2mms[22m[39m
+       [32m✓[39m should sum total budget across categories[32m 0[2mms[22m[39m
+       [32m✓[39m should sum total spending across categories[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate total remaining budget[32m 0[2mms[22m[39m
+[31m       [31m×[31m should identify budget status[39m[32m 5[2mms[22m[39m
+       [32m✓[39m should alert when spending exceeds 80% of budget[32m 0[2mms[22m[39m
+       [32m✓[39m should alert when spending exceeds budget[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate days until budget alert needed[32m 0[2mms[22m[39m
+       [32m✓[39m should compare spending against budget[32m 0[2mms[22m[39m
+[31m       [31m×[31m should identify most spent category[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should identify least spent category[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should calculate average spending per category[32m 0[2mms[22m[39m
+       [32m✓[39m should validate budget has required fields[32m 0[2mms[22m[39m
+       [32m✓[39m should validate budget amounts are positive[32m 0[2mms[22m[39m
+ [32m✓[39m src/test/utils.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 298[2mms[22m[39m
+ [32m✓[39m src/test/utilities.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 115[2mms[22m[39m
+ [32m✓[39m src/test/example.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 318[2mms[22m[39m
+[90mstdout[2m | src/services/retryService.test.ts[2m > [22m[2mretryService[2m > [22m[2mretryWithBackoff[2m > [22m[2mshould call onRetry callback
+[22m[39m[RETRY SUCCESS] API Operation succeeded on attempt 2/3 { totalTimeMs: [33m103[39m }
+
+ [31m❯[39m src/test/accountService.test.ts [2m([22m[2m35 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[32m 54[2mms[22m[39m
+[31m       [31m×[31m should calculate invoice value for current month[39m[32m 20[2mms[22m[39m
+       [32m✓[39m should return 0 for card with no expenses[32m 6[2mms[22m[39m
+[31m       [31m×[31m should not include income transactions[39m[32m 3[2mms[22m[39m
+[31m       [31m×[31m should filter by current month and year[39m[32m 4[2mms[22m[39m
+       [32m✓[39m should calculate usage percentage[32m 0[2mms[22m[39m
+       [32m✓[39m should return 0 when limit is 0[32m 0[2mms[22m[39m
+       [32m✓[39m should handle 100% usage[32m 0[2mms[22m[39m
+       [32m✓[39m should find next due card by date[32m 0[2mms[22m[39m
+       [32m✓[39m should skip cards without due day[32m 0[2mms[22m[39m
+       [32m✓[39m should return undefined if no cards have due day[32m 0[2mms[22m[39m
+       [32m✓[39m should handle next month when due date passed[32m 0[2mms[22m[39m
+[31m       [31m×[31m should calculate days until due date[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should return 0 for undefined due day[32m 0[2mms[22m[39m
+[31m       [31m×[31m should calculate for next month if due day passed[39m[32m 1[2mms[22m[39m
+[31m       [31m×[31m should return recent card transactions[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should not include income transactions[32m 0[2mms[22m[39m
+       [32m✓[39m should respect limit parameter[32m 0[2mms[22m[39m
+       [32m✓[39m should return empty array for empty card list[32m 0[2mms[22m[39m
+       [32m✓[39m should group expenses by category[32m 1[2mms[22m[39m
+       [32m✓[39m should include category color and icon[32m 0[2mms[22m[39m
+[31m       [31m×[31m should not include income transactions[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should limit to top 3 categories[32m 0[2mms[22m[39m
+       [32m✓[39m should return correct labels[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate card balance correctly[32m 0[2mms[22m[39m
+       [32m✓[39m should handle 0 limit[32m 0[2mms[22m[39m
+       [32m✓[39m should handle negative balance[32m 0[2mms[22m[39m
+       [32m✓[39m should validate valid account[32m 1[2mms[22m[39m
+       [32m✓[39m should reject empty name[32m 0[2mms[22m[39m
+       [32m✓[39m should validate credit card required fields[32m 0[2mms[22m[39m
+       [32m✓[39m should validate due day range[32m 0[2mms[22m[39m
+[31m       [31m×[31m should calculate correct statistics[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should handle empty credit cards[32m 0[2mms[22m[39m
+[31m       [31m×[31m should return display and days for valid card[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should return default when card is undefined[32m 0[2mms[22m[39m
+       [32m✓[39m should return default when due day is undefined[32m 0[2mms[22m[39m
+ [31m❯[39m src/services/retryService.test.ts [2m([22m[2m31 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 600[2mms[22m[39m
+       [32m✓[39m should detect network errors[32m 6[2mms[22m[39m
+       [32m✓[39m should detect timeout errors[32m 1[2mms[22m[39m
+       [32m✓[39m should detect rate limit errors[32m 0[2mms[22m[39m
+       [32m✓[39m should detect not found errors[32m 0[2mms[22m[39m
+       [32m✓[39m should detect unauthorized errors[32m 0[2mms[22m[39m
+       [32m✓[39m should detect validation errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return UNKNOWN for unknown errors[32m 0[2mms[22m[39m
+       [32m✓[39m should handle null/undefined errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return true for network errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return true for timeout errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return true for rate limit errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return false for not found errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return false for unauthorized errors[32m 0[2mms[22m[39m
+       [32m✓[39m should return false for validation errors[32m 1[2mms[22m[39m
+[31m       [31m×[31m should calculate exponential backoff correctly[39m[32m 9[2mms[22m[39m
+[31m       [31m×[31m should respect maxDelayMs cap[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should use default values when not provided[32m 0[2mms[22m[39m
+       [32m✓[39m should succeed on first attempt[32m 2[2mms[22m[39m
+       [32m✓[39m should retry on network error and succeed[32m 104[2mms[22m[39m
+       [32m✓[39m should fail after max retries exceeded[32m 111[2mms[22m[39m
+       [32m✓[39m should not retry non-retryable errors (401 Unauthorized)[32m 2[2mms[22m[39m
+       [32m✓[39m should not retry validation errors (400 Bad Request)[32m 2[2mms[22m[39m
+       [32m✓[39m should call onRetry callback[32m 112[2mms[22m[39m
+       [32m✓[39m should timeout when operation takes too long[32m 116[2mms[22m[39m
+       [32m✓[39m should include operation name in error message[32m 1[2mms[22m[39m
+[31m       [31m×[31m should return network error message[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should return timeout error message[32m 0[2mms[22m[39m
+       [32m✓[39m should return rate limit error message[32m 0[2mms[22m[39m
+       [32m✓[39m should return user-friendly fallback message[32m 0[2mms[22m[39m
+[31m       [31m×[31m should retry with increasing backoff delays[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should attach detailed error context to final error[32m 117[2mms[22m[39m
+ [32m✓[39m src/test/UIContext.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 468[2mms[22m[39m
+ [31m❯[39m src/test/Skeleton.test.tsx [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1046[2mms[22m[39m
+     [32m✓[39m renders text skeleton by default[32m 93[2mms[22m[39m
+     [32m✓[39m renders multiple skeleton items when count is provided[32m 23[2mms[22m[39m
+     [32m✓[39m renders card variant with correct structure[32m 7[2mms[22m[39m
+     [32m✓[39m renders avatar variant with rounded-full[32m 16[2mms[22m[39m
+[31m     [31m×[31m renders table-row variant with correct structure[39m[32m 72[2mms[22m[39m
+     [32m✓[39m renders chart variant[32m 10[2mms[22m[39m
+     [33m[2m✓[22m[39m respects custom width [33m 678[2mms[22m[39m
+     [32m✓[39m respects custom height[32m 103[2mms[22m[39m
+     [32m✓[39m applies custom className[32m 7[2mms[22m[39m
+     [32m✓[39m renders button variant with correct height[32m 4[2mms[22m[39m
+     [32m✓[39m has animate-pulse class for loading effect[32m 8[2mms[22m[39m
+     [32m✓[39m renders with proper background color classes[32m 20[2mms[22m[39m
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mhandleOperation[2m > [22m[2mshould retry operation with exponential backoff
+[22m[39m[RETRY SUCCESS] Test operation succeeded on attempt 2/3 { totalTimeMs: [33m978[39m }
+
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mhandleOperation[2m > [22m[2mshould perform state rollback on failure if configured
+[22m[39m[STATE ROLLBACK] State restored successfully { data: [32m'original'[39m }
+
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mwithErrorRecovery[2m > [22m[2mshould handle failed operation with recovery
+[22m[39m[RETRY SUCCESS] Test operation succeeded on attempt 2/2 { totalTimeMs: [33m1064[39m }
+
+[90mstdout[2m | src/test/errorRecovery.test.ts[2m > [22m[2mErrorRecoveryService[2m > [22m[2mError recovery integration scenarios[2m > [22m[2mshould handle transaction save failure with rollback
+[22m[39m[STATE ROLLBACK] State restored successfully { transactions: [ { id: [32m'1'[39m, value: [33m100[39m } ] }
+
+ [31m❯[39m src/test/errorRecovery.test.ts [2m([22m[2m44 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 4342[2mms[22m[39m
+       [32m✓[39m should capture error context with all details[32m 12[2mms[22m[39m
+       [32m✓[39m should detect error type correctly[32m 2[2mms[22m[39m
+       [32m✓[39m should handle errors without metadata[32m 2[2mms[22m[39m
+       [32m✓[39m should create error log with provided details[32m 1[2mms[22m[39m
+       [32m✓[39m should add log to logs array[32m 0[2mms[22m[39m
+       [32m✓[39m should maintain max 100 logs[32m 3[2mms[22m[39m
+       [32m✓[39m should mark as recovered when specified[32m 2[2mms[22m[39m
+       [32m✓[39m should return network error message in Portuguese[32m 1[2mms[22m[39m
+       [32m✓[39m should return timeout message in Portuguese[32m 0[2mms[22m[39m
+       [32m✓[39m should return rate limit message in Portuguese[32m 0[2mms[22m[39m
+       [32m✓[39m should return not found message in Portuguese[32m 0[2mms[22m[39m
+       [32m✓[39m should return unauthorized message in Portuguese[32m 0[2mms[22m[39m
+       [32m✓[39m should return validation message in Portuguese[32m 0[2mms[22m[39m
+       [32m✓[39m should prepend action to message when provided[32m 0[2mms[22m[39m
+[31m       [31m×[31m should handle unknown error gracefully[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should call onRollback with previous state[32m 6[2mms[22m[39m
+       [32m✓[39m should handle rollback without callback[32m 3[2mms[22m[39m
+       [32m✓[39m should throw error if rollback fails[32m 8[2mms[22m[39m
+       [32m✓[39m should execute successful operation without retry[32m 12[2mms[22m[39m
+       [33m[2m✓[22m[39m should retry operation with exponential backoff [33m 982[2mms[22m[39m
+       [33m[2m✓[22m[39m should throw after max retries exceeded [33m 1102[2mms[22m[39m
+[31m       [31m×[31m should call onRetry callback during retries[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should capture error context on failure[32m 3[2mms[22m[39m
+       [32m✓[39m should perform state rollback on failure if configured[32m 3[2mms[22m[39m
+       [32m✓[39m should include attempt count in error[32m 3[2mms[22m[39m
+       [32m✓[39m should execute function and return result on success[32m 0[2mms[22m[39m
+       [32m✓[39m should return fallback value on error[32m 0[2mms[22m[39m
+       [32m✓[39m should call fallback function when it is a function[32m 0[2mms[22m[39m
+       [32m✓[39m should call onError callback on failure[32m 1[2mms[22m[39m
+       [32m✓[39m should include action in context when provided[32m 2[2mms[22m[39m
+       [32m✓[39m should return all logged errors[32m 1[2mms[22m[39m
+       [32m✓[39m should return copy of logs array[32m 1[2mms[22m[39m
+       [32m✓[39m should return only errors for specific user[32m 0[2mms[22m[39m
+       [32m✓[39m should return only critical and high severity errors[32m 1[2mms[22m[39m
+       [32m✓[39m should clear all error logs[32m 0[2mms[22m[39m
+       [32m✓[39m should export error logs for monitoring[32m 1[2mms[22m[39m
+       [32m✓[39m should handle successful async operation[32m 0[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle failed operation with recovery [33m 1065[2mms[22m[39m
+       [32m✓[39m should throw after retries exhausted[32m 2[2mms[22m[39m
+       [32m✓[39m should support userId option[32m 0[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle transaction save failure with rollback [33m 1097[2mms[22m[39m
+       [32m✓[39m should handle API rate limiting with appropriate message[32m 1[2mms[22m[39m
+       [32m✓[39m should handle authentication failure without retry[32m 1[2mms[22m[39m
+       [32m✓[39m should provide error tracking for monitoring dashboard[32m 1[2mms[22m[39m
+ [32m✓[39m src/test/transactionService.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m src/test/validationService.test.ts [2m([22m[2m44 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/test/integration.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/transactionGrouping.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m src/test/softDelete.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m src/test/financeContextSplit.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 16[2mms[22m[39m

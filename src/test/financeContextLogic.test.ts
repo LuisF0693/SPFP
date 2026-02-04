@@ -442,6 +442,7 @@ describe('Budget and Goal Management', () => {
     goals = [
       createMockGoal({ id: 'goal-1', name: 'Vacation', targetAmount: 5000, currentAmount: 2000 }),
       createMockGoal({ id: 'goal-2', name: 'House', targetAmount: 100000, currentAmount: 50000 }),
+      createMockGoal({ id: 'goal-3', name: 'Emergency Fund', targetAmount: 1000, currentAmount: 1000 }), // Completed goal
     ];
   });
 
@@ -467,11 +468,12 @@ describe('Budget and Goal Management', () => {
 
   describe('Goal Tracking', () => {
     it('should add goal', () => {
+      const initialLength = goals.length;
       const newGoal = createMockGoal({ name: 'Car' });
       goals = [...goals, newGoal];
 
-      expect(goals).toHaveLength(3);
-      expect(goals[2].name).toBe('Car');
+      expect(goals).toHaveLength(initialLength + 1);
+      expect(goals[initialLength].name).toBe('Car');
     });
 
     it('should update goal progress', () => {
