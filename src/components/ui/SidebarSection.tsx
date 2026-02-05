@@ -1,6 +1,6 @@
 /**
  * SidebarSection Component
- * FASE 1: STY-053 (Budget Section) + STY-054 (Accounts Section)
+ * FASE 1: STY-053 (Budget) + STY-054 (Accounts) + STY-055 (Transactions & Installments)
  *
  * Displays expandable sections for Budget, Accounts, Transactions, and Installments
  * in the sidebar with real-time updates
@@ -9,9 +9,9 @@
 import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Check, Clock } from 'lucide-react';
 import { BankLogo } from '../BankLogo';
-import { formatCurrency } from '../../utils';
+import { formatCurrency, formatDate } from '../../utils';
 
 interface SidebarSectionProps {
   title: string;
@@ -194,6 +194,129 @@ const AccountsSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> =
 };
 
 /**
+ * STY-055: Transactions Section Component
+ * Shows last 5 unconfirmed transactions
+ */
+const TransactionsSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> = ({
+  isExpanded,
+  onToggle,
+}) => {
+  const { transactions, updateTransactions, categories } = useFinance();
+  const navigate = useNavigate();
+
+  // Get last 5 unconfirmed transactions
+  const pendingTransactions = useMemo(() => {
+    return transactions
+      .filter((t) => !t.confirmed)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [transactions]);
+
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((c) => c.id === categoryId)?.name || 'Outro';
+  };
+
+  const handleConfirm = (transactionId: string) => {
+    const transaction = transactions.find((t) => t.id === transactionId);
+    if (transaction) {
+      updateTransactions([{ ...transaction, confirmed: true }]);
+    }
+  };
+
+  return (
+    <div className="space-y-2 max-h-64 overflow-y-auto">
+      {pendingTransactions.length === 0 ? (
+        <div className="text-xs text-gray-400 text-center py-2">Sem lançamentos pendentes</div>
+      ) : (
+        pendingTransactions.map((tx) => (
+          <div
+            key={tx.id}
+            className="flex items-start justify-between p-2 hover:bg-white/5 rounded transition-colors group"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-1">
+                <Clock size={12} className="text-yellow-400 flex-shrink-0" />
+                <span className="text-xs font-medium text-gray-300 truncate">
+                  {getCategoryName(tx.categoryId)}
+                </span>
+              </div>
+              <div className="text-[10px] text-gray-500">{formatDate(tx.date)}</div>
+              <div className="text-xs font-semibold text-red-400">{formatCurrency(tx.amount)}</div>
+            </div>
+            <button
+              onClick={() => handleConfirm(tx.id)}
+              className="ml-2 p-1 rounded bg-green-500/10 hover:bg-green-500/20 transition-colors opacity-0 group-hover:opacity-100"
+              title="Confirmar"
+            >
+              <Check size={12} className="text-green-400" />
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+/**
+ * STY-055: Installments Section Component
+ * Shows grouped installments in open status
+ */
+const InstallmentsSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> = ({
+  isExpanded,
+  onToggle,
+}) => {
+  const { transactions, categories } = useFinance();
+
+  // Get grouped installments
+  const installmentGroups = useMemo(() => {
+    const grouped: Record<string, typeof transactions> = {};
+    transactions
+      .filter((t) => t.groupId && !t.confirmed)
+      .forEach((t) => {
+        if (!grouped[t.groupId!]) {
+          grouped[t.groupId!] = [];
+        }
+        grouped[t.groupId!].push(t);
+      });
+    return Object.entries(grouped).slice(0, 5);
+  }, [transactions]);
+
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((c) => c.id === categoryId)?.name || 'Outro';
+  };
+
+  return (
+    <div className="space-y-3 max-h-64 overflow-y-auto">
+      {installmentGroups.length === 0 ? (
+        <div className="text-xs text-gray-400 text-center py-2">Sem parcelamentos em aberto</div>
+      ) : (
+        installmentGroups.map(([groupId, txs]) => {
+          const firstTx = txs[0];
+          const totalValue = txs.reduce((sum, t) => sum + t.amount, 0);
+          return (
+            <div key={groupId} className="p-2 rounded border border-gray-300/10 hover:border-gray-300/20 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-gray-300">
+                  {getCategoryName(firstTx.categoryId)}
+                </span>
+                <span className="text-[10px] text-gray-400">{txs.length}x</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="text-[10px] text-gray-500">{formatDate(firstTx.date)}</div>
+                <div className="text-xs font-bold text-orange-400">{formatCurrency(totalValue)}</div>
+              </div>
+              <div className="mt-1 text-[9px] text-gray-500">
+                Próxima: {txs.length > 1 ? formatDate(txs[1].date) : 'Finalizado'}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+};
+
+/**
  * Main SidebarSection Component
  * Renders collapsible sections for sidebar
  */
@@ -211,8 +334,9 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
       case 'ACCOUNTS':
         return <AccountsSection isExpanded={isExpanded} onToggle={onToggle} />;
       case 'TRANSACTIONS':
+        return <TransactionsSection isExpanded={isExpanded} onToggle={onToggle} />;
       case 'INSTALLMENTS':
-        return <div className="text-xs text-gray-400">Em desenvolvimento...</div>;
+        return <InstallmentsSection isExpanded={isExpanded} onToggle={onToggle} />;
       default:
         return null;
     }
