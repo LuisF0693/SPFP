@@ -413,7 +413,7 @@ export const Settings: React.FC = () => {
                             <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Cotações de Investimentos</h4>
                                 <p className="text-xs text-gray-500">
-                                    Utilizando **Yahoo Finance** (Sem necessidade de Token).
+                                    Utilizando Yahoo Finance (sem necessidade de Token).
                                 </p>
                             </div>
                             <div>
