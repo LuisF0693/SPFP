@@ -7,6 +7,15 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// Add error logging to catch runtime errors
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled rejection:', event.reason);
+});
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>

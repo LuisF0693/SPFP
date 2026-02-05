@@ -32,8 +32,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    // Could be extended to log to external service
+    console.error('Error caught by boundary:', error);
+    console.error('Error info:', errorInfo);
+    console.error('Stack:', error.stack);
   }
 
   reset = () => {
