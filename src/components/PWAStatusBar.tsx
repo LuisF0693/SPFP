@@ -9,6 +9,14 @@ import React, { useEffect, useState } from 'react';
 import { offlineSyncService } from '../services/offlineSyncService';
 import { WifiOff, Wifi, Download, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
+// Type definition for BeforeInstallPromptEvent
+declare global {
+  interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  }
+}
+
 interface PWAStatusBarProps {
   show?: boolean;
 }
