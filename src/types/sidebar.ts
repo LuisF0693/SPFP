@@ -74,3 +74,19 @@ export const DEFAULT_ANIMATION_CONFIG: SectionAnimationConfig = {
   duration: 300,
   easing: 'ease-in-out'
 };
+
+/**
+ * Default sidebar state for initialization
+ */
+export const DEFAULT_SIDEBAR_STATE: SidebarState = {
+  isExpanded: true,
+  expandedSections: {
+    BUDGET: true,
+    ACCOUNTS: true,
+    TRANSACTIONS: true,
+    INSTALLMENTS: true
+  },
+  hoveredItem: undefined,
+  lastUpdated: Date.now(),
+  deviceWidth: typeof window !== 'undefined' ? window.innerWidth : 1440
+};
