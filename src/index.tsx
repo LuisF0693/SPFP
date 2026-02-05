@@ -17,8 +17,16 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+try {
+  root.render(<App />);
+} catch (error) {
+  console.error('Failed to render app:', error);
+  rootElement.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a1a; color: #fff; font-family: monospace;">
+    <div style="max-width: 500px; padding: 20px;">
+      <h1>Erro ao inicializar aplicação</h1>
+      <p>${error instanceof Error ? error.message : String(error)}</p>
+      <p style="color: #999; font-size: 12px; margin-top: 20px;">Verifique o console (F12) para detalhes.</p>
+    </div>
+  </div>`;
+}
