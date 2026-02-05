@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { Logo } from './Logo';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { PWAStatusBar } from './PWAStatusBar';
+import { offlineSyncService } from '../services/offlineSyncService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -77,6 +79,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     const item = allItems.find(i => i.path === currentPath);
     return item ? item.label : 'Visão Geral';
   };
+
+  // Register Service Worker for PWA support
+  useEffect(() => {
+    offlineSyncService.registerServiceWorker().catch(err => console.warn('SW registration failed:', err));
+  }, []);
 
   return (
     <div className="flex h-screen bg-bg-dark overflow-hidden w-full font-sans text-text-primary transition-colors duration-300">
@@ -329,6 +336,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
           </div>
         </nav>
       </div>
+
+      {/* PWA Status Bar - Offline & Install Prompt */}
+      <PWAStatusBar show={true} />
     </div>
   );
 };

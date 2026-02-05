@@ -9,6 +9,9 @@ import { useAuth } from './AuthContext';
 import { retryWithBackoff, logDetailedError, getErrorMessage } from '../services/retryService';
 import { CardInvoice } from '../types/creditCard';
 import cardInvoiceService from '../services/cardInvoiceService';
+import { Partner } from '../types/partnership';
+import { partnershipService } from '../services/partnershipService';
+import { offlineSyncService } from '../services/offlineSyncService';
 
 interface GlobalState {
   accounts: Account[];
@@ -20,6 +23,7 @@ interface GlobalState {
   userProfile: UserProfile;
   categoryBudgets: CategoryBudget[];
   creditCardInvoices: CardInvoice[];
+  partners: Partner[];
   lastUpdated: number;
 }
 
@@ -60,6 +64,13 @@ export interface FinanceContextData extends FinanceContextType {
   creditCardInvoices: CardInvoice[];
   syncCreditCardInvoices: () => Promise<void>;
   isInvoicesSyncing: boolean;
+  // FASE 3: Partnership Management (STY-076 to STY-078)
+  partners: Partner[];
+  addPartner: (partner: Omit<Partner, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updatePartner: (id: string, updates: Partial<Partner>) => void;
+  deletePartner: (id: string) => void;
+  recoverPartner: (id: string) => void;
+  getDeletedPartners: () => Partner[];
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
@@ -156,6 +167,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           patrimonyItems: Array.isArray(parsedData.patrimonyItems) ? parsedData.patrimonyItems : [],
           categoryBudgets: Array.isArray(parsedData.categoryBudgets) ? parsedData.categoryBudgets : [],
           creditCardInvoices: Array.isArray(parsedData.creditCardInvoices) ? parsedData.creditCardInvoices : [],
+          partners: Array.isArray(parsedData.partners) ? parsedData.partners : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -172,6 +184,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       patrimonyItems: [],
       categoryBudgets: [],
       creditCardInvoices: [],
+      partners: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -344,6 +357,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                   investments: Array.isArray(cloudData.investments) ? cloudData.investments : [],
                   categoryBudgets: Array.isArray(cloudData.categoryBudgets) ? cloudData.categoryBudgets : [],
                   patrimonyItems: Array.isArray(cloudData.patrimonyItems) ? cloudData.patrimonyItems : [],
+                  partners: Array.isArray((cloudData as any).partners) ? (cloudData as any).partners : [],
                 };
                 return safeCloudData;
               }
@@ -872,6 +886,58 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => clearInterval(intervalId);
   }, [isInitialLoadComplete, user?.id, syncCreditCardInvoices]);
 
+  /**
+   * FASE 3: Partnership Management (STY-076 to STY-078)
+   */
+  const addPartner = (partner: Omit<Partner, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newPartner = partnershipService.createPartner(partner);
+    updateAndSync({ partners: [...state.partners, newPartner] });
+  };
+
+  const updatePartner = (id: string, updates: Partial<Partner>) => {
+    const partner = state.partners.find(p => p.id === id);
+    if (!partner) return;
+    const updated = partnershipService.updatePartner(partner, updates);
+    updateAndSync({ partners: state.partners.map(p => p.id === id ? updated : p) });
+  };
+
+  const deletePartner = (id: string) => {
+    const partner = state.partners.find(p => p.id === id);
+    if (!partner) return;
+    const deleted = partnershipService.deletePartner(partner);
+    updateAndSync({ partners: state.partners.map(p => p.id === id ? deleted : p) });
+  };
+
+  const recoverPartner = (id: string) => {
+    const partner = state.partners.find(p => p.id === id);
+    if (!partner || !partner.deletedAt) return;
+    const nextPartners = state.partners.map(p => p.id === id ? { ...p, deletedAt: undefined } : p);
+    updateAndSync({ partners: nextPartners });
+  };
+
+  const getDeletedPartners = (): Partner[] => {
+    return filterDeleted(state.partners);
+  };
+
+  // Initialize offline sync service
+  useEffect(() => {
+    offlineSyncService.init().catch(err => console.warn('Offline sync init failed:', err));
+
+    // Register online/offline listeners
+    const unsubscribe = offlineSyncService.registerSyncListeners({
+      onOnline: async () => {
+        console.log('Back online - syncing pending operations');
+        const result = await offlineSyncService.syncPendingOperations();
+        console.log(`Synced: ${result.successful} successful, ${result.failed} failed`);
+      },
+      onOffline: () => {
+        console.log('Now offline - operations will be queued');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -914,7 +980,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // STY-059: Invoice Context Integration
       creditCardInvoices: state.creditCardInvoices || [],
       syncCreditCardInvoices,
-      isInvoicesSyncing
+      isInvoicesSyncing,
+      // FASE 3: Partnership Management (STY-076 to STY-078)
+      partners: filterActive(state.partners),
+      addPartner,
+      updatePartner,
+      deletePartner,
+      recoverPartner,
+      getDeletedPartners
     }}>
       {children}
     </FinanceContext.Provider>
