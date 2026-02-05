@@ -12,6 +12,8 @@ import cardInvoiceService from '../services/cardInvoiceService';
 import { Partner } from '../types/partnership';
 import { partnershipService } from '../services/partnershipService';
 import { offlineSyncService } from '../services/offlineSyncService';
+import { Asset } from '../types/assets';
+import { assetService } from '../services/assetService';
 
 interface GlobalState {
   accounts: Account[];
@@ -24,6 +26,7 @@ interface GlobalState {
   categoryBudgets: CategoryBudget[];
   creditCardInvoices: CardInvoice[];
   partners: Partner[];
+  assets: Asset[];
   lastUpdated: number;
 }
 
@@ -71,6 +74,13 @@ export interface FinanceContextData extends FinanceContextType {
   deletePartner: (id: string) => void;
   recoverPartner: (id: string) => void;
   getDeletedPartners: () => Partner[];
+  // FASE 2: Asset Acquisition (STY-071 to STY-075)
+  assets: Asset[];
+  addAsset: (asset: Omit<Asset, 'id' | 'dateAdded' | 'lastUpdated'>) => void;
+  updateAsset: (id: string, updates: Partial<Asset>) => void;
+  deleteAsset: (id: string) => void;
+  recoverAsset: (id: string) => void;
+  getDeletedAssets: () => Asset[];
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
@@ -168,6 +178,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           categoryBudgets: Array.isArray(parsedData.categoryBudgets) ? parsedData.categoryBudgets : [],
           creditCardInvoices: Array.isArray(parsedData.creditCardInvoices) ? parsedData.creditCardInvoices : [],
           partners: Array.isArray(parsedData.partners) ? parsedData.partners : [],
+          assets: Array.isArray(parsedData.assets) ? parsedData.assets : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -185,6 +196,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       categoryBudgets: [],
       creditCardInvoices: [],
       partners: [],
+      assets: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -358,6 +370,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                   categoryBudgets: Array.isArray(cloudData.categoryBudgets) ? cloudData.categoryBudgets : [],
                   patrimonyItems: Array.isArray(cloudData.patrimonyItems) ? cloudData.patrimonyItems : [],
                   partners: Array.isArray((cloudData as any).partners) ? (cloudData as any).partners : [],
+                  assets: Array.isArray((cloudData as any).assets) ? (cloudData as any).assets : [],
                 };
                 return safeCloudData;
               }
@@ -831,6 +844,39 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   /**
+   * FASE 2: Asset Acquisition Management (STY-071 to STY-075)
+   */
+  const addAsset = (asset: Omit<Asset, 'id' | 'dateAdded' | 'lastUpdated'>) => {
+    const newAsset = assetService.createAsset(asset);
+    updateAndSync({ assets: [...state.assets, newAsset] });
+  };
+
+  const updateAsset = (id: string, updates: Partial<Asset>) => {
+    const asset = state.assets.find(a => a.id === id);
+    if (!asset) return;
+    const updated = assetService.updateAsset(asset, updates);
+    updateAndSync({ assets: state.assets.map(a => a.id === id ? updated : a) });
+  };
+
+  const deleteAsset = (id: string) => {
+    const asset = state.assets.find(a => a.id === id);
+    if (!asset) return;
+    const deleted = assetService.deleteAsset(asset);
+    updateAndSync({ assets: state.assets.map(a => a.id === id ? deleted : a) });
+  };
+
+  const recoverAsset = (id: string) => {
+    const asset = state.assets.find(a => a.id === id);
+    if (!asset || !asset.deletedAt) return;
+    const nextAssets = state.assets.map(a => a.id === id ? { ...a, deletedAt: undefined } : a);
+    updateAndSync({ assets: nextAssets });
+  };
+
+  const getDeletedAssets = (): Asset[] => {
+    return filterDeleted(state.assets);
+  };
+
+  /**
    * STY-059: Sync credit card invoices from service
    */
   const syncCreditCardInvoices = useCallback(async () => {
@@ -987,7 +1033,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updatePartner,
       deletePartner,
       recoverPartner,
-      getDeletedPartners
+      getDeletedPartners,
+      // FASE 2: Asset Acquisition (STY-071 to STY-075)
+      assets: filterActive(state.assets),
+      addAsset,
+      updateAsset,
+      deleteAsset,
+      recoverAsset,
+      getDeletedAssets
     }}>
       {children}
     </FinanceContext.Provider>
