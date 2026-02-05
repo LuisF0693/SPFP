@@ -42,17 +42,20 @@ export const useMonthlyMetrics = (
   today: Date = new Date()
 ): MonthlyMetrics => {
   return useMemo(() => {
+    // Ensure transactions is an array
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
     // Filter current month transactions
-    const currentMonthTx = transactions.filter(t => {
+    const currentMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
     // Filter last month transactions
-    const lastMonthTx = transactions.filter(t => {
+    const lastMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
       const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
@@ -95,17 +98,22 @@ export const useBudgetAlerts = (
   today: Date = new Date()
 ): BudgetAlert => {
   return useMemo(() => {
+    // Ensure arrays are defined
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+    const safeCats = Array.isArray(categories) ? categories : [];
+    const safeBudgets = Array.isArray(categoryBudgets) ? categoryBudgets : [];
+
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    const currentMonthTx = transactions.filter(t => {
+    const currentMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
-    return categories.reduce(
+    return safeCats.reduce(
       (acc, cat) => {
-        const budget = categoryBudgets.find(b => b.categoryId === cat.id);
+        const budget = safeBudgets.find(b => b.categoryId === cat.id);
         if (!budget || budget.limit <= 0) return acc;
 
         const spent = currentMonthTx
@@ -131,15 +139,18 @@ export const useAtypicalSpending = (
   today: Date = new Date()
 ): Transaction[] => {
   return useMemo(() => {
+    // Ensure transactions is an array
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    const currentMonthTx = transactions.filter(t => {
+    const currentMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
-    const last3MonthsTx = transactions.filter(t => {
+    const last3MonthsTx = safeTx.filter(t => {
       const d = new Date(t.date);
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -161,7 +172,7 @@ export const useAtypicalSpending = (
       const dayOfWeek = txDate.getDay();
 
       // Get same day of week transactions from other months
-      const sameDayOfWeekTxs = transactions.filter(prevT => {
+      const sameDayOfWeekTxs = safeTx.filter(prevT => {
         const prevD = new Date(prevT.date);
         return (
           prevT.type === 'EXPENSE' &&
@@ -190,13 +201,15 @@ export const useTrendData = (
   today: Date = new Date()
 ): ChartDataPoint[] => {
   return useMemo(() => {
+    // Ensure transactions is an array
+    const safeTx = Array.isArray(transactions) ? transactions : [];
     const data: ChartDataPoint[] = [];
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const monthName = d.toLocaleString('pt-BR', { month: 'short' });
 
-      const monthTx = transactions.filter(t => {
+      const monthTx = safeTx.filter(t => {
         const tDate = new Date(t.date);
         return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
       });
@@ -225,10 +238,14 @@ export const useCategoryChartData = (
   today: Date = new Date()
 ): CategoryChartData[] => {
   return useMemo(() => {
+    // Ensure arrays are defined
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+    const safeCats = Array.isArray(categories) ? categories : [];
+
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    const currentMonthTx = transactions.filter(t => {
+    const currentMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
@@ -241,7 +258,7 @@ export const useCategoryChartData = (
           return acc;
         }, {} as Record<string, number>)
     ).map(([catId, value]) => {
-      const cat = categories.find(c => c.id === catId);
+      const cat = safeCats.find(c => c.id === catId);
       return { name: cat?.name || 'Outros', value, color: cat?.color || '#94a3b8' };
     });
 

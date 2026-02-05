@@ -49,7 +49,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  * Handles authentication routing, user profile synchronization, and global navigation logic.
  */
 const AppContent: React.FC = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useFinance();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const navigate = useNavigate();
@@ -66,6 +66,12 @@ const AppContent: React.FC = () => {
     }
   }, [user, isInitialLoadComplete, isImpersonating, userProfile.email, updateUserProfile]);
 
+  // Show loading while auth is initializing
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  // Show loading while user is loading their data
   if (user && !isInitialLoadComplete) {
     return <Loading />;
   }
