@@ -5,6 +5,7 @@ import i18next from './i18n/config';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UIProvider } from './context/UIContext';
+import { SidebarProvider } from './context/SidebarContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { Layout } from './components/Layout';
 import Loading from './components/ui/Loading';
@@ -193,9 +194,11 @@ export const App: React.FC = () => {
         <UIProvider>
           <BrowserRouter>
             <AuthProvider>
-              <FinanceProvider>
-                <AppContent />
-              </FinanceProvider>
+              <SidebarProvider>
+                <FinanceProvider>
+                  <AppContent />
+                </FinanceProvider>
+              </SidebarProvider>
             </AuthProvider>
           </BrowserRouter>
         </UIProvider>
