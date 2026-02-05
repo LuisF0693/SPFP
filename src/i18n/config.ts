@@ -20,11 +20,14 @@ i18next
     resources,
     fallbackLng: 'pt-BR',
     interpolation: {
-      escapeValue: false, // React already safes from XSS
+      escapeValue: false,
     },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+    },
+    react: {
+      useSuspense: false,
     },
   });
 
