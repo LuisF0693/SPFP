@@ -7,7 +7,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { offlineSyncService } from '../services/offlineSyncService';
-import { WiFiOff, Wifi, Download, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { WifiOff, Wifi, Download, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface PWAStatusBarProps {
   show?: boolean;
@@ -114,7 +114,7 @@ export const PWAStatusBar: React.FC<PWAStatusBarProps> = ({ show = true }) => {
       {isOffline && (
         <div className="pointer-events-auto bg-amber-500/20 border-t border-amber-500/30 px-4 py-3 flex items-center space-x-3">
           <div className="flex items-center space-x-2 flex-1">
-            <WiFiOff size={16} className="text-amber-400 animate-pulse" />
+            <WifiOff size={16} className="text-amber-400 animate-pulse" />
             <span className="text-sm text-amber-300 font-medium">Modo offline - dados serão sincronizados quando reconectar</span>
           </div>
           {pendingCount > 0 && (
