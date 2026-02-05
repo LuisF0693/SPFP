@@ -7,6 +7,8 @@ import { supabase } from '../supabase';
 import { logInteraction } from '../services/logService';
 import { useAuth } from './AuthContext';
 import { retryWithBackoff, logDetailedError, getErrorMessage } from '../services/retryService';
+import { CardInvoice } from '../types/creditCard';
+import cardInvoiceService from '../services/cardInvoiceService';
 
 interface GlobalState {
   accounts: Account[];
@@ -17,6 +19,7 @@ interface GlobalState {
   patrimonyItems: PatrimonyItem[];
   userProfile: UserProfile;
   categoryBudgets: CategoryBudget[];
+  creditCardInvoices: CardInvoice[];
   lastUpdated: number;
 }
 
@@ -53,6 +56,10 @@ export interface FinanceContextData extends FinanceContextType {
   getDeletedGoals: () => Goal[];
   getDeletedInvestments: () => InvestmentAsset[];
   getDeletedPatrimonyItems: () => PatrimonyItem[];
+  // STY-059: Invoice Context Integration
+  creditCardInvoices: CardInvoice[];
+  syncCreditCardInvoices: () => Promise<void>;
+  isInvoicesSyncing: boolean;
 }
 
 const FinanceContext = createContext<FinanceContextData | undefined>(undefined);
@@ -116,6 +123,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const syncTimeoutRef = useRef<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isInvoicesSyncing, setIsInvoicesSyncing] = useState(false);
 
   // Persistent Impersonation State Keys
   const IMPERSONATION_KEY = 'spfp_is_impersonating';
@@ -147,6 +155,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           investments: Array.isArray(parsedData.investments) ? parsedData.investments : [],
           patrimonyItems: Array.isArray(parsedData.patrimonyItems) ? parsedData.patrimonyItems : [],
           categoryBudgets: Array.isArray(parsedData.categoryBudgets) ? parsedData.categoryBudgets : [],
+          creditCardInvoices: Array.isArray(parsedData.creditCardInvoices) ? parsedData.creditCardInvoices : [],
           userProfile: parsedData.userProfile || INITIAL_PROFILE,
           lastUpdated: parsedData.lastUpdated || 0
         };
@@ -162,6 +171,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       investments: [],
       patrimonyItems: [],
       categoryBudgets: [],
+      creditCardInvoices: [],
       userProfile: INITIAL_PROFILE,
       lastUpdated: 0
     };
@@ -806,6 +816,62 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return filterDeleted(state.patrimonyItems);
   };
 
+  /**
+   * STY-059: Sync credit card invoices from service
+   */
+  const syncCreditCardInvoices = useCallback(async () => {
+    if (!user?.id) return;
+
+    setIsInvoicesSyncing(true);
+    try {
+      // Fetch invoices for each credit card account
+      const creditCards = filterActive(state.accounts).filter(a => a.type === 'CREDIT_CARD');
+      const allInvoices: CardInvoice[] = [];
+
+      for (const card of creditCards) {
+        try {
+          const invoices = await cardInvoiceService.fetchCardInvoices({
+            cardId: card.id,
+            months: 3,
+            includeHistory: true
+          });
+          allInvoices.push(...invoices);
+        } catch (error) {
+          console.warn(`Failed to sync invoices for card ${card.id}:`, error);
+        }
+      }
+
+      // Update state with invoices
+      updateAndSync({ creditCardInvoices: allInvoices });
+
+      // Log sync
+      logInteraction({
+        action: 'sync_credit_card_invoices',
+        metadata: { invoiceCount: allInvoices.length }
+      });
+    } catch (error) {
+      logDetailedError(
+        error as Error,
+        'Failed to sync credit card invoices',
+        { action: 'syncCreditCardInvoices', severity: 'medium' }
+      );
+    } finally {
+      setIsInvoicesSyncing(false);
+    }
+  }, [user?.id, state.accounts]);
+
+  // Auto-sync invoices on app load (every 30 minutes)
+  useEffect(() => {
+    if (!isInitialLoadComplete || !user?.id) return;
+
+    // Initial sync
+    syncCreditCardInvoices();
+
+    // Set up interval for periodic sync (30 minutes)
+    const intervalId = setInterval(syncCreditCardInvoices, 30 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, [isInitialLoadComplete, user?.id, syncCreditCardInvoices]);
+
   return (
     <FinanceContext.Provider value={{
       userProfile: state.userProfile,
@@ -844,7 +910,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       getDeletedAccounts,
       getDeletedGoals,
       getDeletedInvestments,
-      getDeletedPatrimonyItems
+      getDeletedPatrimonyItems,
+      // STY-059: Invoice Context Integration
+      creditCardInvoices: state.creditCardInvoices || [],
+      syncCreditCardInvoices,
+      isInvoicesSyncing
     }}>
       {children}
     </FinanceContext.Provider>
