@@ -354,7 +354,15 @@ a:focus-visible,
 
 /* Screen Reader Only - Hide visually but announce */
 .sr-only {
-  @apply absolute w-1 h-1 p-0 -m-1 overflow-hidden clip-rect-0 border-0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* Navigation FAB - Mobile bottom, Desktop side */
