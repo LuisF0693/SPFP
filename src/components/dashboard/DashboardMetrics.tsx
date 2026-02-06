@@ -37,7 +37,10 @@ export const DashboardMetrics = memo<DashboardMetricsProps>(
 
     // Calculate budget progress
     const totalBudgeted = useMemo(
-      () => categoryBudgets.reduce((sum, b) => sum + b.limit, 0),
+      () => {
+        const safeBudgets = Array.isArray(categoryBudgets) ? categoryBudgets : [];
+        return safeBudgets.reduce((sum, b) => sum + b.limit, 0);
+      },
       [categoryBudgets]
     );
 

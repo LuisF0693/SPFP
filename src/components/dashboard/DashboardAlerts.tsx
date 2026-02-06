@@ -21,13 +21,14 @@ interface DashboardAlertsProps {
 export const DashboardAlerts = memo<DashboardAlertsProps>(({ alerts }) => {
   const navigate = useNavigate();
 
-  if (!alerts.length) {
+  const safeAlerts = Array.isArray(alerts) ? alerts : [];
+  if (!safeAlerts.length) {
     return null;
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up">
-      {alerts.map((alert, idx) => (
+      {safeAlerts.map((alert, idx) => (
         <div
           key={idx}
           onClick={() => navigate(alert.link)}

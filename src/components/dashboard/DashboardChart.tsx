@@ -28,6 +28,7 @@ interface DashboardChartProps {
  */
 export const DashboardChart = memo<DashboardChartProps>(
   ({ trendData, categoryData, totalExpense, currentMonth }) => {
+    const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
     const renderCustomLegend = useMemo(() => {
       return (props: any) => {
         const { payload } = props;
@@ -150,11 +151,11 @@ export const DashboardChart = memo<DashboardChartProps>(
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center relative min-h-[200px]">
-            {categoryData.length > 0 ? (
+            {safeCategoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={safeCategoryData}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -163,7 +164,7 @@ export const DashboardChart = memo<DashboardChartProps>(
                     dataKey="value"
                     stroke="none"
                   >
-                    {categoryData.map((entry, index) => (
+                    {safeCategoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -190,7 +191,7 @@ export const DashboardChart = memo<DashboardChartProps>(
               </div>
             )}
 
-            {categoryData.length > 0 && (
+            {safeCategoryData.length > 0 && (
               <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                 <p className="text-xs text-gray-300">Total</p>
                 <p className="text-lg font-black text-gray-900 dark:text-white">
