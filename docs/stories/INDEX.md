@@ -204,13 +204,41 @@ STY-004, 005, 009, 016, 032-033, 050
 
 ---
 
-**Total Stories Created:** 50+
-**Total Estimated Effort:** 335+ hours
-**Recommended Timeline:** 6 weeks (3 developers) | 12 weeks (2 developers)
+## NEW: UX Restructure Sprint (9 Stories, 51 hours)
+
+**Epic:** UX Restructure - Sidebar e Navegação
+**PRD:** [PRD-UX-RESTRUCTURE-SIDEBAR](../prd/PRD-UX-RESTRUCTURE-SIDEBAR.md)
+**Status:** READY - Prioridade Imediata
+**Created:** 2026-02-06
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| **STY-051** | [Reestruturar Sidebar com Seções Colapsáveis](story-051-sidebar-restructure.md) | 8h | P0 CRÍTICA | READY |
+| **STY-052** | [Implementar Aba de Parcelamentos](story-052-installments-page.md) | 12h | P0 CRÍTICA | READY |
+| **STY-053** | [Separar Aposentadoria de Objetivos](story-053-retirement-separate.md) | 6h | P1 ALTA | READY |
+| **STY-054** | [Implementar Aba de Aquisição](story-054-acquisition-page.md) | 10h | P1 ALTA | READY |
+| **STY-055** | [Redesign dos Relatórios](story-055-reports-redesign.md) | 6h | P2 MÉDIA | READY |
+| **STY-056** | [Bug Fix: Proprietário Duplicado Cartão](story-056-card-owner-bug.md) | 2h | P0 CRÍTICA | READY |
+| **STY-057** | [Bug Fix: Nome do Dono em Lançamentos](story-057-card-owner-transactions.md) | 3h | P1 ALTA | READY |
+| **STY-058** | [UI: Emojis no Formulário de Lançamentos](story-058-emoji-in-transaction-form.md) | 3h | P2 MÉDIA | READY |
+| **STY-059** | [Remover Aba de Projeções](story-059-remove-projections.md) | 1h | P2 MÉDIA | READY |
+| **UX Sprint Total** | | **51h** | | |
+
+### UX Sprint Execution Order:
+1. **Week 1:** STY-051 (Sidebar) + STY-056 (Bug cartão)
+2. **Week 2:** STY-052 (Parcelamentos) + STY-057 (Bug lançamentos)
+3. **Week 3:** STY-053 (Aposentadoria) + STY-054 (Aquisição)
+4. **Week 4:** STY-055 (Relatórios) + STY-058 (Emojis) + STY-059 (Remove Projeções)
+
+---
+
+**Total Stories Created:** 59
+**Total Estimated Effort:** 386 hours
+**Recommended Timeline:** 6-8 weeks (3 developers) | 12-14 weeks (2 developers)
 **Expected Go-Live:** 2026-04-06
 
 ---
 
 **Created by:** @pm (Morgan - Product Manager), Synkra AIOS
-**Last Updated:** 2026-01-26
-**Status:** APPROVED - Ready for Sprint Execution
+**Last Updated:** 2026-02-06
+**Status:** APPROVED - UX Sprint Added
