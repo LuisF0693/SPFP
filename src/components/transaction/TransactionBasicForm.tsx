@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Transaction, TransactionType, CategoryGroup, Category } from '../../types';
+import { Transaction, TransactionType, CategoryGroup, Category, Account, UserProfile } from '../../types';
 import { ChevronDown, Search, Check, X, Sparkles, Plus, Palette } from 'lucide-react';
 import { CategoryIcon, AVAILABLE_ICONS } from '../CategoryIcon';
+import { getOwnerDisplayName } from '../../utils/ownerUtils';
 
 interface TransactionBasicFormProps {
   description: string;
@@ -19,11 +20,12 @@ interface TransactionBasicFormProps {
   paid: boolean;
   onPaidChange: (paid: boolean) => void;
   wasCategoryAutoSelected: boolean;
-  accounts: any[];
+  accounts: Account[];
   categories: Category[];
   selectedCategory: Category | undefined;
   showImpulseAlert: boolean;
   onCreateCategory: (name: string, group: CategoryGroup, color: string, icon: string) => string;
+  userProfile?: Partial<UserProfile>;
 }
 
 const COLOR_PALETTE = [
@@ -59,6 +61,7 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
   selectedCategory,
   showImpulseAlert,
   onCreateCategory,
+  userProfile,
 }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
@@ -311,12 +314,17 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
               onChange={(e) => onAccountChange(e.target.value)}
               className="w-full pl-11 pr-4 py-4 bg-transparent outline-none appearance-none cursor-pointer text-sm font-medium text-slate-100"
             >
-              {accounts.map((acc: any) => (
-                <option key={acc.id} value={acc.id} className="bg-slate-800 text-slate-100">
-                  {acc.type === 'CREDIT_CARD' ? '💳 ' : '🏦 '}
-                  {acc.name}
-                </option>
-              ))}
+              {accounts.map((acc) => {
+                const ownerName = getOwnerDisplayName(acc.owner, userProfile);
+                const displayName = acc.type === 'CREDIT_CARD'
+                  ? `💳 ${acc.name} - ${ownerName}`
+                  : `🏦 ${acc.name}`;
+                return (
+                  <option key={acc.id} value={acc.id} className="bg-slate-800 text-slate-100">
+                    {displayName}
+                  </option>
+                );
+              })}
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
               <ChevronDown size={18} />

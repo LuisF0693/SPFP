@@ -229,6 +229,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           selectedCategory={selectedCategory}
           showImpulseAlert={state.showImpulseAlert}
           onCreateCategory={handleCreateCategory}
+          userProfile={userProfile}
         />
 
         {/* Spender and Sentiment */}

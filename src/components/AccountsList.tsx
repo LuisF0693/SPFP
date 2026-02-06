@@ -9,7 +9,7 @@ import {
   Wifi,
   Download,
 } from 'lucide-react';
-import { Account, Transaction, Category } from '../types';
+import { Account, Transaction, Category, UserProfile } from '../types';
 import {
   getInvoiceValue,
   calculateCardBalance,
@@ -21,12 +21,13 @@ import {
 import { formatCurrency, formatDate } from '../utils';
 import { CategoryIcon } from './CategoryIcon';
 import { CreditCardDisplay } from './CreditCardDisplay';
+import { getCardHolderName } from '../utils/ownerUtils';
 
 interface AccountsListProps {
   creditCards: Account[];
   transactions: Transaction[];
   categories: Category[];
-  userProfile: { spouseName?: string };
+  userProfile: Partial<UserProfile>;
   onEdit: (account: Account) => void;
   onDelete: (id: string, name: string) => void;
   onPayInvoice: (account: Account) => void;
@@ -191,7 +192,7 @@ export const AccountsList: React.FC<AccountsListProps> = ({
                   >
                     <CreditCardDisplay
                       account={card}
-                      holderName={userProfile?.spouseName || 'TITULAR'}
+                      holderName={getCardHolderName(card.owner, userProfile)}
                       cardNumber={card.lastFourDigits ? `•••• •••• •••• ${card.lastFourDigits}` : undefined}
                     />
                   </div>
