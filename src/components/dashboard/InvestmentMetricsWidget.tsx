@@ -40,7 +40,8 @@ export const InvestmentMetricsWidget: React.FC = () => {
 
   // Calculate metrics
   const metrics = useMemo(() => {
-    if (investments.length === 0) {
+    const safeInvestments = Array.isArray(investments) ? investments : [];
+    if (safeInvestments.length === 0) {
       return {
         totalInvested: 0,
         currentValue: 0,
@@ -52,12 +53,12 @@ export const InvestmentMetricsWidget: React.FC = () => {
       };
     }
 
-    const totalInvested = investments.reduce((sum, inv) => {
+    const totalInvested = safeInvestments.reduce((sum, inv) => {
       const investedAmount = inv.quantity * (inv.purchasePrice || 0);
       return sum + investedAmount;
     }, 0);
 
-    const currentValue = investments.reduce((sum, inv) => {
+    const currentValue = safeInvestments.reduce((sum, inv) => {
       return sum + (inv.totalValue);
     }, 0);
 
@@ -71,7 +72,7 @@ export const InvestmentMetricsWidget: React.FC = () => {
 
     // Asset distribution
     const assetMap: Record<string, number> = {};
-    investments.forEach((inv) => {
+    safeInvestments.forEach((inv) => {
       const assetType = inv.assetType || 'Outro';
       assetMap[assetType] = (assetMap[assetType] || 0) + (inv.totalValue);
     });
@@ -95,7 +96,8 @@ export const InvestmentMetricsWidget: React.FC = () => {
     };
   }, [investments]);
 
-  if (investments.length === 0) {
+  const safeInvestments = Array.isArray(investments) ? investments : [];
+  if (safeInvestments.length === 0) {
     return (
       <div
         className="bg-card-dark border border-gray-800 rounded-xl p-6 cursor-pointer hover:border-gray-700 transition-all"

@@ -37,12 +37,14 @@ export const DeleteTransactionModal: React.FC<DeleteTransactionModalProps> = ({
     const totalCount = transaction.groupTotal || relatedTransactions.length;
 
     // Get account name
-    const account = accounts.find(a => a.id === transaction.accountId);
+    const safeAccounts = Array.isArray(accounts) ? accounts : [];
+    const account = safeAccounts.find(a => a.id === transaction.accountId);
     const accountName = account?.name || 'Conta';
 
     // Calculate values
     const calculations = useMemo(() => {
-        const sortedTxs = [...relatedTransactions].sort((a, b) =>
+        const safeRelated = Array.isArray(relatedTransactions) ? relatedTransactions : [];
+        const sortedTxs = [...safeRelated].sort((a, b) =>
             new Date(a.date).getTime() - new Date(b.date).getTime()
         );
 

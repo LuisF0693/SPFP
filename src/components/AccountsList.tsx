@@ -174,7 +174,7 @@ export const AccountsList: React.FC<AccountsListProps> = ({
               </button>
             </div>
           ) : (
-            creditCards.map(card => {
+            (Array.isArray(creditCards) ? creditCards : []).map(card => {
               const calcInvoice = getInvoiceValue(card.id, transactions);
               const { used, available, percent } = calculateCardBalance(card);
 

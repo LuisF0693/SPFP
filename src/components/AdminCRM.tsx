@@ -118,12 +118,13 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
     };
 
     const clientStats = useMemo(() => {
-        const totalPatrimony = clients.reduce((acc, c) => {
+        const safeClients = Array.isArray(clients) ? clients : [];
+        const totalPatrimony = safeClients.reduce((acc, c) => {
             const accounts = c.content.accounts || [];
             return acc + accounts.reduce((a: number, curr: any) => a + (curr.balance || 0), 0);
         }, 0);
 
-        const activeToday = clients.filter(c => {
+        const activeToday = safeClients.filter(c => {
             const diff = Date.now() - c.last_updated;
             return diff < (1000 * 60 * 60 * 24);
         }).length;
@@ -131,11 +132,12 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
         return {
             totalAUM: totalPatrimony,
             activeToday,
-            atRisk: clients.filter(c => calculateHealthScore(c) < 50).length
+            atRisk: safeClients.filter(c => calculateHealthScore(c) < 50).length
         };
     }, [clients]);
 
-    const filteredClients = clients.filter(c => {
+    const safeClients = Array.isArray(clients) ? clients : [];
+    const filteredClients = safeClients.filter(c => {
         const profile = c.content.userProfile || {};
         const name = (profile.name || '').toLowerCase();
         const email = (profile.email || '').toLowerCase();

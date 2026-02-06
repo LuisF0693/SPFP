@@ -43,7 +43,7 @@ export const DashboardTransactions = memo<DashboardTransactionsProps>(
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                {transactions.slice(0, 5).map(tx => {
+                {(Array.isArray(transactions) ? transactions : []).slice(0, 5).map(tx => {
                   const cat = categories.find(c => c.id === tx.categoryId);
                   return (
                     <tr
@@ -82,7 +82,7 @@ export const DashboardTransactions = memo<DashboardTransactionsProps>(
               </tbody>
             </table>
 
-            {transactions.length === 0 && (
+            {(Array.isArray(transactions) ? transactions : []).length === 0 && (
               <div className="text-center py-8 text-gray-400 text-sm">
                 Nenhuma transação registrada.
               </div>
@@ -105,7 +105,7 @@ export const DashboardTransactions = memo<DashboardTransactionsProps>(
           </div>
 
           <div className="flex-1 overflow-auto space-y-4 no-scrollbar">
-            {accounts.slice(0, 4).map(acc => (
+            {(Array.isArray(accounts) ? accounts : []).slice(0, 4).map(acc => (
               <div
                 key={acc.id}
                 className="flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"

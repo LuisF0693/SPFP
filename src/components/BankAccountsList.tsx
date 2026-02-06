@@ -38,7 +38,7 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
       </header>
 
       {/* Accounts Grid */}
-      {accounts.length === 0 ? (
+      {(Array.isArray(accounts) ? accounts : []).length === 0 ? (
         <div className="bg-gray-50 dark:bg-[#0f172a] rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-8 text-center">
           <p className="text-gray-500 text-sm">
             Nenhuma conta corrente ou investimento cadastrado.
@@ -46,7 +46,7 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
-          {accounts.map(account => (
+          {(Array.isArray(accounts) ? accounts : []).map(account => (
             <div
               key={account.id}
               className="bg-white dark:bg-[#0f172a] p-5 rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors group"
