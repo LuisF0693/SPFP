@@ -130,7 +130,7 @@ export const SidebarTransactionsSection: React.FC = memo(() => {
             key={txn.id}
             emoji={txn.categoryEmoji}
             description={txn.description}
-            amount={txn.amount}
+            amount={txn.value}
             date={txn.date}
             status={txn.status}
             onConfirm={() => handleConfirmTransaction(txn.id)}
