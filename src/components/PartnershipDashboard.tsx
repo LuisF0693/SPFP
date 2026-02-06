@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Partner, PartnerStatus } from '../types/partnership';
-import { formatCurrency } from '../utils';
+import { formatCurrency, generateId } from '../utils';
 import {
   Users,
   TrendingUp,
@@ -16,26 +16,102 @@ import {
   Plus,
   Edit2,
   Trash2,
-  CheckCircle,
-  AlertCircle,
-  PieChart,
-  Calendar
 } from 'lucide-react';
 import { Modal } from './ui/Modal';
 
+const STORAGE_KEY = 'spfp_partners';
+
 interface PartnershipDashboardProps {
-  partners: Partner[];
-  onAddPartner: () => void;
-  onEditPartner: (partner: Partner) => void;
-  onDeletePartner: (partnerId: string) => void;
+  partners?: Partner[];
+  onAddPartner?: () => void;
+  onEditPartner?: (partner: Partner) => void;
+  onDeletePartner?: (partnerId: string) => void;
 }
 
 export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
-  partners,
-  onAddPartner,
-  onEditPartner,
-  onDeletePartner
+  partners: externalPartners,
+  onAddPartner: externalOnAdd,
+  onEditPartner: externalOnEdit,
+  onDeletePartner: externalOnDelete
 }) => {
+  // Internal state for standalone usage
+  const [internalPartners, setInternalPartners] = useState<Partner[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+
+  // Use external or internal state
+  const partners = externalPartners ?? internalPartners;
+
+  // Save to localStorage when internal partners change
+  const savePartners = (newPartners: Partner[]) => {
+    setInternalPartners(newPartners);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPartners));
+  };
+
+  // Internal handlers
+  const handleAddPartner = () => {
+    if (externalOnAdd) {
+      externalOnAdd();
+    } else {
+      setEditingPartner(null);
+      setIsFormOpen(true);
+    }
+  };
+
+  const handleEditPartner = (partner: Partner) => {
+    if (externalOnEdit) {
+      externalOnEdit(partner);
+    } else {
+      setEditingPartner(partner);
+      setIsFormOpen(true);
+    }
+  };
+
+  const handleDeletePartner = (partnerId: string) => {
+    if (externalOnDelete) {
+      externalOnDelete(partnerId);
+    } else {
+      const updated = internalPartners.map(p =>
+        p.id === partnerId ? { ...p, deletedAt: new Date().toISOString(), status: PartnerStatus.INACTIVE } : p
+      );
+      savePartners(updated);
+    }
+  };
+
+  const handleSavePartner = (data: Partial<Partner>) => {
+    if (editingPartner) {
+      const updated = internalPartners.map(p =>
+        p.id === editingPartner.id ? { ...p, ...data } : p
+      );
+      savePartners(updated);
+    } else {
+      const newPartner: Partner = {
+        id: generateId(),
+        name: data.name || 'Novo Parceiro',
+        email: data.email || '',
+        phone: data.phone || '',
+        status: PartnerStatus.ACTIVE,
+        totalAUM: 0,
+        clientsManaged: 0,
+        totalCommissions: 0,
+        commissionModel: 'FIXED_PERCENTAGE',
+        commissionRules: [{ id: generateId(), type: 'FIXED_PERCENTAGE', value: 1, minAUM: 0 }],
+        kpis: [],
+        createdAt: new Date().toISOString(),
+        ...data
+      };
+      savePartners([...internalPartners, newPartner]);
+    }
+    setIsFormOpen(false);
+    setEditingPartner(null);
+  };
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [filterStatus, setFilterStatus] = useState<PartnerStatus | 'ALL'>('ALL');
 
@@ -87,7 +163,7 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
           <p className="text-gray-400">Gestão de parceiros, KPIs e comissões</p>
         </div>
         <button
-          onClick={onAddPartner}
+          onClick={handleAddPartner}
           className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg font-medium flex items-center space-x-2 transition-colors"
         >
           <Plus size={18} />
@@ -209,7 +285,7 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onEditPartner(partner);
+                            handleEditPartner(partner);
                           }}
                           className="p-1 hover:bg-blue-500/20 rounded transition-colors"
                           title="Editar"
@@ -220,7 +296,7 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (confirm('Desativar este parceiro?')) {
-                              onDeletePartner(partner.id);
+                              handleDeletePartner(partner.id);
                             }
                           }}
                           className="p-1 hover:bg-red-500/20 rounded transition-colors"
@@ -308,7 +384,90 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
           </div>
         )}
       </Modal>
+
+      {/* Add/Edit Partner Modal */}
+      <Modal
+        isOpen={isFormOpen}
+        onClose={() => { setIsFormOpen(false); setEditingPartner(null); }}
+        title={editingPartner ? 'Editar Parceiro' : 'Novo Parceiro'}
+        size="md"
+        variant="dark"
+      >
+        <PartnerForm
+          partner={editingPartner}
+          onSave={handleSavePartner}
+          onCancel={() => { setIsFormOpen(false); setEditingPartner(null); }}
+        />
+      </Modal>
     </div>
+  );
+};
+
+// Simple Partner Form Component
+const PartnerForm: React.FC<{
+  partner: Partner | null;
+  onSave: (data: Partial<Partner>) => void;
+  onCancel: () => void;
+}> = ({ partner, onSave, onCancel }) => {
+  const [name, setName] = useState(partner?.name || '');
+  const [email, setEmail] = useState(partner?.email || '');
+  const [phone, setPhone] = useState(partner?.phone || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onSave({ name: name.trim(), email: email.trim(), phone: phone.trim() });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Nome</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 outline-none focus:border-blue-500"
+          placeholder="Nome do parceiro"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 outline-none focus:border-blue-500"
+          placeholder="email@exemplo.com"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Telefone</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 outline-none focus:border-blue-500"
+          placeholder="(11) 99999-9999"
+        />
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="flex-1 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+        >
+          {partner ? 'Salvar' : 'Criar'}
+        </button>
+      </div>
+    </form>
   );
 };
 

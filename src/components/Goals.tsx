@@ -1,15 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
-import { Target, Trophy, TrendingUp, Calendar, Plus, MoreVertical, CreditCard, Edit2, Trash2, Clock } from 'lucide-react';
+import { Target, Trophy, TrendingUp, Calendar, Plus, Edit2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { Modal } from './ui/Modal';
 import { Skeleton } from './ui/Skeleton';
-import { RetirementGoalForm } from './RetirementGoalForm';
-import { RetirementDashPlanChart } from './RetirementDashPlanChart';
-import { RetirementPlan, RetirementScenarioProjection, SCENARIO_CONFIG } from '../types/retirement';
 
 /**
  * Goals component.
@@ -23,59 +20,6 @@ export const Goals: React.FC = () => {
     const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
     const [newSavingsTarget, setNewSavingsTarget] = useState(userProfile.monthlySavingsTarget || 0);
     const isLoading = !isInitialLoadComplete || isSyncing;
-
-    // Retirement Planning State
-    const [isRetirementFormOpen, setIsRetirementFormOpen] = useState(false);
-    const [retirementPlan, setRetirementPlan] = useState<RetirementPlan | null>(null);
-
-    // Calculate retirement scenarios
-    const retirementScenarios = useMemo((): RetirementScenarioProjection[] => {
-        if (!retirementPlan) return [];
-
-        const scenarios: RetirementScenarioProjection[] = [];
-        const currentYear = new Date().getFullYear();
-        const targetYear = new Date(retirementPlan.targetDate).getFullYear();
-        const yearsToRetirement = targetYear - currentYear;
-
-        Object.entries(SCENARIO_CONFIG).forEach(([key, config]) => {
-            const projections: { year: number; age: number; patrimony: number; contribution: number; yield: number; estimatedValue: number }[] = [];
-            let patrimony = retirementPlan.currentPatrimony;
-
-            for (let i = 0; i <= yearsToRetirement; i++) {
-                const year = currentYear + i;
-                const age = retirementPlan.currentAge + i;
-                const yearlyContribution = retirementPlan.monthlyContribution * 12;
-                const yearlyYield = patrimony * config.returnRate;
-                patrimony = patrimony + yearlyContribution + yearlyYield;
-
-                projections.push({
-                    year,
-                    age,
-                    patrimony,
-                    contribution: yearlyContribution,
-                    yield: yearlyYield,
-                    estimatedValue: patrimony
-                });
-            }
-
-            scenarios.push({
-                scenario: key as RetirementScenario,
-                projections,
-                finalPatrimony: patrimony,
-                annualIncome: patrimony * 0.04, // 4% withdrawal rate
-                yearsToRetirement,
-                averageReturn: config.returnRate,
-                color: config.color
-            });
-        });
-
-        return scenarios;
-    }, [retirementPlan]);
-
-    const handleSaveRetirementPlan = (plan: RetirementPlan) => {
-        setRetirementPlan(plan);
-        setIsRetirementFormOpen(false);
-    };
 
     // Safety check in case goals isn't loaded yet or is undefined
     const safeGoals = Array.isArray(goals) ? goals : [];
@@ -255,69 +199,6 @@ export const Goals: React.FC = () => {
                 ))}
             </div>
 
-            {/* Retirement Planning Section */}
-            <section aria-label="Retirement Planning" className="bg-[#0f172a] border border-gray-800 rounded-2xl p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-emerald-500/10 rounded-xl">
-                            <Clock size={24} className="text-emerald-500" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold text-white">Planejamento de Aposentadoria</h3>
-                            <p className="text-sm text-gray-400">Visualize sua evolução patrimonial até a aposentadoria</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setIsRetirementFormOpen(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
-                    >
-                        {retirementPlan ? <Edit2 size={16} /> : <Plus size={16} />}
-                        {retirementPlan ? 'Editar Plano' : 'Criar Plano'}
-                    </button>
-                </div>
-
-                {retirementPlan && retirementScenarios.length > 0 ? (
-                    <div className="space-y-6">
-                        <div className="h-[300px]">
-                            <RetirementDashPlanChart
-                                scenarios={retirementScenarios}
-                                targetYear={new Date(retirementPlan.targetDate).getFullYear()}
-                            />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {retirementScenarios.map(scenario => (
-                                <div
-                                    key={scenario.scenario}
-                                    className="bg-gray-800/50 rounded-xl p-4 border-l-4"
-                                    style={{ borderLeftColor: scenario.color }}
-                                >
-                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">
-                                        {SCENARIO_CONFIG[scenario.scenario].label}
-                                    </p>
-                                    <p className="text-xl font-bold text-white">
-                                        {formatCurrency(scenario.finalPatrimony)}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        Renda mensal: {formatCurrency(scenario.annualIncome / 12)}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center py-12 border-2 border-dashed border-gray-700 rounded-xl">
-                        <Clock size={48} className="mx-auto text-gray-600 mb-4" />
-                        <p className="text-gray-400 mb-4">Você ainda não tem um plano de aposentadoria configurado.</p>
-                        <button
-                            onClick={() => setIsRetirementFormOpen(true)}
-                            className="text-emerald-500 font-bold text-sm hover:underline"
-                        >
-                            Configurar agora
-                        </button>
-                    </div>
-                )}
-            </section>
-
             {/* Goals Grid */}
             <section aria-label="Active Goals" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoading ? (
@@ -410,14 +291,6 @@ export const Goals: React.FC = () => {
                     initialData={editingGoal}
                 />
             </Modal>
-
-            {/* Retirement Goal Form Modal */}
-            <RetirementGoalForm
-                isOpen={isRetirementFormOpen}
-                onClose={() => setIsRetirementFormOpen(false)}
-                onSave={handleSaveRetirementPlan}
-                initialPlan={retirementPlan || undefined}
-            />
 
             <Modal
                 isOpen={isTargetModalOpen}

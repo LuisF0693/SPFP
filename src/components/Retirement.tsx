@@ -11,7 +11,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
-import { formatCurrency, generateId } from '../utils';
+import { formatCurrency } from '../utils';
 import { Wallet } from 'lucide-react';
 import {
   RetirementSliders,
@@ -19,12 +19,9 @@ import {
   RetirementSummaryCard,
   RetirementChart,
   ProjectionPoint,
-  RetirementProjects,
-  RetirementProject,
 } from './retirement';
 
 const STORAGE_KEY = 'spfp_retirement_v2';
-const PROJECTS_KEY = 'spfp_retirement_projects';
 
 const ANNUAL_RETURN = 0.08; // 8% a.a.
 const WITHDRAWAL_RATE = 0.04; // 4% rule
@@ -52,15 +49,6 @@ export const Retirement: React.FC = () => {
     };
   });
 
-  // Load projects from localStorage
-  const [projects, setProjects] = useState<RetirementProject[]>(() => {
-    try {
-      const saved = localStorage.getItem(PROJECTS_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [];
-  });
-
   // Get current patrimony from investments context
   const { investments } = useSafeFinance();
   const currentPatrimony = useMemo(() => {
@@ -72,11 +60,6 @@ export const Retirement: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }, [config]);
-
-  // Save projects when they change
-  useEffect(() => {
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
-  }, [projects]);
 
   // Calculate required patrimony for desired income (4% rule)
   const netMonthlyIncomeNeeded = Math.max(config.targetMonthlyIncome - config.otherIncomeSources, 0);
@@ -140,14 +123,6 @@ export const Retirement: React.FC = () => {
 
   const handleSaveConfig = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  };
-
-  const handleAddProject = (project: Omit<RetirementProject, 'id'>) => {
-    const newProject: RetirementProject = {
-      ...project,
-      id: generateId()
-    };
-    setProjects(prev => [...prev, newProject]);
   };
 
   return (
@@ -219,13 +194,6 @@ export const Retirement: React.FC = () => {
         </div>
       </div>
 
-      {/* Projects Section */}
-      <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
-        <RetirementProjects
-          projects={projects}
-          onAddProject={handleAddProject}
-        />
-      </div>
     </div>
   );
 };
