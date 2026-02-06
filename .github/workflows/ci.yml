@@ -25,7 +25,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --legacy-peer-deps
 
       - name: Run ESLint
         run: npm run lint
@@ -44,7 +44,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --legacy-peer-deps
 
       - name: TypeScript Type Check
         run: npm run typecheck
@@ -63,7 +63,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --legacy-peer-deps
 
       - name: Run tests with coverage
         run: npm run test -- --run --coverage
@@ -90,7 +90,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --legacy-peer-deps
 
       - name: Build application
         run: npm run build
@@ -127,7 +127,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --legacy-peer-deps
 
       - name: Check for vulnerabilities
         run: npm audit --audit-level=moderate
