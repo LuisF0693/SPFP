@@ -35,7 +35,8 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
 }) => {
   // Commission breakdown by partner
   const commissionData = useMemo(() => {
-    return partners
+    const safePartners = Array.isArray(partners) ? partners : [];
+    return safePartners
       .filter(p => !p.deletedAt)
       .map(p => ({
         name: p.name,
@@ -48,9 +49,10 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
 
   // KPI completion distribution
   const kpiDistribution = useMemo(() => {
-    const completed = partners.filter(p => !p.deletedAt && p.kpis.every(k => k.current >= k.target)).length;
-    const partial = partners.filter(p => !p.deletedAt && p.kpis.some(k => k.current >= k.target) && !p.kpis.every(k => k.current >= k.target)).length;
-    const notStarted = partners.filter(p => !p.deletedAt && p.kpis.every(k => k.current < k.target)).length;
+    const safePartners = Array.isArray(partners) ? partners : [];
+    const completed = safePartners.filter(p => !p.deletedAt && p.kpis.every(k => k.current >= k.target)).length;
+    const partial = safePartners.filter(p => !p.deletedAt && p.kpis.some(k => k.current >= k.target) && !p.kpis.every(k => k.current >= k.target)).length;
+    const notStarted = safePartners.filter(p => !p.deletedAt && p.kpis.every(k => k.current < k.target)).length;
 
     return [
       { name: 'Completos', value: completed, color: '#10B981' },
@@ -62,7 +64,8 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
   // Performance trend (simulated monthly data)
   const trendData = useMemo(() => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
-    const activePartners = partners.filter(p => !p.deletedAt);
+    const safePartners = Array.isArray(partners) ? partners : [];
+    const activePartners = safePartners.filter(p => !p.deletedAt);
 
     return months.map((month, idx) => ({
       month,

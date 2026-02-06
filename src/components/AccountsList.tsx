@@ -47,9 +47,10 @@ export const AccountsList: React.FC<AccountsListProps> = ({
   onAddNew,
   onViewInvoice,
 }) => {
-  const cardIds = creditCards.map(c => c.id);
-  const stats = calculateCardStatistics(creditCards, transactions);
-  const nextDueCard = creditCards
+  const safeCards = Array.isArray(creditCards) ? creditCards : [];
+  const cardIds = safeCards.map(c => c.id);
+  const stats = calculateCardStatistics(safeCards, transactions);
+  const nextDueCard = safeCards
     .filter(c => c.dueDay)
     .sort((a, b) => {
       const today = new Date();

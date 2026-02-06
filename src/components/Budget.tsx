@@ -45,7 +45,8 @@ export const Budget: React.FC = () => {
         let inc = 0;
         let exp = 0;
 
-        transactions.forEach(tx => {
+        const safeTx = Array.isArray(transactions) ? transactions : [];
+        safeTx.forEach(tx => {
             const date = new Date(tx.date);
             const txYear = date.getFullYear();
             const txMonth = date.getMonth();

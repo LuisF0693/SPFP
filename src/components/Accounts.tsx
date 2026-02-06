@@ -38,8 +38,8 @@ export const Accounts: React.FC = () => {
   const [viewingInvoiceAccount, setViewingInvoiceAccount] = useState<Account | null>(null);
 
   // Separate accounts by type
-  const creditCards = accounts.filter(a => a.type === 'CREDIT_CARD');
-  const otherAccounts = accounts.filter(a => a.type !== 'CREDIT_CARD');
+  const creditCards = (Array.isArray(accounts) ? accounts : []).filter(a => a.type === 'CREDIT_CARD');
+  const otherAccounts = (Array.isArray(accounts) ? accounts : []).filter(a => a.type !== 'CREDIT_CARD');
 
   // Form handlers
   const handleEditClick = (account: Account) => {

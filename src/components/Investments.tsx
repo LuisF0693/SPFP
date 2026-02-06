@@ -43,7 +43,7 @@ export const Investments: React.FC = () => {
 
             let updatedCount = 0;
             quotes.forEach(quote => {
-                const assetsToUpdate = investments.filter(i => i.ticker === quote.symbol);
+                const assetsToUpdate = (Array.isArray(investments) ? investments : []).filter(i => i.ticker === quote.symbol);
                 assetsToUpdate.forEach(asset => {
                     updateInvestment({
                         ...asset,
@@ -121,8 +121,9 @@ export const Investments: React.FC = () => {
 
 
     const filteredInvestments = useMemo(() => {
-        if (filterType === 'ALL') return investments;
-        return investments.filter(i => i.type === filterType);
+        const safeInvestments = Array.isArray(investments) ? investments : [];
+        if (filterType === 'ALL') return safeInvestments;
+        return safeInvestments.filter(i => i.type === filterType);
     }, [investments, filterType]);
 
     const handleEdit = (asset: InvestmentAsset) => {

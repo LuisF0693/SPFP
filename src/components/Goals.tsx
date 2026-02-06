@@ -38,7 +38,8 @@ export const Goals: React.FC = () => {
         // Group by month
         const monthlyStats: Record<string, number> = {};
 
-        transactions.forEach(tx => {
+        const safeTx = Array.isArray(transactions) ? transactions : [];
+        safeTx.forEach(tx => {
             const date = new Date(tx.date);
             const key = `${date.getFullYear()}-${date.getMonth()}`;
 

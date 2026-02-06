@@ -118,7 +118,12 @@ export const Insights: React.FC = () => {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    const currentMonthTx = transactions.filter(t => {
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+    const safeGoals = Array.isArray(goals) ? goals : [];
+    const safeInvestments = Array.isArray(investments) ? investments : [];
+    const safePatrimonyItems = Array.isArray(patrimonyItems) ? patrimonyItems : [];
+
+    const currentMonthTx = safeTx.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
@@ -144,9 +149,9 @@ export const Insights: React.FC = () => {
         category: categories.find(c => c.id === t.categoryId)?.name || 'Geral'
       }));
 
-    const activeGoals = goals.filter(g => g.status !== 'COMPLETED');
-    const assets = investments.map(i => ({ name: i.ticker || i.name, value: i.quantity * i.currentPrice }));
-    const debts = patrimonyItems.filter(p => p.type === 'DEBT');
+    const activeGoals = safeGoals.filter(g => g.status !== 'COMPLETED');
+    const assets = safeInvestments.map(i => ({ name: i.ticker || i.name, value: i.quantity * i.currentPrice }));
+    const debts = safePatrimonyItems.filter(p => p.type === 'DEBT');
 
     return {
       summary: {

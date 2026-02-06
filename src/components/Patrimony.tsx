@@ -20,11 +20,20 @@ export const Patrimony: React.FC = () => {
     // --- Calculations ---
 
     // 1. Investments Total (from Investments Tab)
-    const investmentsTotal = useMemo(() => investments.reduce((acc, i) => acc + (i.quantity * i.currentPrice), 0), [investments]);
+    const investmentsTotal = useMemo(() => {
+        const safeInv = Array.isArray(investments) ? investments : [];
+        return safeInv.reduce((acc, i) => acc + (i.quantity * i.currentPrice), 0);
+    }, [investments]);
 
     // 2. Patrimony Items Split
-    const assets = useMemo(() => patrimonyItems.filter(i => i.type !== 'DEBT'), [patrimonyItems]);
-    const liabilities = useMemo(() => patrimonyItems.filter(i => i.type === 'DEBT'), [patrimonyItems]);
+    const assets = useMemo(() => {
+        const safeItems = Array.isArray(patrimonyItems) ? patrimonyItems : [];
+        return safeItems.filter(i => i.type !== 'DEBT');
+    }, [patrimonyItems]);
+    const liabilities = useMemo(() => {
+        const safeItems = Array.isArray(patrimonyItems) ? patrimonyItems : [];
+        return safeItems.filter(i => i.type === 'DEBT');
+    }, [patrimonyItems]);
 
     const assetsTotal = useMemo(() => assets.reduce((acc, i) => acc + i.value, 0), [assets]);
     const liabilitiesTotal = useMemo(() => liabilities.reduce((acc, i) => acc + i.value, 0), [liabilities]);
@@ -45,7 +54,8 @@ export const Patrimony: React.FC = () => {
             { id: 'OTHER', label: 'Outros', color: 'bg-gray-400', value: 0 },
         ];
 
-        patrimonyItems.forEach(item => {
+        const safeItems = Array.isArray(patrimonyItems) ? patrimonyItems : [];
+        safeItems.forEach(item => {
             if (item.type === 'DEBT') return;
             const typeObj = types.find(t => t.id === item.type) || types.find(t => t.id === 'OTHER');
             if (typeObj) typeObj.value += item.value;

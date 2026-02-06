@@ -16,7 +16,8 @@ export const getInvoiceValue = (
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  return transactions
+  const safeTx = Array.isArray(transactions) ? transactions : [];
+  return safeTx
     .filter(t =>
       t.accountId === cardId &&
       t.type === 'EXPENSE' &&
@@ -43,7 +44,8 @@ export const findNextDueCard = (
   creditCards: Account[],
   today: Date = new Date()
 ): Account | undefined => {
-  return [...creditCards]
+  const safeCards = Array.isArray(creditCards) ? creditCards : [];
+  return [...safeCards]
     .filter(c => c.dueDay)
     .sort((a, b) => {
       let dateA = new Date(today.getFullYear(), today.getMonth(), a.dueDay!);
@@ -80,7 +82,8 @@ export const getRecentCardTransactions = (
   transactions: Transaction[],
   limit: number = 5
 ): Transaction[] => {
-  return transactions
+  const safeTx = Array.isArray(transactions) ? transactions : [];
+  return safeTx
     .filter(t => cardIds.includes(t.accountId) && t.type === 'EXPENSE')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, limit);
@@ -100,7 +103,8 @@ export const getCardCategoryData = (
   color?: string;
   icon?: string;
 }> => {
-  const categoryMap = transactions
+  const safeTx = Array.isArray(transactions) ? transactions : [];
+  const categoryMap = safeTx
     .filter(
       t =>
         cardIds.includes(t.accountId) &&
