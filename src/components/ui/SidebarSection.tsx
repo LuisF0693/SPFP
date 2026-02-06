@@ -29,7 +29,7 @@ const BudgetSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> = (
   isExpanded,
   onToggle,
 }) => {
-  const { transactions, categoryBudgets, categories } = useFinance();
+  const { transactions, categoryBudgets, categories } = useSafeFinance();
   const navigate = useNavigate();
 
   // Calculate top 3 categories by spending this month
@@ -137,7 +137,7 @@ const AccountsSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> =
   isExpanded,
   onToggle,
 }) => {
-  const { accounts } = useFinance();
+  const { accounts } = useSafeFinance();
   const navigate = useNavigate();
   const [showAddAccount, setShowAddAccount] = useState(false);
 
@@ -201,7 +201,7 @@ const TransactionsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
   isExpanded,
   onToggle,
 }) => {
-  const { transactions, updateTransactions, categories } = useFinance();
+  const { transactions, updateTransactions, categories } = useSafeFinance();
   const navigate = useNavigate();
 
   // Get last 5 unconfirmed transactions
@@ -265,7 +265,7 @@ const InstallmentsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
   isExpanded,
   onToggle,
 }) => {
-  const { transactions, categories } = useFinance();
+  const { transactions, categories } = useSafeFinance();
 
   // Get grouped installments
   const installmentGroups = useMemo(() => {

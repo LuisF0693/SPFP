@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator } from 'lucide-react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { Logo } from './Logo';
@@ -20,7 +20,7 @@ interface LayoutProps {
  * Supports different modes such as 'personal' and 'crm'.
  */
 export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) => {
-  const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useFinance();
+  const { userProfile, isSyncing, isImpersonating, stopImpersonating } = useSafeFinance();
   const { logout, isAdmin } = useAuth();
   const { isDark } = useUI();
   const navigate = useNavigate();

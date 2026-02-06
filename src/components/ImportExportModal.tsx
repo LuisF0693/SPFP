@@ -3,7 +3,7 @@ import { Upload, Download, FileText, Check, AlertCircle, Loader2 } from 'lucide-
 import { exportTransactionsToCSV, parseCSV, parseCSVWithAI } from '../services/csvService';
 import { extractTextFromPDF, generatePDFReport, parsePDF } from '../services/pdfService';
 import { parseBankStatementWithAI } from '../services/geminiService';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { Transaction } from '../types';
 import { generateId, formatDate, formatCurrency } from '../utils';
 import { Modal } from './ui/Modal';
@@ -15,7 +15,7 @@ interface ImportExportModalProps {
 }
 
 export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, onClose, initialTab = 'import' }) => {
-    const { transactions, addManyTransactions, categories } = useFinance();
+    const { transactions, addManyTransactions, categories } = useSafeFinance();
     const [activeTab, setActiveTab] = useState<'import' | 'export'>(initialTab);
     const [isProcessing, setIsProcessing] = useState(false);
     const [previewData, setPreviewData] = useState<Partial<Transaction>[]>([]);
@@ -24,7 +24,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
     const [parsingMode, setParsingMode] = useState<'ai' | 'rules' | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-    const { userProfile } = useFinance();
+    const { userProfile } = useSafeFinance();
 
     if (!isOpen) return null;
 

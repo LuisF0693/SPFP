@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Account, Transaction } from '../types';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useMonthNavigation } from '../hooks';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import { ChevronLeft, ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
@@ -14,7 +14,7 @@ interface InvoiceDetailsModalProps {
 }
 
 export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ account, isOpen, onClose }) => {
-    const { transactions, categories } = useFinance();
+    const { transactions, categories } = useSafeFinance();
     const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
 
     if (!isOpen) return null;

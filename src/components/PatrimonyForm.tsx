@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { PatrimonyItem, PatrimonyType } from '../types';
 import { ChevronLeft, CheckCircle, Tag, DollarSign, Calculator, Plane } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const PATRIMONY_TYPES: { value: PatrimonyType; label: string }[] = [
 ];
 
 const PatrimonyForm: React.FC<PatrimonyFormProps> = ({ onClose, initialData }) => {
-    const { addPatrimonyItem, updatePatrimonyItem } = useFinance();
+    const { addPatrimonyItem, updatePatrimonyItem } = useSafeFinance();
 
     const [name, setName] = useState('');
     const [type, setType] = useState<PatrimonyType>('REAL_ESTATE');

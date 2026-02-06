@@ -35,7 +35,7 @@ const ASSET_COLORS: Record<string, string> = {
 };
 
 export const InvestmentMetricsWidget: React.FC = () => {
-  const { investments = [] } = useFinance();
+  const { investments = [] } = useSafeFinance();
   const navigate = useNavigate();
 
   // Calculate metrics

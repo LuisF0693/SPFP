@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { InvestmentAsset, InvestmentType } from '../types';
 import { ChevronLeft, CheckCircle, TrendingUp, Tag, Hash, DollarSign, Briefcase } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const INVESTMENT_TYPES: { value: InvestmentType; label: string }[] = [
 ];
 
 const InvestmentForm: React.FC<InvestmentFormProps> = ({ onClose, initialData }) => {
-    const { addInvestment, updateInvestment } = useFinance();
+    const { addInvestment, updateInvestment } = useSafeFinance();
 
     const [ticker, setTicker] = useState('');
     const [name, setName] = useState('');

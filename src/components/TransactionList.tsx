@@ -1,5 +1,5 @@
 import React, { useState, useMemo, memo } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useMonthNavigation } from '../hooks';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
@@ -33,7 +33,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
         addCategory, updateCategory, deleteCategory, accounts, userProfile,
         getTransactionsByGroupId, deleteTransactionGroup, deleteTransactionGroupFromIndex,
         isSyncing, isInitialLoadComplete
-    } = useFinance();
+    } = useSafeFinance();
 
     const isLoading = !isInitialLoadComplete || isSyncing;
 
@@ -676,7 +676,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
 
 // Internal Subcomponent for Creation
 const CategoryCreator = () => {
-    const { addCategory } = useFinance();
+    const { addCategory } = useSafeFinance();
     const [name, setName] = useState('');
     const [emoji, setEmoji] = useState('🍕');
     const [color, setColor] = useState('#3b82f6');

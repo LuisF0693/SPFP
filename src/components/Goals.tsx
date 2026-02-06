@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { Target, Trophy, TrendingUp, Calendar, Plus, MoreVertical, CreditCard, Edit2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { GoalForm } from './GoalForm';
@@ -13,7 +13,7 @@ import { Skeleton } from './ui/Skeleton';
  * Manages financial goals, tracking progress and allowing the creation of new objectives.
  */
 export const Goals: React.FC = () => {
-    const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile, isSyncing, isInitialLoadComplete } = useFinance();
+    const { goals, addGoal, updateGoal, deleteGoal, transactions, userProfile, updateUserProfile, isSyncing, isInitialLoadComplete } = useSafeFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [filter, setFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');

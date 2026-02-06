@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, Lightbulb, AlertCircle, RefreshCw, Loader2, Sparkles,
@@ -29,7 +29,7 @@ export const Insights: React.FC = () => {
   const {
     transactions, totalBalance, categories, userProfile,
     investments, patrimonyItems, goals, categoryBudgets
-  } = useFinance();
+  } = useSafeFinance();
   const { user } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);

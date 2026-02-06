@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { InvestmentAsset, InvestmentType } from '../types';
 import { Plus, Upload, Filter, Download, MoreVertical, TrendingUp, DollarSign, Wallet, PieChart as PieIcon, Trash2, Edit2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { formatCurrency } from '../utils';
@@ -15,7 +15,7 @@ import { RefreshCw } from 'lucide-react';
  * Tracks investment portfolios, assets, and performance across different markets.
  */
 export const Investments: React.FC = () => {
-    const { investments, deleteInvestment, updateInvestment, userProfile } = useFinance();
+    const { investments, deleteInvestment, updateInvestment, userProfile } = useSafeFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isImportExportOpen, setIsImportExportOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<InvestmentAsset | null>(null);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useUI } from '../context/UIContext';
 import { AIConfig } from '../types';
 import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2, Globe } from 'lucide-react';
@@ -12,7 +12,7 @@ import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun
  */
 export const Settings: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { userProfile, updateUserProfile } = useFinance();
+    const { userProfile, updateUserProfile } = useSafeFinance();
     const { theme, setTheme } = useUI();
     const [formData, setFormData] = useState(userProfile);
     const [showSuccess, setShowSuccess] = useState(false);

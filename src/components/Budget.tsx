@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { formatCurrency, getMonthName } from '../utils';
 import { AlertTriangle, ChevronLeft, ChevronRight, Calendar, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
 import { CategoryIcon } from './CategoryIcon';
@@ -17,7 +17,7 @@ export const Budget: React.FC = () => {
         categories,
         categoryBudgets,
         updateCategoryBudget,
-    } = useFinance();
+    } = useSafeFinance();
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<ViewMode>('MONTHLY');

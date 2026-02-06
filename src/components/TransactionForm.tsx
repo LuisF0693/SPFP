@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { Transaction } from '../types';
 import { generateId } from '../utils';
 import { ChevronLeft } from 'lucide-react';
@@ -25,7 +25,7 @@ interface TransactionFormProps {
  */
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
   const { accounts, categories, addTransaction, addManyTransactions, updateTransaction, addCategory, userProfile } =
-    useFinance();
+    useSafeFinance();
 
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -51,7 +51,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
   });
 
   // Use context transactions for category auto-detection
-  const { transactions } = useFinance();
+  const { transactions } = useSafeFinance();
   useEffect(() => {
     // Re-run auto-detection with actual transactions
     if (!initialData && !state.userManuallyChangedCategory && state.description.length >= 3) {

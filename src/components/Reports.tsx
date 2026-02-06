@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useMonthNavigation } from '../hooks';
 import { formatCurrency, getMonthName } from '../utils';
 import {
@@ -20,7 +20,7 @@ import { generatePDFReport } from '../services/pdfService';
  * Supports PDF generation.
  */
 export const Reports: React.FC = () => {
-    const { transactions, categories, totalBalance, categoryBudgets, goals } = useFinance();
+    const { transactions, categories, totalBalance, categoryBudgets, goals } = useSafeFinance();
 
     // Month Navigation
     const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();

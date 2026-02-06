@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { InvestmentAsset } from '../types';
 import { Download, Upload, X, FileJson, AlertTriangle, Check } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface InvestmentImportExportProps {
 }
 
 const InvestmentImportExport: React.FC<InvestmentImportExportProps> = ({ onClose }) => {
-    const { investments, addInvestment, deleteInvestment } = useFinance();
+    const { investments, addInvestment, deleteInvestment } = useSafeFinance();
     const [importData, setImportData] = useState('');
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');

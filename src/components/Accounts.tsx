@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { Account, Transaction } from '../types';
 import { formatCurrency } from '../utils';
 import { AccountsList } from './AccountsList';
@@ -22,7 +22,7 @@ export const Accounts: React.FC = () => {
     transactions,
     categories,
     addManyTransactions,
-  } = useFinance();
+  } = useSafeFinance();
 
   // Form state
   const [showForm, setShowForm] = useState(false);

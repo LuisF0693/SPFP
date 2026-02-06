@@ -1,5 +1,5 @@
 import React, { memo, useState, useMemo } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { MonthlyRecap } from './MonthlyRecap';
 import {
@@ -41,7 +41,7 @@ export const Dashboard: React.FC = memo(() => {
     accounts,
     isSyncing,
     isInitialLoadComplete
-  } = useFinance();
+  } = useSafeFinance();
   const { isAdmin } = useAuth();
 
   const [showRecap, setShowRecap] = useState(false);

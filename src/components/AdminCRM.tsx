@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { AIConfig } from '../types';
 import {
@@ -19,7 +19,7 @@ import { Modal } from './ui/Modal';
  * Redesigned for an agentic experience with predictive health scores.
  */
 export const AdminCRM: React.FC = () => {
-    const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useFinance();
+    const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useSafeFinance();
     const { user } = useAuth();
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);

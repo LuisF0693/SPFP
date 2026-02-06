@@ -10,7 +10,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '../utils';
@@ -19,7 +19,7 @@ import { Modal } from './ui/Modal';
 import { calculateGain, calculateGainPercentage, calculatePortfolioSummary } from '../services/investmentService';
 
 export const InvestmentPortfolioSimple: React.FC = () => {
-  const { investments = [], addInvestment, updateInvestment, deleteInvestment } = useFinance();
+  const { investments = [], addInvestment, updateInvestment, deleteInvestment } = useSafeFinance();
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

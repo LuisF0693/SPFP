@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { PatrimonyItem } from '../types';
 import { Plus, Wallet, TrendingUp, TrendingDown, Edit2, Trash2, Building2, Car, Plane, DollarSign, PieChart as PieIcon, ArrowUpRight, ArrowDownRight, MoreHorizontal } from 'lucide-react';
 import { formatCurrency } from '../utils';
@@ -13,7 +13,7 @@ import { Modal } from './ui/Modal';
  * Manages physical and financial assets (real estate, vehicles, debts) for a complete net worth view.
  */
 export const Patrimony: React.FC = () => {
-    const { patrimonyItems, deletePatrimonyItem, investments } = useFinance();
+    const { patrimonyItems, deletePatrimonyItem, investments } = useSafeFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<PatrimonyItem | null>(null);
 

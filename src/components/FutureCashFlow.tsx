@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useSafeFinance } from '../hooks/useSafeFinance';
 import { calculateProjection } from '../services/projectionService';
 import { formatCurrency, getMonthName } from '../utils';
 import {
@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 
 export const FutureCashFlow: React.FC = () => {
-    const { totalBalance, transactions, categoryBudgets } = useFinance();
+    const { totalBalance, transactions, categoryBudgets } = useSafeFinance();
 
     const projection = useMemo(() => {
         return calculateProjection(totalBalance, transactions, categoryBudgets, 12);
