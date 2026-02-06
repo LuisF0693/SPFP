@@ -232,3 +232,96 @@ html.light {
     --duration-slow: 0ms;
   }
 }
+
+/* ===== PRINT STYLES (Reports Page) ===== */
+@media print {
+  /* Hide navigation and interactive elements */
+  .sidebar,
+  nav,
+  header,
+  .print\\:hidden,
+  [data-print-hidden],
+  button:not([data-print-visible]) {
+    display: none !important;
+  }
+
+  /* Reset body for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Main content takes full width */
+  main,
+  .report-content,
+  [role="main"] {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    max-width: none !important;
+  }
+
+  /* Force gradient colors to print */
+  .bg-gradient-to-br {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Metric cards styling for print */
+  .from-emerald-500,
+  .from-rose-500,
+  .from-blue-500,
+  .from-amber-500 {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Charts section */
+  .recharts-wrapper {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Avoid page breaks inside important elements */
+  section,
+  .metric-card,
+  .chart-section,
+  [data-print-keep-together] {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Page breaks */
+  h1, h2, h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Remove shadows for cleaner print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Links - show URL in print */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  /* First page specific */
+  @page :first {
+    margin-top: 2cm;
+  }
+}

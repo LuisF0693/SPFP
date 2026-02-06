@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useMonthNavigation } from '../hooks';
 import { formatCurrency, getMonthName } from '../utils';
 import {
     TrendingUp, TrendingDown, DollarSign, LineChart as LineChartIcon,
-    ChevronLeft, ChevronRight, Download, Target, PieChart as PieChartIcon,
+    ChevronLeft, ChevronRight, Target, PieChart as PieChartIcon,
     ShoppingBag, ArrowRight, Wallet
 } from 'lucide-react';
 import {
-    LineChart, Line, XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+    XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
     AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { CategoryIcon } from './CategoryIcon';
 import { generatePDFReport } from '../services/pdfService';
+import { ReportMetricCard, ReportExportButton } from './reports';
 
 /**
  * Reports component.
@@ -42,6 +43,43 @@ export const Reports: React.FC = () => {
 
     const balance = totalIncome - totalExpense;
     const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
+
+    // Calculate previous month data for comparison
+    const previousMonthData = useMemo(() => {
+        const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+        const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+
+        const prevMonthTx = transactions.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+        });
+
+        const prevIncome = Number(prevMonthTx
+            .filter(t => t.type === 'INCOME')
+            .reduce((acc, t) => acc + Number(t.value), 0));
+
+        const prevExpense = Number(prevMonthTx
+            .filter(t => t.type === 'EXPENSE')
+            .reduce((acc, t) => acc + Number(t.value), 0));
+
+        const prevBalance = prevIncome - prevExpense;
+        const prevSavingsRate = prevIncome > 0 ? ((prevIncome - prevExpense) / prevIncome) * 100 : 0;
+
+        return { prevIncome, prevExpense, prevBalance, prevSavingsRate };
+    }, [transactions, selectedMonth, selectedYear]);
+
+    // Calculate percentage changes
+    const calculateChange = (current: number, previous: number): number | undefined => {
+        if (previous === 0) return current > 0 ? 100 : undefined;
+        return ((current - previous) / Math.abs(previous)) * 100;
+    };
+
+    const incomeChange = calculateChange(totalIncome, previousMonthData.prevIncome);
+    const expenseChange = calculateChange(totalExpense, previousMonthData.prevExpense);
+    const balanceChange = calculateChange(balance, previousMonthData.prevBalance);
+    const savingsChange = previousMonthData.prevSavingsRate > 0
+        ? savingsRate - previousMonthData.prevSavingsRate
+        : undefined;
 
     // Annual Evolution Logic
     const getAnnualHistory = () => {
@@ -132,47 +170,45 @@ export const Reports: React.FC = () => {
                         </button>
                     </div>
 
-                    <button
-                        onClick={handleExportPDF}
-                        disabled={isExporting}
-                        className="flex items-center gap-2 px-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20"
-                    >
-                        <Download size={18} />
-                        {isExporting ? 'Exportando...' : 'Exportar PDF'}
-                    </button>
+                    <ReportExportButton
+                        onExport={handleExportPDF}
+                        isLoading={isExporting}
+                    />
                 </div>
             </div>
 
-            {/* Top Summaries Section */}
-            <section aria-label="Monthly Summary" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <SummaryCard
-                    label="Receitas"
+            {/* Top Summaries Section - Cards com Gradientes */}
+            <section aria-label="Monthly Summary" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-4">
+                <ReportMetricCard
+                    title="Receitas"
                     value={totalIncome}
+                    change={incomeChange}
+                    type="income"
                     icon={<TrendingUp size={24} />}
-                    color="bg-emerald-500/10 text-emerald-400"
-                    trend={`${currentMonthTx.filter(t => t.type === 'INCOME').length} lançamentos`}
                 />
-                <SummaryCard
-                    label="Despesas"
+                <ReportMetricCard
+                    title="Despesas"
                     value={totalExpense}
+                    change={expenseChange}
+                    type="expense"
                     icon={<TrendingDown size={24} />}
-                    color="bg-rose-500/10 text-rose-400"
-                    trend={`${currentMonthTx.filter(t => t.type === 'EXPENSE').length} lançamentos`}
                 />
-                <SummaryCard
-                    label="Balanço Mensal"
+                <ReportMetricCard
+                    title="Balanço Mensal"
                     value={balance}
+                    change={balanceChange}
+                    type="balance"
                     icon={<DollarSign size={24} />}
-                    color="bg-blue-500/10 text-blue-400"
-                    trend={balance >= 0 ? 'Superávit' : 'Déficit'}
+                    subtitle={balance >= 0 ? 'Superávit' : 'Déficit'}
                 />
-                <SummaryCard
-                    label="Savings Rate"
+                <ReportMetricCard
+                    title="Taxa de Poupança"
                     value={savingsRate}
-                    isPercentage={true}
+                    change={savingsChange}
+                    type="savings"
                     icon={<PieChartIcon size={24} />}
-                    color="bg-indigo-500/10 text-indigo-400"
-                    trend="Meta ideal: 20%+"
+                    isPercentage={true}
+                    subtitle="Meta ideal: 20%+"
                 />
             </section>
 
@@ -363,35 +399,4 @@ export const Reports: React.FC = () => {
     );
 };
 
-interface SummaryCardProps {
-    label: string;
-    value: number;
-    icon: React.ReactNode;
-    color: string;
-    trend: string;
-    isPercentage?: boolean;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, icon, color, trend, isPercentage = false }) => (
-    <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] backdrop-blur-md relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-            {icon}
-        </div>
-        <div className="flex flex-col h-full justify-between gap-4">
-            <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center shrink-0`}>
-                {icon}
-            </div>
-            <div>
-                <p className="text-xs text-gray-400 font-light mb-1">{label}</p>
-                <p className="text-2xl font-bold text-white tracking-tight">
-                    {isPercentage ? `${value.toFixed(1)}%` : formatCurrency(value)}
-                </p>
-                <div className="mt-2 text-[10px] font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500/40"></span>
-                    {trend}
-                </div>
-            </div>
-        </div>
-    </div>
-);
 
