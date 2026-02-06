@@ -141,7 +141,7 @@ body {
 }
 
 .card-dark-hover {
-  @apply card-dark relative overflow-hidden group hover:border-gray-700 transition-colors;
+  @apply card-dark relative overflow-hidden hover:border-gray-700 transition-colors;
 }
 
 .card-light {
