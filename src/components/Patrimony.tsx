@@ -16,7 +16,7 @@ import { Asset } from '../types/assets';
  * Manages physical and financial assets (real estate, vehicles, debts) for a complete net worth view.
  */
 export const Patrimony: React.FC = () => {
-    const { patrimonyItems, deletePatrimonyItem, investments, accounts, assets, addAsset, updateAsset, deleteAsset } = useSafeFinance();
+    const { patrimonyItems, deletePatrimonyItem, investments, accounts, assets: globalAssets, addAsset, updateAsset, deleteAsset } = useSafeFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<PatrimonyItem | null>(null);
     const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
@@ -407,7 +407,7 @@ export const Patrimony: React.FC = () => {
                     <PatrimonyListEnhanced
                         accounts={Array.isArray(accounts) ? accounts : []}
                         investments={Array.isArray(investments) ? investments : []}
-                        assets={Array.isArray(assets) ? assets : []}
+                        assets={Array.isArray(globalAssets) ? globalAssets : []}
                         patrimonyItems={Array.isArray(patrimonyItems) ? patrimonyItems : []}
                         onEdit={(item) => {
                             if (item.type === 'patrimony') {
