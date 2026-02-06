@@ -14,6 +14,7 @@ import {
   useTrendData,
   useCategoryChartData
 } from './dashboard';
+import { DashboardErrorBoundary } from './dashboard/DashboardErrorBoundary';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { Skeleton } from './ui/Skeleton';
 
@@ -92,12 +93,13 @@ export const Dashboard: React.FC = memo(() => {
   }, [critical, warning, atypicalTransactions]);
 
   return (
-    <main
-      className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in"
-      role="main"
-      aria-label="Painel de Controle Financeiro"
-      data-testid="dashboard-main"
-    >
+    <DashboardErrorBoundary>
+      <main
+        className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in"
+        role="main"
+        aria-label="Painel de Controle Financeiro"
+        data-testid="dashboard-main"
+      >
       {/* Header Section */}
       <header data-testid="dashboard-header">
         <DashboardHeader
@@ -198,7 +200,8 @@ export const Dashboard: React.FC = memo(() => {
           />
         );
       })()}
-    </main>
+      </main>
+    </DashboardErrorBoundary>
   );
 });
 
