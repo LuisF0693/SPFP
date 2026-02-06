@@ -39,49 +39,6 @@
     })();
   </script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
-          },
-          colors: {
-            // Esquema SPFP: Preto e Azul Neon
-            primary: '#000000', // Fundo Preto Puro
-            secondary: '#0f172a', // Slate 900
-            accent: '#3b82f6', // Azul Neon / Royal Blue
-            success: '#10b981',
-            danger: '#ef4444',
-            warning: '#f59e0b',
-          },
-          animation: {
-            'fade-in': 'fadeIn 0.8s ease-out',
-            'slide-up': 'slideUp 0.8s ease-out',
-            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'glow': 'glow 2s ease-in-out infinite alternate',
-          },
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
-            },
-            slideUp: {
-              '0%': { transform: 'translateY(20px)', opacity: '0' },
-              '100%': { transform: 'translateY(0)', opacity: '1' },
-            },
-            glow: {
-              '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.2)' },
-              '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)' },
-            }
-          }
-        }
-      }
-    }
-  </script>
   <style>
     .glass {
       background: rgba(15, 23, 42, 0.6);
@@ -204,19 +161,6 @@
       outline-offset: 2px;
     }
   </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "firebase/": "https://esm.sh/firebase@^12.6.0/",
-    "@google/generative-ai": "https://esm.sh/@google/generative-ai@^0.24.1"
-  }
-}
-</script>
   <link rel="stylesheet" href="/index.css">
 </head>
 
