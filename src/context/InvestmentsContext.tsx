@@ -20,11 +20,13 @@ const InvestmentsContext = createContext<InvestmentsContextType | undefined>(und
 
 const getStorageKey = (userId?: string) => userId ? `visao360_v2_investments_${userId}` : 'visao360_v2_investments';
 
-const filterActive = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+const filterActive = <T extends { deletedAt?: number }>(items: T[] | undefined | null): T[] => {
+  if (!Array.isArray(items)) return [];
   return items.filter(item => !item.deletedAt);
 };
 
-const filterDeleted = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+const filterDeleted = <T extends { deletedAt?: number }>(items: T[] | undefined | null): T[] => {
+  if (!Array.isArray(items)) return [];
   return items.filter(item => item.deletedAt);
 };
 

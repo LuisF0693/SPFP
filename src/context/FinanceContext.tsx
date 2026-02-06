@@ -90,14 +90,16 @@ const getStorageKey = (userId?: string) => userId ? `visao360_v2_data_${userId}`
 /**
  * Helper to filter out soft-deleted items (items with deletedAt timestamp)
  */
-const filterActive = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+const filterActive = <T extends { deletedAt?: number }>(items: T[] | undefined | null): T[] => {
+  if (!Array.isArray(items)) return [];
   return items.filter(item => !item.deletedAt);
 };
 
 /**
  * Helper to get soft-deleted items only
  */
-const filterDeleted = <T extends { deletedAt?: number }>(items: T[]): T[] => {
+const filterDeleted = <T extends { deletedAt?: number }>(items: T[] | undefined | null): T[] => {
+  if (!Array.isArray(items)) return [];
   return items.filter(item => item.deletedAt);
 };
 
@@ -318,7 +320,22 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
               const cloudData = data.content as GlobalState;
               setState(current => {
                 if (cloudData.lastUpdated > current.lastUpdated || current.lastUpdated === 0) {
-                  return cloudData;
+                  // Ensure all arrays exist to prevent "Cannot read properties of undefined" errors
+                  return {
+                    ...cloudData,
+                    accounts: Array.isArray(cloudData.accounts) ? cloudData.accounts : INITIAL_ACCOUNTS,
+                    transactions: Array.isArray(cloudData.transactions) ? cloudData.transactions : INITIAL_TRANSACTIONS,
+                    categories: Array.isArray(cloudData.categories) ? cloudData.categories : INITIAL_CATEGORIES,
+                    goals: Array.isArray(cloudData.goals) ? cloudData.goals : [],
+                    investments: Array.isArray(cloudData.investments) ? cloudData.investments : [],
+                    patrimonyItems: Array.isArray(cloudData.patrimonyItems) ? cloudData.patrimonyItems : [],
+                    categoryBudgets: Array.isArray(cloudData.categoryBudgets) ? cloudData.categoryBudgets : [],
+                    creditCardInvoices: Array.isArray(cloudData.creditCardInvoices) ? cloudData.creditCardInvoices : [],
+                    partners: Array.isArray(cloudData.partners) ? cloudData.partners : [],
+                    assets: Array.isArray(cloudData.assets) ? cloudData.assets : [],
+                    userProfile: cloudData.userProfile || INITIAL_PROFILE,
+                    lastUpdated: cloudData.lastUpdated || Date.now(),
+                  };
                 }
                 return current;
               });
@@ -365,12 +382,17 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Ensure all arrays exist in cloud data structure merge to prevent undefined access
                 const safeCloudData = {
                   ...cloudData,
+                  accounts: Array.isArray(cloudData.accounts) ? cloudData.accounts : INITIAL_ACCOUNTS,
+                  transactions: Array.isArray(cloudData.transactions) ? cloudData.transactions : INITIAL_TRANSACTIONS,
+                  categories: Array.isArray(cloudData.categories) ? cloudData.categories : INITIAL_CATEGORIES,
                   goals: Array.isArray(cloudData.goals) ? cloudData.goals : [],
                   investments: Array.isArray(cloudData.investments) ? cloudData.investments : [],
                   categoryBudgets: Array.isArray(cloudData.categoryBudgets) ? cloudData.categoryBudgets : [],
                   patrimonyItems: Array.isArray(cloudData.patrimonyItems) ? cloudData.patrimonyItems : [],
-                  partners: Array.isArray((cloudData as any).partners) ? (cloudData as any).partners : [],
-                  assets: Array.isArray((cloudData as any).assets) ? (cloudData as any).assets : [],
+                  creditCardInvoices: Array.isArray(cloudData.creditCardInvoices) ? cloudData.creditCardInvoices : [],
+                  partners: Array.isArray(cloudData.partners) ? cloudData.partners : [],
+                  assets: Array.isArray(cloudData.assets) ? cloudData.assets : [],
+                  userProfile: cloudData.userProfile || INITIAL_PROFILE,
                 };
                 return safeCloudData;
               }
@@ -686,6 +708,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
               investments: Array.isArray(clientContent.investments) ? clientContent.investments : [],
               patrimonyItems: Array.isArray(clientContent.patrimonyItems) ? clientContent.patrimonyItems : [],
               categoryBudgets: Array.isArray(clientContent.categoryBudgets) ? clientContent.categoryBudgets : [],
+              creditCardInvoices: Array.isArray(clientContent.creditCardInvoices) ? clientContent.creditCardInvoices : [],
+              partners: Array.isArray(clientContent.partners) ? clientContent.partners : [],
+              assets: Array.isArray(clientContent.assets) ? clientContent.assets : [],
               userProfile: clientContent.userProfile || INITIAL_PROFILE,
             } as GlobalState);
             stateUserIdRef.current = userId;
