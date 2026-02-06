@@ -60,19 +60,19 @@ const BudgetSection: React.FC<{ isExpanded: boolean; onToggle: () => void }> = (
         return (
           tDate.getMonth() === currentMonth &&
           tDate.getFullYear() === currentYear &&
-          t.amount > 0
+          t.value > 0
         );
       })
       .forEach((t) => {
         if (!categorySpending[t.categoryId]) {
           const category = categories.find((c) => c.id === t.categoryId);
           categorySpending[t.categoryId] = {
-            spent: t.amount,
+            spent: t.value,
             limit: 0,
             name: category?.name || 'Outro',
           };
         } else {
-          categorySpending[t.categoryId].spent += t.amount;
+          categorySpending[t.categoryId].spent += t.value;
         }
       });
 
@@ -207,7 +207,7 @@ const TransactionsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
   // Get last 5 unconfirmed transactions
   const pendingTransactions = useMemo(() => {
     return transactions
-      .filter((t) => !t.confirmed)
+      .filter((t) => !t.paid)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
   }, [transactions]);
@@ -219,7 +219,7 @@ const TransactionsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
   const handleConfirm = (transactionId: string) => {
     const transaction = transactions.find((t) => t.id === transactionId);
     if (transaction) {
-      updateTransactions([{ ...transaction, confirmed: true }]);
+      updateTransactions([{ ...transaction, paid: true }]);
     }
   };
 
@@ -241,7 +241,7 @@ const TransactionsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
                 </span>
               </div>
               <div className="text-[10px] text-gray-500">{formatDate(tx.date)}</div>
-              <div className="text-xs font-semibold text-red-400">{formatCurrency(tx.amount)}</div>
+              <div className="text-xs font-semibold text-red-400">{formatCurrency(tx.value)}</div>
             </div>
             <button
               onClick={() => handleConfirm(tx.id)}
@@ -271,7 +271,7 @@ const InstallmentsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
   const installmentGroups = useMemo(() => {
     const grouped: Record<string, typeof transactions> = {};
     transactions
-      .filter((t) => t.groupId && !t.confirmed)
+      .filter((t) => t.groupId && !t.paid)
       .forEach((t) => {
         if (!grouped[t.groupId!]) {
           grouped[t.groupId!] = [];
@@ -292,7 +292,7 @@ const InstallmentsSection: React.FC<{ isExpanded: boolean; onToggle: () => void 
       ) : (
         installmentGroups.map(([groupId, txs]) => {
           const firstTx = txs[0];
-          const totalValue = txs.reduce((sum, t) => sum + t.amount, 0);
+          const totalValue = txs.reduce((sum, t) => sum + t.value, 0);
           return (
             <div key={groupId} className="p-2 rounded border border-gray-300/10 hover:border-gray-300/20 transition-colors">
               <div className="flex items-center justify-between mb-1">
