@@ -1,435 +1,231 @@
 /**
- * Retirement Component
- * STY-053: Dedicated page for retirement planning
+ * Retirement Component - Redesign STY-061
+ * Inspired by "Meu Futuro" layout
  *
  * Features:
- * - Configuration form for retirement goals
- * - Beautiful projection chart with 3 scenarios
- * - Passive income calculation (4% rule)
- * - Personalized recommendations
+ * - Interactive sliders for retirement parameters
+ * - Area chart showing patrimony projection
+ * - Summary card with required investment
+ * - Projects section (Essential/Desire/Dream)
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
-import { formatCurrency } from '../utils';
+import { formatCurrency, generateId } from '../utils';
+import { Wallet } from 'lucide-react';
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts';
-import { Calculator, TrendingUp, Wallet, Target, Info } from 'lucide-react';
+  RetirementSliders,
+  RetirementConfig,
+  RetirementSummaryCard,
+  RetirementChart,
+  ProjectionPoint,
+  RetirementProjects,
+  RetirementProject,
+} from './retirement';
 
-interface RetirementConfig {
-  currentAge: number;
-  targetAge: number;
-  currentPatrimony: number;
-  monthlyContribution: number;
-  targetPatrimony: number;
-}
+const STORAGE_KEY = 'spfp_retirement_v2';
+const PROJECTS_KEY = 'spfp_retirement_projects';
 
-interface ProjectionData {
-  year: number;
-  age: number;
-  conservative: number;
-  moderate: number;
-  aggressive: number;
-}
-
-const SCENARIOS = {
-  conservative: { rate: 0.06, color: '#3B82F6', name: 'Conservador (6% a.a.)' },
-  moderate: { rate: 0.10, color: '#10B981', name: 'Moderado (10% a.a.)' },
-  aggressive: { rate: 0.14, color: '#F59E0B', name: 'Agressivo (14% a.a.)' },
-};
+const ANNUAL_RETURN = 0.08; // 8% a.a.
+const WITHDRAWAL_RATE = 0.04; // 4% rule
 
 export const Retirement: React.FC = () => {
   const { userProfile } = useSafeFinance();
+  const currentYear = new Date().getFullYear();
 
-  // Form state
+  // Get current age from profile or default to 30
+  const currentAge = userProfile?.birthDate
+    ? Math.floor((Date.now() - new Date(userProfile.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    : 30;
+
+  // Load config from localStorage
   const [config, setConfig] = useState<RetirementConfig>(() => {
-    const saved = localStorage.getItem('spfp_retirement_config');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // ignore
-      }
-    }
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
     return {
-      currentAge: 30,
       targetAge: 65,
-      currentPatrimony: 100000,
-      monthlyContribution: 2000,
-      targetPatrimony: 2000000,
+      targetMonthlyIncome: 10000,
+      otherIncomeSources: 0,
+      monthlyInvestment: 0
     };
   });
 
+  // Load projects from localStorage
+  const [projects, setProjects] = useState<RetirementProject[]>(() => {
+    try {
+      const saved = localStorage.getItem(PROJECTS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
+  // Get current patrimony from investments context
+  const { investments } = useSafeFinance();
+  const currentPatrimony = useMemo(() => {
+    if (!investments || !Array.isArray(investments)) return 0;
+    return investments.reduce((sum, inv) => sum + (inv.currentValue || 0), 0);
+  }, [investments]);
+
   // Save config when it changes
-  const saveConfig = (newConfig: RetirementConfig) => {
-    setConfig(newConfig);
-    localStorage.setItem('spfp_retirement_config', JSON.stringify(newConfig));
-  };
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  }, [config]);
 
-  // Calculate projections
-  const projectionData = useMemo((): ProjectionData[] => {
-    const years = config.targetAge - config.currentAge;
-    if (years <= 0) return [];
+  // Save projects when they change
+  useEffect(() => {
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  }, [projects]);
 
-    const data: ProjectionData[] = [];
+  // Calculate required patrimony for desired income (4% rule)
+  const netMonthlyIncomeNeeded = Math.max(config.targetMonthlyIncome - config.otherIncomeSources, 0);
+  const requiredPatrimony = (netMonthlyIncomeNeeded * 12) / WITHDRAWAL_RATE;
 
-    for (let y = 0; y <= years; y++) {
-      const age = config.currentAge + y;
-      const dataPoint: ProjectionData = {
-        year: y,
+  // Calculate years to retirement
+  const yearsToRetirement = Math.max(config.targetAge - currentAge, 1);
+
+  // Calculate required monthly investment
+  const requiredMonthlyInvestment = useMemo(() => {
+    const months = yearsToRetirement * 12;
+    const monthlyRate = ANNUAL_RETURN / 12;
+
+    // Future value of current patrimony
+    const fvCurrent = currentPatrimony * Math.pow(1 + ANNUAL_RETURN, yearsToRetirement);
+
+    // How much more we need
+    const remaining = Math.max(requiredPatrimony - fvCurrent, 0);
+
+    // PMT formula: PMT = FV / [((1+r)^n - 1) / r]
+    if (remaining <= 0) return 0;
+
+    const factor = (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
+    return remaining / factor;
+  }, [currentPatrimony, requiredPatrimony, yearsToRetirement]);
+
+  // Generate projection data for chart
+  const projectionData = useMemo((): ProjectionPoint[] => {
+    const data: ProjectionPoint[] = [];
+    let projectedValue = currentPatrimony;
+    let investedValue = currentPatrimony;
+
+    for (let year = 0; year <= yearsToRetirement; year++) {
+      const age = currentAge + year;
+
+      // Add yearly investment
+      const yearlyInvestment = config.monthlyInvestment * 12;
+
+      // Compound interest for projected (with returns)
+      if (year > 0) {
+        projectedValue = (projectedValue + yearlyInvestment) * (1 + ANNUAL_RETURN);
+        investedValue = investedValue + yearlyInvestment;
+      }
+
+      data.push({
         age,
-        conservative: 0,
-        moderate: 0,
-        aggressive: 0,
-      };
-
-      // Calculate for each scenario
-      Object.entries(SCENARIOS).forEach(([key, scenario]) => {
-        const monthlyRate = scenario.rate / 12;
-        const months = y * 12;
-
-        // Future value of current patrimony
-        const fvPatrimony = config.currentPatrimony * Math.pow(1 + scenario.rate, y);
-
-        // Future value of contributions (annuity)
-        const fvContributions = months > 0
-          ? config.monthlyContribution * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate)
-          : 0;
-
-        dataPoint[key as keyof typeof SCENARIOS] = fvPatrimony + fvContributions;
+        year: currentYear + year,
+        projectedPatrimony: Math.round(projectedValue),
+        investedPatrimony: Math.round(investedValue),
+        retirementTarget: Math.round(requiredPatrimony)
       });
-
-      data.push(dataPoint);
     }
 
     return data;
-  }, [config]);
+  }, [currentAge, currentPatrimony, config.monthlyInvestment, yearsToRetirement, requiredPatrimony, currentYear]);
 
-  // Calculate final values and passive income
-  const finalValues = useMemo(() => {
-    if (projectionData.length === 0) return null;
-    const final = projectionData[projectionData.length - 1];
+  // Handlers
+  const handleConfigChange = (newConfig: RetirementConfig) => {
+    setConfig(newConfig);
+  };
 
-    return {
-      conservative: {
-        patrimony: final.conservative,
-        monthlyIncome: (final.conservative * 0.04) / 12,
-      },
-      moderate: {
-        patrimony: final.moderate,
-        monthlyIncome: (final.moderate * 0.04) / 12,
-      },
-      aggressive: {
-        patrimony: final.aggressive,
-        monthlyIncome: (final.aggressive * 0.04) / 12,
-      },
+  const handleSaveConfig = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  };
+
+  const handleAddProject = (project: Omit<RetirementProject, 'id'>) => {
+    const newProject: RetirementProject = {
+      ...project,
+      id: generateId()
     };
-  }, [projectionData]);
-
-  // Recommendation
-  const recommendation = useMemo(() => {
-    if (!finalValues) return null;
-
-    const yearsToRetire = config.targetAge - config.currentAge;
-    const reachesGoal = finalValues.moderate.patrimony >= config.targetPatrimony;
-
-    if (reachesGoal) {
-      return {
-        type: 'success' as const,
-        message: `Parabéns! Com aportes de ${formatCurrency(config.monthlyContribution)}/mês, você deve atingir sua meta em ${yearsToRetire} anos.`,
-        tip: 'Continue investindo consistentemente e evite resgates.',
-      };
-    } else {
-      const deficit = config.targetPatrimony - finalValues.moderate.patrimony;
-      const additionalMonthly = deficit / (yearsToRetire * 12);
-
-      return {
-        type: 'warning' as const,
-        message: `Para atingir sua meta, você precisará aumentar seus aportes em aproximadamente ${formatCurrency(additionalMonthly)}/mês.`,
-        tip: 'Considere aumentar seus aportes ou estender o prazo de aposentadoria.',
-      };
-    }
-  }, [finalValues, config]);
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload || !payload.length) return null;
-
-    const data = payload[0].payload;
-    return (
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 shadow-xl">
-        <p className="text-white font-bold mb-2">Ano {data.year} ({data.age} anos)</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center justify-between gap-4 text-sm">
-            <span style={{ color: entry.color }}>{entry.name}</span>
-            <span className="text-white font-mono">{formatCurrency(entry.value)}</span>
-          </div>
-        ))}
-      </div>
-    );
+    setProjects(prev => [...prev, newProject]);
   };
 
   return (
-    <main className="p-4 md:p-6 min-h-full space-y-6 animate-fade-in pb-24">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-          <span>🏖️</span> Planejamento para Aposentadoria
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Projete seu futuro financeiro e garanta uma aposentadoria tranquila
-        </p>
-      </div>
-
-      {/* Configuration Form */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Calculator size={20} /> Configurações
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Idade Atual
-            </label>
-            <input
-              type="number"
-              value={config.currentAge}
-              onChange={(e) => saveConfig({ ...config, currentAge: parseInt(e.target.value) || 0 })}
-              className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Idade para Aposentar
-            </label>
-            <input
-              type="number"
-              value={config.targetAge}
-              onChange={(e) => saveConfig({ ...config, targetAge: parseInt(e.target.value) || 0 })}
-              className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Patrimônio Atual
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-              <input
-                type="number"
-                value={config.currentPatrimony}
-                onChange={(e) => saveConfig({ ...config, currentPatrimony: parseFloat(e.target.value) || 0 })}
-                className="w-full pl-10 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Aporte Mensal
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-              <input
-                type="number"
-                value={config.monthlyContribution}
-                onChange={(e) => saveConfig({ ...config, monthlyContribution: parseFloat(e.target.value) || 0 })}
-                className="w-full pl-10 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Meta de Patrimônio
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-              <input
-                type="number"
-                value={config.targetPatrimony}
-                onChange={(e) => saveConfig({ ...config, targetPatrimony: parseFloat(e.target.value) || 0 })}
-                className="w-full pl-10 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-end">
-            <p className="text-sm text-gray-500">
-              <strong>{config.targetAge - config.currentAge}</strong> anos até a aposentadoria
-            </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Meu Futuro</h1>
+          <p className="text-sm text-slate-400">Planejamento de independência financeira</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-xl">
+          <Wallet size={18} className="text-emerald-400" />
+          <div className="text-right">
+            <div className="text-[10px] text-slate-500 uppercase">Patrimônio atual</div>
+            <div className="text-sm font-bold text-white">{formatCurrency(currentPatrimony)}</div>
           </div>
         </div>
       </div>
 
-      {/* Projection Chart */}
-      {projectionData.length > 0 && (
-        <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <TrendingUp size={20} /> Projeção de Patrimônio
-          </h2>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Chart */}
+        <div className="lg:col-span-2 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-white">Independência financeira</h2>
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-slate-500">Idade atual:</span>
+              <span className="text-white font-bold">{currentAge} anos</span>
+            </div>
+          </div>
 
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={projectionData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="conservativeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="moderateGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="aggressiveGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="age"
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                axisLine={{ stroke: '#374151' }}
-                tickLine={{ stroke: '#374151' }}
-                label={{ value: 'Idade', position: 'bottom', fill: '#9CA3AF' }}
-              />
-              <YAxis
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                axisLine={{ stroke: '#374151' }}
-                tickLine={{ stroke: '#374151' }}
-                tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <ReferenceLine
-                y={config.targetPatrimony}
-                stroke="#EF4444"
-                strokeDasharray="5 5"
-                label={{ value: 'Meta', fill: '#EF4444', fontSize: 12 }}
-              />
-              <Area
-                type="monotone"
-                dataKey="conservative"
-                stroke="#3B82F6"
-                fill="url(#conservativeGradient)"
-                strokeWidth={2}
-                name="Conservador (6%)"
-              />
-              <Area
-                type="monotone"
-                dataKey="moderate"
-                stroke="#10B981"
-                fill="url(#moderateGradient)"
-                strokeWidth={2}
-                name="Moderado (10%)"
-              />
-              <Area
-                type="monotone"
-                dataKey="aggressive"
-                stroke="#F59E0B"
-                fill="url(#aggressiveGradient)"
-                strokeWidth={2}
-                name="Agressivo (14%)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+          <RetirementChart
+            data={projectionData}
+            currentAge={currentAge}
+            targetAge={config.targetAge}
+          />
 
-      {/* Scenario Cards */}
-      {finalValues && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Object.entries(SCENARIOS).map(([key, scenario]) => {
-            const values = finalValues[key as keyof typeof finalValues];
-            const isRecommended = key === 'moderate';
-
-            return (
-              <div
-                key={key}
-                className={`bg-white dark:bg-[#0f172a] rounded-2xl p-6 border-2 ${
-                  isRecommended
-                    ? 'border-emerald-500 shadow-lg shadow-emerald-500/20'
-                    : 'border-gray-100 dark:border-gray-800'
-                }`}
-              >
-                {isRecommended && (
-                  <div className="text-xs font-bold text-emerald-500 mb-2 uppercase tracking-wider">
-                    Recomendado
-                  </div>
-                )}
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4" style={{ color: scenario.color }}>
-                  {scenario.name}
-                </h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                      <Wallet size={14} /> Patrimônio Final
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(values.patrimony)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                      <Target size={14} /> Renda Mensal Passiva
-                    </p>
-                    <p className="text-xl font-bold" style={{ color: scenario.color }}>
-                      {formatCurrency(values.monthlyIncome)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      (Regra dos 4%)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Recommendation */}
-      {recommendation && (
-        <div className={`rounded-2xl p-6 ${
-          recommendation.type === 'success'
-            ? 'bg-emerald-500/10 border border-emerald-500/20'
-            : 'bg-amber-500/10 border border-amber-500/20'
-        }`}>
-          <div className="flex items-start gap-3">
-            <Info size={24} className={recommendation.type === 'success' ? 'text-emerald-500' : 'text-amber-500'} />
-            <div>
-              <p className={`font-medium ${recommendation.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                {recommendation.message}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                {recommendation.tip}
-              </p>
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mt-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <span className="text-slate-400">Patrimônio projetado</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gray-500" />
+              <span className="text-slate-400">Patrimônio investido</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="text-slate-400">Meta de patrimônio</span>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Info Box */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-        <h4 className="font-bold text-blue-500 mb-2">Sobre a Regra dos 4%</h4>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          A regra dos 4% sugere que você pode retirar 4% do seu patrimônio anualmente na aposentadoria
-          sem esgotar seus recursos em 30+ anos. Isso considera uma carteira diversificada e ajustes pela inflação.
-        </p>
+        {/* Right: Summary + Sliders */}
+        <div className="space-y-4">
+          <RetirementSummaryCard
+            requiredMonthlyInvestment={requiredMonthlyInvestment}
+            targetPatrimony={requiredPatrimony}
+            yearsToRetirement={yearsToRetirement}
+            targetMonthlyIncome={config.targetMonthlyIncome}
+          />
+
+          <RetirementSliders
+            config={config}
+            onChange={handleConfigChange}
+            onSave={handleSaveConfig}
+          />
+        </div>
       </div>
-    </main>
+
+      {/* Projects Section */}
+      <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
+        <RetirementProjects
+          projects={projects}
+          onAddProject={handleAddProject}
+        />
+      </div>
+    </div>
   );
 };
-
-export default Retirement;
