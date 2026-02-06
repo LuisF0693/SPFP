@@ -12,7 +12,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { useFinance } from '../../context/FinanceContext';
+import { useSafeFinance } from '../../hooks/useSafeFinance';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { formatCurrency } from '../../utils';

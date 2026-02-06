@@ -7,7 +7,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { useFinance } from '../../context/FinanceContext';
+import { useSafeFinance } from '../../hooks/useSafeFinance';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Plus, Check, Clock } from 'lucide-react';
 import { BankLogo } from '../BankLogo';
