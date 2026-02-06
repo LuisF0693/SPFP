@@ -53,12 +53,12 @@ export const InvestmentMetricsWidget: React.FC = () => {
     }
 
     const totalInvested = investments.reduce((sum, inv) => {
-      const investedAmount = inv.quantity * (inv.averagePrice || 0);
+      const investedAmount = inv.quantity * (inv.purchasePrice || 0);
       return sum + investedAmount;
     }, 0);
 
     const currentValue = investments.reduce((sum, inv) => {
-      return sum + (inv.quantity * inv.currentPrice);
+      return sum + (inv.totalValue);
     }, 0);
 
     const gain = currentValue - totalInvested;
@@ -72,8 +72,8 @@ export const InvestmentMetricsWidget: React.FC = () => {
     // Asset distribution
     const assetMap: Record<string, number> = {};
     investments.forEach((inv) => {
-      const assetType = inv.type || 'Outro';
-      assetMap[assetType] = (assetMap[assetType] || 0) + (inv.quantity * inv.currentPrice);
+      const assetType = inv.assetType || 'Outro';
+      assetMap[assetType] = (assetMap[assetType] || 0) + (inv.totalValue);
     });
 
     const assetDistribution: AssetTypeData[] = Object.entries(assetMap)
