@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella, Building } from 'lucide-react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
@@ -12,6 +12,16 @@ import { offlineSyncService } from '../services/offlineSyncService';
 interface LayoutProps {
   children: React.ReactNode;
   mode?: 'personal' | 'crm';
+}
+
+interface NavItem {
+  id: string;
+  path?: string;
+  icon: any;
+  label: string;
+  emoji?: string;
+  children?: NavItem[];
+  isExpandable?: boolean;
 }
 
 /**
@@ -26,8 +36,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Note: Theme is already applied by UIProvider.
-  // No need to apply it again here.
+  // Collapsible section state
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    budget: true, // Default expanded
+  });
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
     { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Início' },
@@ -35,29 +54,40 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investir', isFab: false },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
     { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
-    { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas Financeiras' },
+    { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },
   ];
 
-  const desktopNavItems = [
-    { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas' },
-    { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos' },
-    { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investimentos' },
-    { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
-    { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
-    { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas Financeiras' },
-    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
-    { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros' },
-    { id: 'projections', path: '/projections', icon: TrendingUp, label: 'Projeções' },
+  // NEW: Hierarchical navigation structure
+  const desktopNavItems: NavItem[] = [
+    { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Dashboard', emoji: '📊' },
+    {
+      id: 'budget',
+      icon: Calculator,
+      label: 'Orçamento',
+      emoji: '📋',
+      isExpandable: true,
+      children: [
+        { id: 'accounts', path: '/accounts', icon: CreditCard, label: 'Minhas Contas', emoji: '💳' },
+        { id: 'transactions', path: '/transactions', icon: History, label: 'Lançamentos', emoji: '📝' },
+        { id: 'budget-goals', path: '/budget', icon: Target, label: 'Metas', emoji: '🎯' },
+        { id: 'installments', path: '/installments', icon: Calculator, label: 'Parcelamentos', emoji: '📅' },
+      ]
+    },
+    { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos', emoji: '🎯' },
+    { id: 'retirement', path: '/retirement', icon: Umbrella, label: 'Aposentadoria', emoji: '🏖️' },
+    { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio', emoji: '💰' },
+    { id: 'acquisition', path: '/acquisition', icon: Building, label: 'Aquisição', emoji: '🏠' },
+    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios', emoji: '📈' },
+    { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros', emoji: '💡' },
   ];
 
-  const adminNavItems = [
+  const adminNavItems: NavItem[] = [
     { id: 'admin', path: '/admin', icon: ShieldCheck, label: 'Painel Admin' },
   ];
 
-  const crmNavItems = [
+  const crmNavItems: NavItem[] = [
     { id: 'dashboard', path: '/admin', icon: Users, label: 'Gerenciar Clientes' },
     { id: 'partnerships', path: '/partnerships', icon: ArrowLeftRight, label: 'Parcerias' },
   ];
@@ -74,16 +104,115 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     if (currentPath === '/' || currentPath === '/dashboard') return 'Visão Geral';
     if (currentPath === '/settings') return 'Configurações';
     if (currentPath === '/admin') return 'Painel Administrativo';
+    if (currentPath === '/installments') return 'Parcelamentos';
+    if (currentPath === '/retirement') return 'Aposentadoria';
+    if (currentPath === '/acquisition') return 'Aquisição';
+
+    // Search in all items including children
+    const findTitle = (items: NavItem[]): string | null => {
+      for (const item of items) {
+        if (item.path === currentPath) return item.label;
+        if (item.children) {
+          const childTitle = findTitle(item.children);
+          if (childTitle) return childTitle;
+        }
+      }
+      return null;
+    };
 
     const allItems = [...desktopNavItems, ...adminNavItems, ...crmNavItems];
-    const item = allItems.find(i => i.path === currentPath);
-    return item ? item.label : 'Visão Geral';
+    return findTitle(allItems) || 'Visão Geral';
+  };
+
+  // Check if current path is within a section
+  const isPathInSection = (item: NavItem): boolean => {
+    if (item.path && location.pathname === item.path) return true;
+    if (item.children) {
+      return item.children.some(child => child.path === location.pathname);
+    }
+    return false;
   };
 
   // Register Service Worker for PWA support
   useEffect(() => {
     offlineSyncService.registerServiceWorker().catch(err => console.warn('SW registration failed:', err));
   }, []);
+
+  // Render a single nav item
+  const renderNavItem = (item: NavItem, isChild = false) => {
+    const Icon = item.icon;
+    const isActive = item.path === location.pathname;
+    const paddingLeft = isChild ? 'pl-10' : 'px-4';
+
+    return (
+      <NavLink
+        key={item.id}
+        to={item.path!}
+        className={({ isActive }) => `flex items-center w-full ${paddingLeft} py-3.5 rounded-xl transition-all duration-300 group ${isActive
+          ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+          }`}
+      >
+        {({ isActive }) => (
+          <>
+            {item.emoji ? (
+              <span className="mr-3 text-lg">{item.emoji}</span>
+            ) : (
+              <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
+            )}
+            <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
+          </>
+        )}
+      </NavLink>
+    );
+  };
+
+  // Render expandable section
+  const renderExpandableSection = (item: NavItem) => {
+    const isExpanded = expandedSections[item.id] ?? false;
+    const hasActiveChild = item.children?.some(child => child.path === location.pathname);
+    const Icon = item.icon;
+
+    return (
+      <div key={item.id} className="space-y-1">
+        <button
+          onClick={() => toggleSection(item.id)}
+          aria-expanded={isExpanded}
+          aria-controls={`nav-section-${item.id}`}
+          className={`flex items-center justify-between w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${
+            hasActiveChild
+              ? 'bg-blue-900/20 text-white border border-blue-500/20'
+              : 'text-gray-300 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          <div className="flex items-center">
+            {item.emoji ? (
+              <span className="mr-3 text-lg">{item.emoji}</span>
+            ) : (
+              <Icon size={20} className={`mr-3 ${hasActiveChild ? 'text-accent' : 'text-gray-500 group-hover:text-white'}`} />
+            )}
+            <span className="font-medium text-sm tracking-wide">{item.label}</span>
+          </div>
+          <ChevronDown
+            size={16}
+            className={`text-gray-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {/* Collapsible children */}
+        <div
+          id={`nav-section-${item.id}`}
+          className={`overflow-hidden transition-all duration-200 ease-in-out ${
+            isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="py-1 space-y-1">
+            {item.children?.map(child => renderNavItem(child, true))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-screen bg-bg-dark overflow-hidden w-full font-sans text-text-primary transition-colors duration-300">
@@ -137,7 +266,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
                 return (
                   <NavLink
                     key={item.id}
-                    to={item.path}
+                    to={item.path!}
                     end
                     className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
                       ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
@@ -174,27 +303,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
               </div>
             </>
           ) : (
-            // Personal Navigation
+            // Personal Navigation - NEW HIERARCHICAL STRUCTURE
             <>
               {desktopNavItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.id}
-                    to={item.path}
-                    className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
-                      ? 'bg-blue-900/30 text-white border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                      }`}
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <Icon size={20} className={`mr-3 transition-colors duration-300 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'text-gray-500 group-hover:text-white'}`} />
-                        <span className={`font-medium text-sm tracking-wide ${isActive ? 'text-white' : ''}`}>{item.label}</span>
-                      </>
-                    )}
-                  </NavLink>
-                );
+                if (item.isExpandable && item.children) {
+                  return renderExpandableSection(item);
+                }
+                return renderNavItem(item);
               })}
 
               {isAdmin && (
@@ -205,7 +320,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
                     return (
                       <NavLink
                         key={item.id}
-                        to={item.path}
+                        to={item.path!}
                         className={({ isActive }) => `flex items-center w-full px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
                           ? 'bg-blue-900/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
                           : 'text-gray-300 hover:bg-white/5 hover:text-white'

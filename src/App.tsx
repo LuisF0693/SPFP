@@ -30,6 +30,9 @@ const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ d
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
 const PartnershipDashboard = React.lazy(() => import('./components/PartnershipDashboard').then(m => ({ default: m.PartnershipDashboard })));
+const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
+const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
+const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -156,10 +159,24 @@ const AppContent: React.FC = () => {
             </Layout>
           </PrivateRoute>
         } />
-        <Route path="/projections" element={
+        <Route path="/installments" element={
           <PrivateRoute>
             <Layout mode="personal">
-              <FutureCashFlow />
+              <Installments />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/retirement" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Retirement />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/acquisition" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Acquisition />
             </Layout>
           </PrivateRoute>
         } />
