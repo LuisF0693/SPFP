@@ -58,11 +58,15 @@ export const Dashboard: React.FC = memo(() => {
   const currentMonth = useMemo(() =>
     new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' }), []
   );
-  const userName = useMemo(() => userProfile.name?.split(' ')[0] || 'Usuário', [userProfile.name]);
+  const userName = useMemo(() => {
+    const name = userProfile?.name || '';
+    return name.split(' ')[0] || 'Usuário';
+  }, [userProfile?.name]);
 
   // Build alerts array (memoized - PHASE 1 optimization)
   const alerts = useMemo(() => {
     const result = [];
+    const safeAtypical = Array.isArray(atypicalTransactions) ? atypicalTransactions : [];
 
     if (critical > 0 || warning > 0) {
       result.push({
@@ -74,10 +78,10 @@ export const Dashboard: React.FC = memo(() => {
       });
     }
 
-    if (atypicalTransactions.length > 0) {
+    if (safeAtypical.length > 0) {
       result.push({
         type: 'WARNING' as const,
-        title: `${atypicalTransactions.length} Gastos Atípicos`,
+        title: `${safeAtypical.length} Gastos Atípicos`,
         message: 'Detectamos transações fora do padrão. Revise com atenção.',
         icon: <Zap size={20} className="text-orange-500" />,
         link: '/transactions'
@@ -127,7 +131,7 @@ export const Dashboard: React.FC = memo(() => {
             totalBalance={totalBalance}
             totalIncome={totalIncome}
             totalExpense={totalExpense}
-            categoryBudgets={categoryBudgets}
+            categoryBudgets={Array.isArray(categoryBudgets) ? categoryBudgets : []}
             budgetAlertsCritical={critical}
             budgetAlertsWarning={warning}
           />
@@ -148,8 +152,8 @@ export const Dashboard: React.FC = memo(() => {
           </div>
         ) : (
           <DashboardChart
-            trendData={trendData}
-            categoryData={categoryData}
+            trendData={Array.isArray(trendData) ? trendData : []}
+            categoryData={Array.isArray(categoryData) ? categoryData : []}
             totalExpense={totalExpense}
             currentMonth={currentMonth}
           />
@@ -165,32 +169,35 @@ export const Dashboard: React.FC = memo(() => {
           </div>
         ) : (
           <DashboardTransactions
-            accounts={accounts}
-            transactions={transactions}
-            categories={categories}
+            accounts={Array.isArray(accounts) ? accounts : []}
+            transactions={Array.isArray(transactions) ? transactions : []}
+            categories={Array.isArray(categories) ? categories : []}
           />
         )}
       </section>
 
       {/* Monthly Recap Modal */}
-      {showRecap && (
-        <MonthlyRecap
-          onClose={() => setShowRecap(false)}
-          data={{
-            userName,
-            month: currentMonth,
-            income: totalIncome,
-            expense: totalExpense,
-            savingsRate: totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0,
-            topCategory: categoryData[0]
-              ? { name: categoryData[0].name, spent: categoryData[0].value }
-              : { name: 'Geral', spent: 0 },
-            goalsReached: 0,
-            investmentGrowth: 0,
-            bestSavingCategory: undefined,
-          }}
-        />
-      )}
+      {showRecap && (() => {
+        const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
+        return (
+          <MonthlyRecap
+            onClose={() => setShowRecap(false)}
+            data={{
+              userName,
+              month: currentMonth,
+              income: totalIncome,
+              expense: totalExpense,
+              savingsRate: totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0,
+              topCategory: safeCategoryData[0]
+                ? { name: safeCategoryData[0].name, spent: safeCategoryData[0].value }
+                : { name: 'Geral', spent: 0 },
+              goalsReached: 0,
+              investmentGrowth: 0,
+              bestSavingCategory: undefined,
+            }}
+          />
+        );
+      })()}
     </main>
   );
 });
