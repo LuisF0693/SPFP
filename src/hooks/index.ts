@@ -8,3 +8,4 @@ export { useMonthNavigation } from './useMonthNavigation';
 export { useTransactionForm } from './useTransactionForm';
 export { useFocusManager, useEscapeKey, useFocusVisible } from './useFocusManager';
 export { useDesignTokens } from './useDesignTokens';
+export { useSafeFinance } from './useSafeFinance';
