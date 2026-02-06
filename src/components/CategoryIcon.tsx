@@ -1,40 +1,4 @@
-
 import React from 'react';
-import {
-  Home, Car, HeartPulse, GraduationCap, ShoppingCart, Utensils,
-  ShoppingBag, Palmtree, Gamepad2, Gift, Wrench, Zap, Wifi,
-  Smartphone, PiggyBank, TrendingUp, Shield, DollarSign, Briefcase,
-  Coffee, Music, Film, Book, Circle, Plane
-} from 'lucide-react';
-
-// Mapeamento de String -> Componente Lucide
-export const iconMap: Record<string, React.ElementType> = {
-  'home': Home,
-  'car': Car,
-  'health': HeartPulse,
-  'education': GraduationCap,
-  'market': ShoppingCart,
-  'food': Utensils,
-  'shopping': ShoppingBag,
-  'leisure': Palmtree,
-  'game': Gamepad2,
-  'gift': Gift,
-  'tools': Wrench,
-  'energy': Zap,
-  'internet': Wifi,
-  'phone': Smartphone,
-  'savings': PiggyBank,
-  'invest': TrendingUp,
-  'insurance': Shield,
-  'money': DollarSign,
-  'work': Briefcase,
-  'coffee': Coffee,
-  'music': Music,
-  'movie': Film,
-  'book': Book,
-  'travel': Plane,
-  'default': Circle
-};
 
 interface CategoryIconProps {
   iconName?: string;
@@ -43,24 +7,40 @@ interface CategoryIconProps {
   className?: string;
 }
 
-export const CategoryIcon: React.FC<CategoryIconProps> = ({ iconName, size = 20, color, className }) => {
-  // Check if it's a legacy Lucide icon
-  const isLucideIcon = iconName && iconMap[iconName];
-
-  if (isLucideIcon) {
-    const IconComponent = iconMap[iconName];
-    return <IconComponent size={size} color={color} className={className} />;
-  }
-
-  // Otherwise treat as Emoji
+/**
+ * CategoryIcon - Renders an emoji icon for categories.
+ * Now uses only emojis instead of Lucide icons for consistency.
+ */
+export const CategoryIcon: React.FC<CategoryIconProps> = ({
+  iconName,
+  size = 20,
+  color,
+  className
+}) => {
   return (
     <span
-      className={`flex items-center justify-center leading-none select-none ${className}`}
-      style={{ fontSize: size, width: size, height: size }}
+      className={`flex items-center justify-center leading-none select-none ${className || ''}`}
+      style={{
+        fontSize: size,
+        width: size,
+        height: size,
+        color: color
+      }}
+      role="img"
+      aria-label="category icon"
     >
       {iconName || '📦'}
     </span>
   );
 };
 
-export const AVAILABLE_ICONS = Object.keys(iconMap).filter(k => k !== 'default');
+// Available emojis for category selection
+export const AVAILABLE_EMOJIS = [
+  '🏠', '🚗', '🏥', '🎓', '🛒', '🎉', '🍔', '🛍️', '📈', '🛡️', '☂️', '💰', '💵',
+  '✈️', '🎮', '🎬', '📚', '☕', '🎵', '🏋️', '💻', '📱', '🎁', '🔧', '⚡', '📶',
+  '🐕', '🐈', '🌿', '💊', '🍕', '🍺', '🚌', '⛽', '🅿️', '🏦', '💳', '🎨', '✂️',
+  '👶', '🧒', '👕', '👗', '👠', '💄', '🧴', '🧹', '🏡', '🌳', '🚿', '🛁', '🛏️'
+];
+
+// Legacy export for backwards compatibility - now returns emojis
+export const AVAILABLE_ICONS = AVAILABLE_EMOJIS;

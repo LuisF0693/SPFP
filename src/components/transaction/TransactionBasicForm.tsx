@@ -1,8 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { Transaction, TransactionType, CategoryGroup, Category, Account, UserProfile } from '../../types';
-import { ChevronDown, Search, Check, X, Sparkles, Plus, Palette } from 'lucide-react';
-import { CategoryIcon, AVAILABLE_ICONS } from '../CategoryIcon';
+import { ChevronDown, ChevronUp, Search, Check, X, Sparkles, Plus } from 'lucide-react';
 import { getOwnerDisplayName } from '../../utils/ownerUtils';
+
+// Emojis disponíveis para categorias
+const AVAILABLE_EMOJIS = [
+  '🏠', '🚗', '🏥', '🎓', '🛒', '🎉', '🍔', '🛍️', '📈', '🛡️', '☂️', '💰', '💵',
+  '✈️', '🎮', '🎬', '📚', '☕', '🎵', '🏋️', '💻', '📱', '🎁', '🔧', '⚡', '📶',
+  '🐕', '🐈', '🌿', '💊', '🍕', '🍺', '🚌', '⛽', '🅿️', '🏦', '💳', '🎨', '✂️'
+];
 
 interface TransactionBasicFormProps {
   description: string;
@@ -71,7 +77,7 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
   const [newCatName, setNewCatName] = useState('');
   const [newCatGroup, setNewCatGroup] = useState<CategoryGroup>('VARIABLE');
   const [newCatColor, setNewCatColor] = useState(COLOR_PALETTE[0]);
-  const [newCatIcon, setNewCatIcon] = useState('default');
+  const [newCatIcon, setNewCatIcon] = useState('📦');
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,7 +98,7 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
     setIsCategoryOpen(false);
     setNewCatName('');
     setNewCatColor(COLOR_PALETTE[0]);
-    setNewCatIcon('default');
+    setNewCatIcon('📦');
   };
 
   const filteredCategories = categories.filter((c: any) =>
@@ -191,103 +197,121 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
         />
       </div>
 
-      <div className="relative" ref={categoryDropdownRef}>
-        <div className="flex justify-between items-end mb-1">
+      {/* Category Selector - Grid Visual com Emojis */}
+      <div ref={categoryDropdownRef}>
+        <div className="flex justify-between items-center mb-3">
           <label className="block text-sm font-medium text-slate-300">Categoria</label>
-          {wasCategoryAutoSelected && (
-            <div className="flex items-center text-[10px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full animate-pulse">
-              <Sparkles size={10} className="mr-1" /> Auto-detectada
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {wasCategoryAutoSelected && (
+              <div className="flex items-center text-[10px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                <Sparkles size={10} className="mr-1" /> Auto-detectada
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1"
+            >
+              {isCategoryOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {isCategoryOpen ? 'Menos' : 'Mais'}
+            </button>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-          aria-label={isCategoryOpen ? 'Fechar seletor de categoria' : 'Abrir seletor de categoria'}
-          aria-expanded={isCategoryOpen}
-          aria-haspopup="listbox"
-          className={`w-full p-4 bg-slate-800/50 border rounded-xl flex items-center justify-between hover:bg-slate-700/50 transition-colors ${
-            wasCategoryAutoSelected ? 'border-blue-500/50 ring-2 ring-blue-500/10' : 'border-slate-700'
-          }`}
-        >
-          <div className="flex items-center">
-            {selectedCategory ? (
-              <>
-                <div className="mr-3">
-                  <CategoryIcon iconName={selectedCategory.icon} color={selectedCategory.color} />
-                </div>
-                <span className="text-slate-100 font-medium">{selectedCategory.name}</span>
-              </>
-            ) : (
-              <span className="text-slate-500">Selecione uma categoria</span>
-            )}
+        {/* Selected Category Display */}
+        {selectedCategory && !isCategoryOpen && (
+          <div
+            className="flex items-center gap-3 p-3 mb-3 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
+            onClick={() => setIsCategoryOpen(true)}
+          >
+            <span className="text-2xl">{selectedCategory.icon || '📦'}</span>
+            <div className="flex-1">
+              <span className="text-slate-100 font-medium">{selectedCategory.name}</span>
+              <span className="text-xs text-slate-500 ml-2">{GROUP_LABELS[selectedCategory.group as CategoryGroup]}</span>
+            </div>
+            <Check size={18} className="text-emerald-400" />
           </div>
-          <ChevronDown
-            size={20}
-            className={`text-slate-500 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />
-        </button>
+        )}
 
-        {isCategoryOpen && (
-          <div className="absolute z-50 w-full mt-2 bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden animate-fade-in origin-top">
-            <div className="p-3 border-b border-slate-700/50 bg-slate-900/50 flex flex-col space-y-2">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="Buscar categoria..."
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-800/50 border border-slate-700 rounded-lg outline-none text-slate-100 placeholder-slate-500 focus:border-blue-500/50"
-                  value={categorySearch}
-                  onChange={(e) => setCategorySearch(e.target.value)}
-                />
+        {/* Category Grid */}
+        <div className={`space-y-3 transition-all duration-300 ${isCategoryOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+          {/* Search and Create */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-800/50 border border-slate-700 rounded-lg outline-none text-slate-100 placeholder-slate-500 focus:border-blue-500/50"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCreatingCategory(true)}
+              className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 transition-colors whitespace-nowrap"
+            >
+              <Plus size={14} /> Nova
+            </button>
+          </div>
+
+          {/* Category Groups */}
+          {(['FIXED', 'VARIABLE', 'INVESTMENT', 'INCOME'] as CategoryGroup[]).map((group) => {
+            const items = groupedFilteredCategories[group];
+            if (!items || items.length === 0) return null;
+            return (
+              <div key={group} className="space-y-2">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">
+                  {GROUP_LABELS[group]}
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {items.map((cat: any) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        onCategoryChange(cat.id);
+                        setIsCategoryOpen(false);
+                      }}
+                      className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all hover:scale-[1.02] active:scale-95 ${
+                        categoryId === cat.id
+                          ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20'
+                          : 'border-slate-700/50 bg-slate-800/30 hover:border-slate-600'
+                      }`}
+                    >
+                      <span className="text-2xl mb-1">{cat.icon || '📦'}</span>
+                      <span className={`text-[10px] text-center leading-tight truncate w-full ${
+                        categoryId === cat.id ? 'font-bold text-blue-400' : 'text-slate-400'
+                      }`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Collapsed state: show popular categories */}
+        {!isCategoryOpen && !selectedCategory && (
+          <div className="grid grid-cols-4 gap-2">
+            {filteredCategories.slice(0, 8).map((cat: any) => (
               <button
+                key={cat.id}
                 type="button"
-                onClick={() => setIsCreatingCategory(true)}
-                aria-label="Criar nova categoria"
-                className="flex items-center justify-center p-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 transition-colors"
+                onClick={() => onCategoryChange(cat.id)}
+                className={`flex flex-col items-center p-2 rounded-xl border-2 transition-all hover:scale-[1.02] active:scale-95 ${
+                  categoryId === cat.id
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-slate-700/50 bg-slate-800/30 hover:border-slate-600'
+                }`}
               >
-                <Plus size={14} className="mr-2" aria-hidden="true" /> Criar Nova Categoria
+                <span className="text-xl">{cat.icon || '📦'}</span>
+                <span className="text-[9px] text-slate-400 truncate w-full text-center">{cat.name}</span>
               </button>
-            </div>
-            <div className="max-h-60 overflow-y-auto no-scrollbar">
-              {(['FIXED', 'VARIABLE', 'INVESTMENT', 'INCOME'] as CategoryGroup[]).map((group) => {
-                const items = groupedFilteredCategories[group];
-                if (!items || items.length === 0) return null;
-                return (
-                  <div key={group}>
-                    <div className="px-4 py-2 bg-slate-900/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                      {GROUP_LABELS[group]}
-                    </div>
-                    {items.map((cat: any) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => {
-                          onCategoryChange(cat.id);
-                          setIsCategoryOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 flex items-center justify-between hover:bg-slate-700/50 transition-colors ${
-                          categoryId === cat.id ? 'bg-blue-500/10' : ''
-                        }`}
-                      >
-                        <div className="flex items-center">
-                          <div className="mr-3">
-                            <CategoryIcon iconName={cat.icon} color={cat.color} size={18} />
-                          </div>
-                          <span className={`text-sm ${categoryId === cat.id ? 'font-bold text-blue-400' : 'text-slate-300'}`}>
-                            {cat.name}
-                          </span>
-                        </div>
-                        {categoryId === cat.id && <Check size={16} className="text-blue-400" aria-hidden="true" />}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
+            ))}
           </div>
         )}
       </div>
@@ -404,24 +428,20 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Ícone Representativo</label>
-                <div className="grid grid-cols-5 gap-3 max-h-32 overflow-y-auto p-2 border border-slate-700/50 rounded-xl bg-slate-800/30">
-                  {AVAILABLE_ICONS.map((icon) => (
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Emoji</label>
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 border border-slate-700/50 rounded-xl bg-slate-800/30">
+                  {AVAILABLE_EMOJIS.map((emoji) => (
                     <button
-                      key={icon}
+                      key={emoji}
                       type="button"
-                      onClick={() => setNewCatIcon(icon)}
-                      className={`p-3 rounded-lg flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${
-                        newCatIcon === icon
-                          ? 'bg-blue-600 text-white shadow-lg'
-                          : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+                      onClick={() => setNewCatIcon(emoji)}
+                      className={`p-2 rounded-lg flex items-center justify-center transition-all text-xl hover:scale-110 active:scale-95 ${
+                        newCatIcon === emoji
+                          ? 'bg-blue-600 shadow-lg ring-2 ring-blue-400'
+                          : 'bg-slate-800/50 hover:bg-slate-700/50'
                       }`}
                     >
-                      <CategoryIcon
-                        iconName={icon}
-                        size={20}
-                        color={newCatIcon === icon ? '#fff' : '#9ca3af'}
-                      />
+                      {emoji}
                     </button>
                   ))}
                 </div>

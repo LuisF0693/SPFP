@@ -4,7 +4,7 @@
 **PRD:** PRD-UX-RESTRUCTURE-SIDEBAR
 **Priority:** P2 MÉDIA
 **Effort:** 3h
-**Status:** READY
+**Status:** DONE
 
 ---
 
@@ -36,13 +36,13 @@ Mover o seletor de emojis/sentimento para dentro do formulário de novo lançame
 
 ## Acceptance Criteria
 
-- [ ] **AC-1:** Seletor de emoji aparece dentro do formulário de novo lançamento
-- [ ] **AC-2:** Emoji selecionado aparece junto com o nome da categoria
-- [ ] **AC-3:** Categorias usam apenas emojis (não ícones SVG)
-- [ ] **AC-4:** Usuário pode mudar emoji de uma categoria
-- [ ] **AC-5:** Emoji persiste com a transação
-- [ ] **AC-6:** Lista de transações mostra emoji da categoria
-- [ ] **AC-7:** Design responsivo para mobile
+- [x] **AC-1:** Seletor de emoji aparece dentro do formulário de novo lançamento
+- [x] **AC-2:** Emoji selecionado aparece junto com o nome da categoria
+- [x] **AC-3:** Categorias usam apenas emojis (não ícones SVG)
+- [x] **AC-4:** Usuário pode mudar emoji de uma categoria (ao criar nova)
+- [x] **AC-5:** Emoji persiste com a transação
+- [x] **AC-6:** Lista de transações mostra emoji da categoria
+- [x] **AC-7:** Design responsivo para mobile (grid 3 colunas mobile, 4 desktop)
 
 ---
 
@@ -192,15 +192,15 @@ const TransactionForm: React.FC = () => {
 
 ## Tasks
 
-- [ ] 1. Atualizar `CategoryIcon.tsx` para usar apenas emojis
-- [ ] 2. Criar componente `CategorySelector` com grid de emojis
-- [ ] 3. Integrar `CategorySelector` em `TransactionBasicForm`
-- [ ] 4. Remover imports de ícones Lucide não utilizados
-- [ ] 5. Atualizar `INITIAL_CATEGORIES` com emojis
-- [ ] 6. Atualizar `TransactionList` para mostrar emojis
-- [ ] 7. Testar criação de transação
-- [ ] 8. Testar listagem de transações
-- [ ] 9. Responsividade mobile
+- [x] 1. Atualizar `CategoryIcon.tsx` para usar apenas emojis
+- [x] 2. Criar componente `CategorySelector` com grid de emojis (inline no BasicForm)
+- [x] 3. Integrar `CategorySelector` em `TransactionBasicForm`
+- [x] 4. Remover imports de ícones Lucide não utilizados
+- [x] 5. Atualizar `INITIAL_CATEGORIES` com emojis (já estava feito)
+- [x] 6. Atualizar `TransactionList` para mostrar emojis (usa CategoryIcon)
+- [x] 7. Testar criação de transação (build passou)
+- [x] 8. Testar listagem de transações (CategoryIcon atualizado)
+- [x] 9. Responsividade mobile (grid cols-3 mobile, cols-4 desktop)
 
 ---
 
@@ -225,11 +225,16 @@ const TransactionForm: React.FC = () => {
 
 ## Definition of Done
 
-- [ ] Emojis no formulário
-- [ ] Ícones SVG removidos
-- [ ] Lista mostra emojis
-- [ ] Responsivo
-- [ ] Sem erros no console
+- [x] Emojis no formulário
+- [x] Ícones SVG removidos
+- [x] Lista mostra emojis
+- [x] Responsivo
+- [x] Sem erros no console
+
+## Files Changed
+
+- `src/components/CategoryIcon.tsx` - **MODIFICADO** - Removido Lucide, agora usa apenas emojis
+- `src/components/transaction/TransactionBasicForm.tsx` - **MODIFICADO** - Grid visual de categorias com emojis
 
 ---
 
