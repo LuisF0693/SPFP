@@ -30,19 +30,48 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const errorMessage = this.state.error?.message || 'Unknown error';
+      const errorStack = this.state.error?.stack || 'No stack trace available';
+
       return (
-        <div className="p-6 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
-          <h2 className="font-bold mb-2">Dashboard Error</h2>
-          <p className="text-sm mb-4">{this.state.error?.message}</p>
-          <pre className="text-xs bg-red-900/20 p-3 rounded overflow-auto max-h-48">
-            {this.state.error?.stack}
-          </pre>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded font-medium"
-          >
-            Reload Page
-          </button>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[9999] p-4">
+          <div className="bg-gray-900 border border-red-500/50 rounded-xl max-w-2xl max-h-[80vh] overflow-auto p-6">
+            <h1 className="text-2xl font-bold text-red-400 mb-4">🚨 Dashboard Error</h1>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-300 mb-2 font-semibold">Error Message:</p>
+              <p className="text-base text-red-300 font-mono bg-red-900/20 p-3 rounded border border-red-500/30">
+                {errorMessage}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-300 mb-2 font-semibold">Stack Trace:</p>
+              <pre className="text-xs text-gray-400 bg-gray-800 p-4 rounded border border-gray-700 overflow-auto max-h-64 font-mono whitespace-pre-wrap break-words">
+                {errorStack}
+              </pre>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  // Copy to clipboard
+                  const fullError = `${errorMessage}\n\n${errorStack}`;
+                  navigator.clipboard.writeText(fullError);
+                  alert('Error copied to clipboard');
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm"
+              >
+                📋 Copy Error
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm"
+              >
+                🔄 Reload Page
+              </button>
+            </div>
+          </div>
         </div>
       );
     }
