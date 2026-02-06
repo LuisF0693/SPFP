@@ -1,21 +1,38 @@
 import React, { useState, useMemo } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { PatrimonyItem } from '../types';
-import { Plus, Wallet, TrendingUp, TrendingDown, Edit2, Trash2, Building2, Car, Plane, DollarSign, PieChart as PieIcon, ArrowUpRight, ArrowDownRight, MoreHorizontal } from 'lucide-react';
+import { Plus, Wallet, TrendingUp, TrendingDown, Edit2, Trash2, Building2, Car, Plane, DollarSign, PieChart as PieIcon, ArrowUpRight, ArrowDownRight, MoreHorizontal, List, Grid } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PatrimonyForm from './PatrimonyForm';
 import { Link } from 'react-router-dom';
 import { Modal } from './ui/Modal';
+import { PatrimonyListEnhanced } from './PatrimonyListEnhanced';
+import { AssetAcquisitionForm } from './AssetAcquisitionForm';
+import { Asset } from '../types/assets';
 
 /**
  * Patrimony component.
  * Manages physical and financial assets (real estate, vehicles, debts) for a complete net worth view.
  */
 export const Patrimony: React.FC = () => {
-    const { patrimonyItems, deletePatrimonyItem, investments } = useSafeFinance();
+    const { patrimonyItems, deletePatrimonyItem, investments, accounts, assets, addAsset, updateAsset, deleteAsset } = useSafeFinance();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<PatrimonyItem | null>(null);
+    const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+    const [isAssetFormOpen, setIsAssetFormOpen] = useState(false);
+    const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+
+    // Handle Asset Save
+    const handleAssetSave = (asset: Asset) => {
+        if (editingAsset) {
+            updateAsset?.(asset);
+        } else {
+            addAsset?.(asset);
+        }
+        setIsAssetFormOpen(false);
+        setEditingAsset(null);
+    };
 
     // --- Calculations ---
 
@@ -114,14 +131,41 @@ export const Patrimony: React.FC = () => {
                     <h1 className="text-3xl font-bold font-serif text-gray-900 dark:text-white">Gestão de Patrimônio</h1>
                     <p className="text-gray-400 dark:text-gray-300">Acompanhe a evolução dos seus bens e dívidas.</p>
                 </div>
-                <button
-                    onClick={() => { setEditingItem(null); setIsFormOpen(true); }}
-                    aria-label="Criar novo registro de patrimônio"
-                    className="flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 active:scale-95"
-                >
-                    <Plus size={20} className="mr-2" aria-hidden="true" />
-                    Novo Registro
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* View Mode Toggle */}
+                    <div className="flex bg-gray-800 rounded-lg p-1">
+                        <button
+                            onClick={() => setViewMode('cards')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'cards' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                            aria-label="Visualização em cards"
+                        >
+                            <Grid size={18} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                            aria-label="Visualização em lista"
+                        >
+                            <List size={18} />
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => { setEditingAsset(null); setIsAssetFormOpen(true); }}
+                        aria-label="Adicionar bem"
+                        className="flex items-center px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/30 active:scale-95"
+                    >
+                        <Building2 size={20} className="mr-2" aria-hidden="true" />
+                        Aquisição de Bem
+                    </button>
+                    <button
+                        onClick={() => { setEditingItem(null); setIsFormOpen(true); }}
+                        aria-label="Criar novo registro de patrimônio"
+                        className="flex items-center px-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 active:scale-95"
+                    >
+                        <Plus size={20} className="mr-2" aria-hidden="true" />
+                        Novo Registro
+                    </button>
+                </div>
             </div>
 
             {/* KPI Cards */}
@@ -356,6 +400,30 @@ export const Patrimony: React.FC = () => {
                 </div>
             </section>
 
+            {/* Enhanced List View */}
+            {viewMode === 'list' && (
+                <section aria-label="Enhanced Patrimony List" className="bg-[#0F172A] rounded-2xl border border-slate-800 p-6">
+                    <h2 className="text-xl font-bold text-white mb-4">Visão Consolidada de Patrimônio</h2>
+                    <PatrimonyListEnhanced
+                        accounts={Array.isArray(accounts) ? accounts : []}
+                        investments={Array.isArray(investments) ? investments : []}
+                        assets={Array.isArray(assets) ? assets : []}
+                        patrimonyItems={Array.isArray(patrimonyItems) ? patrimonyItems : []}
+                        onEdit={(item) => {
+                            if (item.type === 'patrimony') {
+                                setEditingItem(item as unknown as PatrimonyItem);
+                                setIsFormOpen(true);
+                            }
+                        }}
+                        onDelete={(id, type) => {
+                            if (type === 'patrimony' && window.confirm('Tem certeza que deseja excluir este item?')) {
+                                deletePatrimonyItem(id);
+                            }
+                        }}
+                    />
+                </section>
+            )}
+
             <Modal
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
@@ -365,6 +433,14 @@ export const Patrimony: React.FC = () => {
             >
                 <PatrimonyForm onClose={() => setIsFormOpen(false)} initialData={editingItem} />
             </Modal>
+
+            {/* Asset Acquisition Form Modal */}
+            <AssetAcquisitionForm
+                isOpen={isAssetFormOpen}
+                onClose={() => { setIsAssetFormOpen(false); setEditingAsset(null); }}
+                onSave={handleAssetSave}
+                initialAsset={editingAsset || undefined}
+            />
 
         </div>
     );

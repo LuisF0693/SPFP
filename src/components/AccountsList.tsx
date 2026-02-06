@@ -20,6 +20,7 @@ import {
 } from '../services/accountService';
 import { formatCurrency, formatDate } from '../utils';
 import { CategoryIcon } from './CategoryIcon';
+import { CreditCardDisplay } from './CreditCardDisplay';
 
 interface AccountsListProps {
   creditCards: Account[];
@@ -183,43 +184,16 @@ export const AccountsList: React.FC<AccountsListProps> = ({
                   key={card.id}
                   className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row group/card"
                 >
-                  {/* Card Visual */}
+                  {/* Card Visual - Using CreditCardDisplay component */}
                   <div
                     onClick={() => onViewInvoice(card)}
-                    className="w-full md:w-[280px] p-6 lg:p-6 flex flex-col justify-between text-white rounded-[20px] relative overflow-hidden shrink-0 min-h-[160px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300"
-                    style={{ background: card.color || '#0f172a' }}
+                    className="w-full md:w-[320px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300 shrink-0"
                   >
-                    {/* Background Pattern */}
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                      <Wifi size={64} />
-                    </div>
-
-                    <div className="flex justify-between items-start z-10">
-                      <span className="font-bold tracking-widest uppercase">{card.name}</span>
-                      <Wifi size={20} className="rotate-90" />
-                    </div>
-                    <div className="z-10 mt-6">
-                      <div className="w-10 h-7 bg-yellow-400/80 rounded-md mb-3 flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute w-[120%] h-[1px] bg-black/20 inset-0 m-auto rotate-45"></div>
-                      </div>
-                      <p className="font-mono text-sm tracking-widest opacity-90">
-                        •••• •••• •••• {card.lastFourDigits || '0000'}
-                      </p>
-                      <div className="flex justify-between items-end mt-2">
-                        <p className="text-[10px] opacity-70 uppercase tracking-widest">
-                          RICARDO SILVA
-                        </p>
-                        {card.network === 'VISA' && (
-                          <span className="font-bold italic text-lg">VISA</span>
-                        )}
-                        {card.network === 'MASTERCARD' && (
-                          <div className="flex -space-x-1.5">
-                            <div className="w-4 h-4 rounded-full bg-red-500/90"></div>
-                            <div className="w-4 h-4 rounded-full bg-yellow-500/90"></div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <CreditCardDisplay
+                      account={card}
+                      holderName={userProfile?.spouseName || 'TITULAR'}
+                      cardNumber={card.lastFourDigits ? `•••• •••• •••• ${card.lastFourDigits}` : undefined}
+                    />
                   </div>
 
                   {/* Card Details */}
