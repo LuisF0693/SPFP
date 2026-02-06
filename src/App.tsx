@@ -29,6 +29,7 @@ const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
+const PartnershipDashboard = React.lazy(() => import('./components/PartnershipDashboard').then(m => ({ default: m.PartnershipDashboard })));
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -180,6 +181,13 @@ const AppContent: React.FC = () => {
           <AdminRoute>
             <Layout mode="crm">
               <AdminCRM />
+            </Layout>
+          </AdminRoute>
+        } />
+        <Route path="/partnerships" element={
+          <AdminRoute>
+            <Layout mode="crm">
+              <PartnershipDashboard />
             </Layout>
           </AdminRoute>
         } />

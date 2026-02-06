@@ -59,7 +59,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
 
   const crmNavItems = [
     { id: 'dashboard', path: '/admin', icon: Users, label: 'Gerenciar Clientes' },
-    // { id: 'settings', path: '/admin/settings', icon: Settings, label: 'Configurações CRM' }, // Future use
+    { id: 'partnerships', path: '/partnerships', icon: ArrowLeftRight, label: 'Parcerias' },
   ];
 
   const handleLogout = async (e: React.MouseEvent) => {
