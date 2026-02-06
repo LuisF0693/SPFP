@@ -33,42 +33,55 @@ export class DashboardErrorBoundary extends Component<Props, State> {
       const errorMessage = this.state.error?.message || 'Unknown error';
       const errorStack = this.state.error?.stack || 'No stack trace available';
 
-      return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-[9999] p-4">
-          <div className="bg-gray-900 border border-red-500/50 rounded-xl max-w-2xl max-h-[80vh] overflow-auto p-6">
-            <h1 className="text-2xl font-bold text-red-400 mb-4">🚨 Dashboard Error</h1>
+      // Log to browser's local storage as backup
+      if (typeof window !== 'undefined') {
+        const errorLog = {
+          message: errorMessage,
+          stack: errorStack,
+          timestamp: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem('dashboard_error', JSON.stringify(errorLog));
+        } catch (e) {
+          console.error('Failed to save error to localStorage:', e);
+        }
+      }
 
-            <div className="mb-6">
-              <p className="text-sm text-gray-300 mb-2 font-semibold">Error Message:</p>
-              <p className="text-base text-red-300 font-mono bg-red-900/20 p-3 rounded border border-red-500/30">
+      return (
+        <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#111827', border: '2px solid #dc2626', borderRadius: '0.75rem', maxWidth: '800px', maxHeight: '80vh', overflow: 'auto', padding: '1.5rem', fontFamily: 'monospace' }}>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#f87171', marginBottom: '1rem' }}>🚨 DASHBOARD ERROR</h1>
+
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#7f1d1d', border: '1px solid #dc2626', borderRadius: '0.5rem' }}>
+              <p style={{ color: '#fca5a5', fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>MESSAGE:</p>
+              <p style={{ color: '#fecaca', fontSize: '1rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 {errorMessage}
               </p>
             </div>
 
-            <div className="mb-6">
-              <p className="text-sm text-gray-300 mb-2 font-semibold">Stack Trace:</p>
-              <pre className="text-xs text-gray-400 bg-gray-800 p-4 rounded border border-gray-700 overflow-auto max-h-64 font-mono whitespace-pre-wrap break-words">
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', maxHeight: '400px', overflow: 'auto' }}>
+              <p style={{ color: '#9ca3af', fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>STACK TRACE:</p>
+              <pre style={{ color: '#d1d5db', fontSize: '0.75rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
                 {errorStack}
               </pre>
             </div>
 
-            <div className="flex gap-3">
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 onClick={() => {
-                  // Copy to clipboard
                   const fullError = `${errorMessage}\n\n${errorStack}`;
                   navigator.clipboard.writeText(fullError);
-                  alert('Error copied to clipboard');
+                  alert('✅ Error copied to clipboard!');
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm"
+                style={{ flex: 1, padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '0.375rem', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 📋 Copy Error
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm"
+                style={{ flex: 1, padding: '0.5rem 1rem', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '0.375rem', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                🔄 Reload Page
+                🔄 Reload
               </button>
             </div>
           </div>
