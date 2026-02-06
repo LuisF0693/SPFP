@@ -2,7 +2,8 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18next from './i18n/config';
-import { FinanceProvider, useFinance } from './context/FinanceContext';
+import { FinanceProvider } from './context/FinanceContext';
+import { useSafeFinance } from './hooks/useSafeFinance';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UIProvider } from './context/UIContext';
 import { SidebarProvider } from './context/SidebarContext';
@@ -50,7 +51,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  */
 const AppContent: React.FC = () => {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useFinance();
+  const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useSafeFinance();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
