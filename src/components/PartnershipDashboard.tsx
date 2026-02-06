@@ -40,13 +40,15 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
   const [filterStatus, setFilterStatus] = useState<PartnerStatus | 'ALL'>('ALL');
 
   const activePartners = useMemo(() => {
-    return partners
+    const safePartners = Array.isArray(partners) ? partners : [];
+    return safePartners
       .filter(p => !p.deletedAt && (filterStatus === 'ALL' || p.status === filterStatus))
       .sort((a, b) => b.totalAUM - a.totalAUM);
   }, [partners, filterStatus]);
 
   const stats = useMemo(() => {
-    const active = partners.filter(p => !p.deletedAt && p.status === PartnerStatus.ACTIVE);
+    const safePartners = Array.isArray(partners) ? partners : [];
+    const active = safePartners.filter(p => !p.deletedAt && p.status === PartnerStatus.ACTIVE);
     const totalAUM = active.reduce((sum, p) => sum + p.totalAUM, 0);
     const totalClients = active.reduce((sum, p) => sum + p.clientsManaged, 0);
     const totalCommissions = active.reduce((sum, p) => sum + p.totalCommissions, 0);
@@ -162,7 +164,8 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
             </thead>
             <tbody>
               {activePartners.map(partner => {
-                const kpiCompletion = (partner.kpis.filter(k => k.current >= k.target).length / partner.kpis.length) * 100 || 0;
+                const safeKpis = Array.isArray(partner.kpis) ? partner.kpis : [];
+                const kpiCompletion = (safeKpis.filter(k => k.current >= k.target).length / safeKpis.length) * 100 || 0;
                 return (
                   <tr
                     key={partner.id}

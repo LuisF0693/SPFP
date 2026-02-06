@@ -28,12 +28,12 @@ export const InvestmentPortfolioSimple: React.FC = () => {
 
   // Filter active investments
   const activeInvestments = useMemo(
-    () => investments.filter(i => !i.deletedAt),
+    () => (Array.isArray(investments) ? investments : []).filter(i => !i.deletedAt),
     [investments]
   );
 
   // Calculate portfolio summary
-  const summary = useMemo(() => calculatePortfolioSummary(investments), [investments]);
+  const summary = useMemo(() => calculatePortfolioSummary(Array.isArray(investments) ? investments : []), [investments]);
 
   // Sort investments
   const sortedInvestments = useMemo(() => {

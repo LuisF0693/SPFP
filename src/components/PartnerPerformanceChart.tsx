@@ -168,7 +168,7 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
         <div className="bg-card-dark border border-gray-800 rounded-xl p-4">
           <span className="text-xs font-bold text-gray-500 uppercase block mb-2">Comissão Média</span>
           <span className="text-2xl font-bold text-green-400">
-            {formatCurrency(partners.filter(p => !p.deletedAt).reduce((sum, p) => sum + p.totalCommissions, 0) / (partners.filter(p => !p.deletedAt).length || 1) / 12)}
+            {formatCurrency((Array.isArray(partners) ? partners : []).filter(p => !p.deletedAt).reduce((sum, p) => sum + p.totalCommissions, 0) / ((Array.isArray(partners) ? partners : []).filter(p => !p.deletedAt).length || 1) / 12)}
           </span>
         </div>
 
@@ -176,10 +176,10 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
           <span className="text-xs font-bold text-gray-500 uppercase block mb-2">Taxa KPI Média</span>
           <span className="text-2xl font-bold text-blue-400">
             {(
-              partners
+              (Array.isArray(partners) ? partners : [])
                 .filter(p => !p.deletedAt)
                 .reduce((sum, p) => sum + (p.kpis.filter(k => k.current >= k.target).length / p.kpis.length || 0), 0) /
-              (partners.filter(p => !p.deletedAt).length || 1) *
+              ((Array.isArray(partners) ? partners : []).filter(p => !p.deletedAt).length || 1) *
               100
             ).toFixed(1)}%
           </span>
@@ -188,7 +188,7 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
         <div className="bg-card-dark border border-gray-800 rounded-xl p-4">
           <span className="text-xs font-bold text-gray-500 uppercase block mb-2">Total Gerenciado</span>
           <span className="text-2xl font-bold text-purple-400">
-            {formatCurrency(partners.filter(p => !p.deletedAt).reduce((sum, p) => sum + p.totalAUM, 0))}
+            {formatCurrency((Array.isArray(partners) ? partners : []).filter(p => !p.deletedAt).reduce((sum, p) => sum + p.totalAUM, 0))}
           </span>
         </div>
       </div>

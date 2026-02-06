@@ -49,19 +49,24 @@ export const PatrimonyEvolutionChart: React.FC<PatrimonyEvolutionChartProps> = (
 }) => {
   const { chartData, cagr, totalGrowth } = useMemo(() => {
     // Get current values
-    const currentAccounts = accounts
+    const safeAccounts = Array.isArray(accounts) ? accounts : [];
+    const safeInvestments = Array.isArray(investments) ? investments : [];
+    const safeAssets = Array.isArray(assets) ? assets : [];
+    const safePatrimony = Array.isArray(patrimonyItems) ? patrimonyItems : [];
+
+    const currentAccounts = safeAccounts
       .filter(a => !a.deletedAt)
       .reduce((sum, a) => sum + a.balance, 0);
 
-    const currentInvestments = investments
+    const currentInvestments = safeInvestments
       .filter(i => !i.deletedAt)
       .reduce((sum, i) => sum + i.totalValue, 0);
 
-    const currentAssets = assets
+    const currentAssets = safeAssets
       .filter(a => !a.deletedAt)
       .reduce((sum, a) => sum + a.purchasePrice, 0);
 
-    const currentPatrimony = patrimonyItems
+    const currentPatrimony = safePatrimony
       .filter(p => !p.deletedAt)
       .reduce((sum, p) => sum + p.value, 0);
 

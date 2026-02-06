@@ -21,7 +21,8 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ accoun
 
     // Filter Transactions for this Account & Month
     const invoiceTransactions = useMemo(() => {
-        return transactions.filter(t => {
+        const safeTx = Array.isArray(transactions) ? transactions : [];
+        return safeTx.filter(t => {
             const d = new Date(t.date);
             const isSameMonth = d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
             const isSameAccount = t.accountId === account.id;
