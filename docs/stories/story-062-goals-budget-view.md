@@ -3,7 +3,7 @@
 **Epic:** UX Improvements - Financial Planning
 **Priority:** P1 ALTA
 **Effort:** 6h
-**Status:** READY
+**Status:** DONE
 
 ---
 
@@ -55,16 +55,16 @@ O design de referência possui:
 
 ## Acceptance Criteria
 
-- [ ] **AC-1:** Header com 3 métricas (Renda média, Gastos médios, Saldo)
-- [ ] **AC-2:** Toggle "Atual / Com metas" que altera visualização
-- [ ] **AC-3:** Gráfico de barras empilhadas (renda vs gastos por categoria)
-- [ ] **AC-4:** Card de insight amarelo mostrando déficit/superávit
-- [ ] **AC-5:** Card azul com cálculo de reserva de emergência ideal
-- [ ] **AC-6:** Lista de categorias com barra de progresso e valores
-- [ ] **AC-7:** Navegação de mês (< Fevereiro 2026 >)
-- [ ] **AC-8:** Toggle Mensal/Anual para visualização
-- [ ] **AC-9:** Cada categoria mostra: gasto atual, restante, meta
-- [ ] **AC-10:** Responsivo para mobile
+- [x] **AC-1:** Header com 3 métricas (Renda média, Gastos médios, Saldo)
+- [ ] **AC-2:** Toggle "Atual / Com metas" que altera visualização - Fase 2
+- [x] **AC-3:** Gráfico de barras empilhadas (renda vs gastos por categoria)
+- [x] **AC-4:** Card de insight amarelo mostrando déficit/superávit
+- [x] **AC-5:** Card azul com cálculo de reserva de emergência ideal
+- [x] **AC-6:** Lista de categorias com barra de progresso e valores
+- [x] **AC-7:** Navegação de mês (< Fevereiro 2026 >)
+- [x] **AC-8:** Toggle Mensal/Anual para visualização
+- [x] **AC-9:** Cada categoria mostra: gasto atual, restante, meta
+- [x] **AC-10:** Responsivo para mobile
 
 ---
 
@@ -208,17 +208,27 @@ interface BudgetInsight {
 
 ## Tasks
 
-- [ ] 1. Criar estrutura de pasta `src/components/goals/`
-- [ ] 2. Criar `GoalsOverview.tsx` com 3 métricas e toggle
-- [ ] 3. Criar `BudgetChart.tsx` com gráfico de barras empilhadas
-- [ ] 4. Criar `BudgetCategoryList.tsx` com navegação de mês
-- [ ] 5. Criar `BudgetCategoryRow.tsx` com barra de progresso
-- [ ] 6. Criar `InsightCard.tsx` para alertas
-- [ ] 7. Criar `EmergencyFundCard.tsx` com cálculo
-- [ ] 8. Integrar toggle Mensal/Anual
-- [ ] 9. Refatorar `Goals.tsx` para incluir nova visão
-- [ ] 10. Responsividade mobile
-- [ ] 11. Testar cálculos de média e progresso
+- [x] 1. Criar estrutura de pasta `src/components/budget/`
+- [x] 2. Criar `BudgetMetrics.tsx` com 3 métricas
+- [x] 3. Criar `BudgetChart.tsx` com gráfico de barras empilhadas
+- [x] 4. Criar `BudgetCategoryList.tsx` com navegação de mês
+- [x] 5. Criar `BudgetCategoryRow.tsx` com barra de progresso (inline)
+- [x] 6. Criar `InsightCard.tsx` para alertas
+- [x] 7. Criar `EmergencyFundCard.tsx` com cálculo
+- [x] 8. Integrar toggle Mensal/Anual
+- [x] 9. Refatorar `Budget.tsx` para usar novos componentes
+- [x] 10. Responsividade mobile
+- [x] 11. Testar cálculos de média e progresso (build passou)
+
+## Files Changed
+
+- `src/components/budget/BudgetMetrics.tsx` - **NOVO**
+- `src/components/budget/BudgetChart.tsx` - **NOVO**
+- `src/components/budget/BudgetCategoryList.tsx` - **NOVO**
+- `src/components/budget/InsightCard.tsx` - **NOVO**
+- `src/components/budget/EmergencyFundCard.tsx` - **NOVO**
+- `src/components/budget/index.ts` - **NOVO**
+- `src/components/Budget.tsx` - **MODIFICADO** - Redesign completo
 
 ---
 
@@ -246,14 +256,14 @@ interface BudgetInsight {
 
 ## Definition of Done
 
-- [ ] Header com métricas implementado
-- [ ] Gráfico de barras empilhadas funcionando
-- [ ] Lista de categorias com progresso
-- [ ] Cards de insight e reserva
-- [ ] Toggle Atual/Com metas
-- [ ] Navegação de mês
-- [ ] Responsivo
-- [ ] Sem erros no console
+- [x] Header com métricas implementado
+- [x] Gráfico de barras empilhadas funcionando
+- [x] Lista de categorias com progresso
+- [x] Cards de insight e reserva
+- [ ] Toggle Atual/Com metas - Fase 2
+- [x] Navegação de mês
+- [x] Responsivo
+- [x] Sem erros no console
 
 ---
 

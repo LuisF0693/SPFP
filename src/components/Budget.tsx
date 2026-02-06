@@ -1,246 +1,231 @@
+/**
+ * Budget Component - Redesign STY-062
+ * Inspired by financial planning dashboard reference
+ *
+ * Features:
+ * - Budget metrics overview (income, expenses, balance)
+ * - Stacked bar chart (income vs expenses by category)
+ * - Category list with progress bars
+ * - Insight cards (deficit/surplus alerts)
+ * - Emergency fund calculator
+ */
+
 import React, { useMemo, useState } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
-import { formatCurrency, getMonthName } from '../utils';
-import { AlertTriangle, ChevronLeft, ChevronRight, Calendar, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
-import { CategoryIcon } from './CategoryIcon';
-import { BudgetSlider } from './BudgetSlider';
+import { formatCurrency } from '../utils';
+import {
+  BudgetMetrics,
+  BudgetChart,
+  BudgetCategoryList,
+  CategoryBudgetItem,
+  InsightCard,
+  EmergencyFundCard
+} from './budget';
 
 type ViewMode = 'MONTHLY' | 'YEARLY';
 
-/**
- * Budget component.
- * Manages category budgets and tracks spending limits.
- */
 export const Budget: React.FC = () => {
-    const {
-        transactions,
-        categories,
-        categoryBudgets,
-        updateCategoryBudget,
-    } = useSafeFinance();
+  const {
+    transactions,
+    categories,
+    categoryBudgets,
+    updateCategoryBudget,
+    investments
+  } = useSafeFinance();
 
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState<ViewMode>('MONTHLY');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('MONTHLY');
+  const [emergencyMonths, setEmergencyMonths] = useState(6);
 
-    // Date Navigation Handlers
-    const handlePrev = () => {
-        const newDate = new Date(currentDate);
-        if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() - 1);
-        else newDate.setFullYear(newDate.getFullYear() - 1);
-        setCurrentDate(newDate);
-    };
+  // Date Navigation
+  const handlePrev = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() - 1);
+    else newDate.setFullYear(newDate.getFullYear() - 1);
+    setCurrentDate(newDate);
+  };
 
-    const handleNext = () => {
-        const newDate = new Date(currentDate);
-        if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() + 1);
-        else newDate.setFullYear(newDate.getFullYear() + 1);
-        setCurrentDate(newDate);
-    };
+  const handleNext = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'MONTHLY') newDate.setMonth(newDate.getMonth() + 1);
+    else newDate.setFullYear(newDate.getFullYear() + 1);
+    setCurrentDate(newDate);
+  };
 
-    // Calculate Data based on View Mode
-    const { income, expense, expensesByCategory } = useMemo(() => {
-        const targetMonth = currentDate.getMonth();
-        const targetYear = currentDate.getFullYear();
-        const catMap = new Map<string, number>();
-        let inc = 0;
-        let exp = 0;
+  // Calculate current period data
+  const { income, expense, expensesByCategory } = useMemo(() => {
+    const targetMonth = currentDate.getMonth();
+    const targetYear = currentDate.getFullYear();
+    const catMap = new Map<string, number>();
+    let inc = 0;
+    let exp = 0;
 
-        const safeTx = Array.isArray(transactions) ? transactions : [];
-        safeTx.forEach(tx => {
-            const date = new Date(tx.date);
-            const txYear = date.getFullYear();
-            const txMonth = date.getMonth();
+    const safeTx = Array.isArray(transactions) ? transactions : [];
+    safeTx.forEach(tx => {
+      const date = new Date(tx.date);
+      const txYear = date.getFullYear();
+      const txMonth = date.getMonth();
 
-            const isMatch = viewMode === 'MONTHLY'
-                ? txYear === targetYear && txMonth === targetMonth
-                : txYear === targetYear;
+      const isMatch = viewMode === 'MONTHLY'
+        ? txYear === targetYear && txMonth === targetMonth
+        : txYear === targetYear;
 
-            if (isMatch) {
-                if (tx.type === 'INCOME') inc += tx.value;
-                else if (tx.type === 'EXPENSE') {
-                    exp += tx.value;
-                    const cur = catMap.get(tx.categoryId) || 0;
-                    catMap.set(tx.categoryId, cur + tx.value);
-                }
-            }
-        });
+      if (isMatch) {
+        if (tx.type === 'INCOME') inc += tx.value;
+        else if (tx.type === 'EXPENSE') {
+          exp += tx.value;
+          const cur = catMap.get(tx.categoryId) || 0;
+          catMap.set(tx.categoryId, cur + tx.value);
+        }
+      }
+    });
 
-        return { income: inc, expense: exp, expensesByCategory: catMap };
-    }, [transactions, currentDate, viewMode]);
+    return { income: inc, expense: exp, expensesByCategory: catMap };
+  }, [transactions, currentDate, viewMode]);
 
-    // Merge Budgets
-    const budgetData = useMemo(() => {
-        return categories.map(cat => {
-            const spent = expensesByCategory.get(cat.id) || 0;
-            // For yearly view, the limit should probably be multiplied by 12?
-            // Or we leave it as "Average Monthly Limit"?
-            // The screenshot shows "Saldo do plano", suggesting a total calculation.
-            // If the user sets a monthly limit of 1000, the yearly limit is 12000.
-            const baseLimit = categoryBudgets.find(b => b.categoryId === cat.id)?.limit || 0;
-            const limit = viewMode === 'YEARLY' ? baseLimit * 12 : baseLimit;
+  // Calculate average income/expense (last 3 months)
+  const averages = useMemo(() => {
+    const now = new Date();
+    const monthlyData: { income: number; expense: number }[] = [];
 
-            const diff = limit - spent;
-            const remaining = Math.max(0, diff);
-            const overrun = diff < 0 ? Math.abs(diff) : 0;
-            const percentage = limit > 0 ? (spent / limit) * 100 : (spent > 0 ? 100 : 0);
+    for (let i = 1; i <= 3; i++) {
+      const targetMonth = now.getMonth() - i;
+      const targetYear = now.getFullYear() + Math.floor((now.getMonth() - i) / 12);
+      const adjustedMonth = ((targetMonth % 12) + 12) % 12;
 
-            return { ...cat, spent, limit, remaining, overrun, percentage };
-        }).sort((a, b) => b.spent - a.spent);
-    }, [categories, expensesByCategory, categoryBudgets, viewMode]);
+      let monthIncome = 0;
+      let monthExpense = 0;
 
-    // Totals
-    const totalBudgeted = budgetData.reduce((acc, curr) => acc + curr.limit, 0);
-    const projectedBalance = income - totalBudgeted; // Income - Plans
+      const safeTx = Array.isArray(transactions) ? transactions : [];
+      safeTx.forEach(tx => {
+        const date = new Date(tx.date);
+        if (date.getMonth() === adjustedMonth && date.getFullYear() === targetYear) {
+          if (tx.type === 'INCOME') monthIncome += tx.value;
+          else if (tx.type === 'EXPENSE') monthExpense += tx.value;
+        }
+      });
 
-    // Header Title
-    const headerTitle = viewMode === 'MONTHLY'
-        ? `${getMonthName(currentDate.getMonth())} de ${currentDate.getFullYear()}`
-        : `${currentDate.getFullYear()}`;
+      if (monthIncome > 0 || monthExpense > 0) {
+        monthlyData.push({ income: monthIncome, expense: monthExpense });
+      }
+    }
 
-    return (
-        <div className="p-6 space-y-8 pb-24 animate-fade-in min-h-screen">
-            {/* Header: Title & Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Metas Financeiras</h2>
-                    <p className="text-gray-500 text-sm">Planeje e controle seu orçamento futuro.</p>
-                </div>
+    if (monthlyData.length === 0) {
+      return { avgIncome: income, avgExpense: expense };
+    }
 
-                <div className="flex items-center gap-4 bg-gray-900/50 p-2 rounded-xl border border-gray-800">
-                    <button onClick={handlePrev} className="p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-white transition-colors">
-                        <ChevronLeft size={20} />
-                    </button>
+    const avgIncome = monthlyData.reduce((sum, m) => sum + m.income, 0) / monthlyData.length;
+    const avgExpense = monthlyData.reduce((sum, m) => sum + m.expense, 0) / monthlyData.length;
 
-                    <div className="flex items-center gap-2 px-2 min-w-[180px] justify-center text-white font-bold">
-                        <Calendar size={18} className="text-blue-400" />
-                        <span>{headerTitle}</span>
-                    </div>
+    return { avgIncome, avgExpense };
+  }, [transactions, income, expense]);
 
-                    <button onClick={handleNext} className="p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-white transition-colors">
-                        <ChevronRight size={20} />
-                    </button>
+  // Build category budget data
+  const budgetData = useMemo((): CategoryBudgetItem[] => {
+    return categories
+      .filter(cat => cat.group !== 'INCOME')
+      .map(cat => {
+        const spent = expensesByCategory.get(cat.id) || 0;
+        const baseLimit = categoryBudgets.find(b => b.categoryId === cat.id)?.limit || 0;
+        const limit = viewMode === 'YEARLY' ? baseLimit * 12 : baseLimit;
 
-                    <div className="w-px h-6 bg-gray-700 mx-2"></div>
+        return {
+          id: cat.id,
+          name: cat.name,
+          icon: cat.icon || '📦',
+          color: cat.color || '#3B82F6',
+          spent,
+          limit,
+          group: cat.group || 'VARIABLE'
+        };
+      })
+      .filter(item => item.spent > 0 || item.limit > 0)
+      .sort((a, b) => b.spent - a.spent);
+  }, [categories, expensesByCategory, categoryBudgets, viewMode]);
 
-                    <select
-                        value={viewMode}
-                        onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                        className="bg-transparent text-sm font-medium text-gray-300 outline-none cursor-pointer hover:text-white"
-                    >
-                        <option value="MONTHLY" className="bg-gray-900">Mensal</option>
-                        <option value="YEARLY" className="bg-gray-900">Anual</option>
-                    </select>
-                </div>
-            </div>
+  // Chart data for expenses
+  const chartExpenses = budgetData.map(item => ({
+    name: item.name,
+    value: item.spent,
+    color: item.color,
+    group: item.group
+  }));
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Income */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <TrendingUp size={48} className="text-emerald-500" />
-                    </div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Renda {viewMode === 'MONTHLY' ? 'Mensal' : 'Anual'}</p>
-                    <h3 className="text-2xl font-bold text-emerald-400">{formatCurrency(income)}</h3>
-                </div>
+  // Calculate insight type
+  const balance = averages.avgIncome - averages.avgExpense;
+  const insightType = balance < 0 ? 'DEFICIT' : balance > averages.avgIncome * 0.1 ? 'SURPLUS' : 'ON_TRACK';
+  const insightPercentage = averages.avgIncome > 0 ? (Math.abs(balance) / averages.avgIncome) * 100 : 0;
 
-                {/* Expenses */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Wallet size={48} className="text-red-500" />
-                    </div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Gastos {viewMode === 'MONTHLY' ? 'do Mês' : 'do Ano'}</p>
-                    <h3 className="text-2xl font-bold text-red-400">{formatCurrency(expense)}</h3>
-                </div>
+  // Emergency fund calculation
+  const emergencyFundIdeal = averages.avgExpense * emergencyMonths;
+  const currentEmergencyFund = useMemo(() => {
+    if (!investments || !Array.isArray(investments)) return 0;
+    // Assume emergency fund is in low-risk investments
+    return investments
+      .filter(inv => inv.type === 'EMERGENCY_FUND' || inv.name?.toLowerCase().includes('emergência'))
+      .reduce((sum, inv) => sum + (inv.currentValue || 0), 0);
+  }, [investments]);
 
-                {/* Total Budgeted */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <PiggyBank size={48} className="text-blue-500" />
-                    </div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Total Planejado</p>
-                    <h3 className="text-2xl font-bold text-blue-400">{formatCurrency(totalBudgeted)}</h3>
-                </div>
+  // Handle budget limit edit
+  const handleEditLimit = (categoryId: string, newLimit: number) => {
+    updateCategoryBudget(categoryId, newLimit);
+  };
 
-                {/* Projected Balance */}
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-gray-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <AlertTriangle size={48} className={projectedBalance >= 0 ? "text-emerald-500" : "text-amber-500"} />
-                    </div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Saldo do Plano</p>
-                    <h3 className={`text-2xl font-bold ${projectedBalance >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatCurrency(projectedBalance)}</h3>
-                    <p className="text-[10px] text-gray-500 mt-1">Renda - Metas</p>
-                </div>
-            </div>
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Orçamento</h1>
+        <p className="text-sm text-slate-400">Acompanhe seus gastos e metas por categoria</p>
+      </div>
 
-            {/* List Header */}
-            <div className="pt-4">
-                <h3 className="text-xl font-bold text-white mb-6">Categorias & Metas</h3>
+      {/* Metrics Overview */}
+      <BudgetMetrics
+        averageIncome={averages.avgIncome}
+        averageExpenses={averages.avgExpense}
+        balance={balance}
+      />
 
-                <div className="space-y-6">
-                    {budgetData.map(cat => (
-                        <div key={cat.id} className="flex flex-col gap-2">
-                            {/* Row Top: Info & Values */}
-                            <div className="flex justify-between items-end mb-1">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
-                                        <CategoryIcon iconName={cat.icon} size={16} />
-                                    </div>
-                                    <span className="text-gray-300 font-medium">{cat.name}</span>
-                                </div>
-                                <div className="text-right text-xs">
-                                    <span className="text-gray-500">Gasto: </span>
-                                    <span className="text-white font-bold mr-3">{formatCurrency(cat.spent)}</span>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Left: Chart + Insights */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* Bar Chart */}
+          <BudgetChart
+            income={income}
+            expenses={chartExpenses}
+          />
 
-                                    <span className="text-gray-500">Meta: </span>
-                                    <div className="inline-flex items-center">
-                                        <span className="text-blue-400 font-bold ml-1 text-xs">R$</span>
-                                        <input
-                                            type="number"
-                                            className="bg-transparent text-blue-400 font-bold w-16 outline-none text-right text-xs p-0 m-0 border-b border-transparent focus:border-blue-400 transition-colors"
-                                            value={cat.limit || ''}
-                                            placeholder="0"
-                                            onChange={(e) => {
-                                                const val = parseFloat(e.target.value);
-                                                if (!isNaN(val) && val >= 0) {
-                                                    const monthlyLimit = viewMode === 'YEARLY' ? Math.round(val / 12) : val;
-                                                    updateCategoryBudget(cat.id, monthlyLimit);
-                                                } else if (e.target.value === '') {
-                                                    updateCategoryBudget(cat.id, 0);
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+          {/* Insight Card */}
+          <InsightCard
+            type={insightType}
+            value={Math.abs(balance)}
+            percentage={insightPercentage}
+            income={averages.avgIncome}
+          />
 
-                            {/* Slider Component */}
-                            <BudgetSlider
-                                spent={cat.spent}
-                                limit={cat.limit}
-                                color={cat.color}
-                                onChangeLimit={(val) => {
-                                    // If Yearly, we need to convert back to monthly?
-                                    // Or we only allow editing in Monthly view?
-                                    // Let's assume editing in Yearly updates the monthly average (val / 12)
-                                    const monthlyLimit = viewMode === 'YEARLY' ? Math.round(val / 12) : val;
-                                    updateCategoryBudget(cat.id, monthlyLimit);
-                                }}
-                            />
-
-                            {/* Row Bottom: Status Text */}
-                            <div className="flex justify-between text-[11px] text-gray-500 px-1">
-                                <span>{cat.limit > 0 ? `${cat.percentage.toFixed(0)}% da meta` : 'Sem meta definida'}</span>
-                                <span className={cat.overrun > 0 ? "text-red-400" : "text-emerald-500/80"}>
-                                    {cat.limit === 0 ? '' : cat.remaining > 0 ? `Resta ${formatCurrency(cat.remaining)}` : `Ultrapassou ${formatCurrency(cat.overrun)}`}
-                                </span>
-                            </div>
-
-                        </div>
-                    ))}
-                </div>
-            </div>
-
+          {/* Emergency Fund Card */}
+          <EmergencyFundCard
+            idealAmount={emergencyFundIdeal}
+            currentAmount={currentEmergencyFund}
+            monthsOfExpenses={emergencyMonths}
+            onEditMonths={setEmergencyMonths}
+          />
         </div>
-    );
+
+        {/* Right: Category List */}
+        <div className="lg:col-span-2">
+          <BudgetCategoryList
+            categories={budgetData}
+            currentDate={currentDate}
+            onPrevMonth={handlePrev}
+            onNextMonth={handleNext}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onEditLimit={handleEditLimit}
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
