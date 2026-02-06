@@ -306,7 +306,7 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                                 {briefings[client.user_id] && (
                                     <div className="mb-5 p-4 bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-xl text-xs text-gray-300 animate-slide-up relative overflow-hidden">
                                         <div className="space-y-2 relative z-10">
-                                            {briefings[client.user_id].split('\n').filter(l => l.trim()).map((line, i) => (
+                                            {(briefings[client.user_id] || '').split('\n').filter(l => l.trim()).map((line, i) => (
                                                 <div key={i} className="flex items-start">
                                                     <div className="min-w-[4px] h-[4px] rounded-full bg-accent mt-1.5 mr-2"></div>
                                                     <span className="leading-relaxed font-medium">{line.replace(/^[*-]\s*/, '')}</span>

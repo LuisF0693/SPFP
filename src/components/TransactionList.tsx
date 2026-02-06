@@ -584,7 +584,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                     categories={categories}
                     onClose={() => setIsBulkCategoryModalOpen(false)}
                     onApply={(catId) => {
-                        const txsToUpdate = transactions.filter(t => selectedIds.has(t.id)).map(t => ({ ...t, categoryId: catId }));
+                        const txsToUpdate = (transactions || []).filter(t => selectedIds.has(t.id)).map(t => ({ ...t, categoryId: catId }));
                         updateTransactions(txsToUpdate);
                         setIsBulkCategoryModalOpen(false);
                         setSelectedIds(new Set());
