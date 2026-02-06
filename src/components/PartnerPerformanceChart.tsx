@@ -50,9 +50,18 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
   // KPI completion distribution
   const kpiDistribution = useMemo(() => {
     const safePartners = Array.isArray(partners) ? partners : [];
-    const completed = safePartners.filter(p => !p.deletedAt && p.kpis.every(k => k.current >= k.target)).length;
-    const partial = safePartners.filter(p => !p.deletedAt && p.kpis.some(k => k.current >= k.target) && !p.kpis.every(k => k.current >= k.target)).length;
-    const notStarted = safePartners.filter(p => !p.deletedAt && p.kpis.every(k => k.current < k.target)).length;
+    const completed = safePartners.filter(p => {
+      const kpis = Array.isArray(p.kpis) ? p.kpis : [];
+      return !p.deletedAt && kpis.length > 0 && kpis.every(k => k.current >= k.target);
+    }).length;
+    const partial = safePartners.filter(p => {
+      const kpis = Array.isArray(p.kpis) ? p.kpis : [];
+      return !p.deletedAt && kpis.length > 0 && kpis.some(k => k.current >= k.target) && !kpis.every(k => k.current >= k.target);
+    }).length;
+    const notStarted = safePartners.filter(p => {
+      const kpis = Array.isArray(p.kpis) ? p.kpis : [];
+      return !p.deletedAt && kpis.length > 0 && kpis.every(k => k.current < k.target);
+    }).length;
 
     return [
       { name: 'Completos', value: completed, color: '#10B981' },
@@ -178,7 +187,11 @@ export const PartnerPerformanceChart: React.FC<PartnerPerformanceChartProps> = (
             {(
               (Array.isArray(partners) ? partners : [])
                 .filter(p => !p.deletedAt)
-                .reduce((sum, p) => sum + (p.kpis.filter(k => k.current >= k.target).length / p.kpis.length || 0), 0) /
+                .reduce((sum, p) => {
+                  const kpis = Array.isArray(p.kpis) ? p.kpis : [];
+                  const completedKpis = kpis.filter(k => k.current >= k.target).length;
+                  return sum + (kpis.length > 0 ? completedKpis / kpis.length : 0);
+                }, 0) /
               ((Array.isArray(partners) ? partners : []).filter(p => !p.deletedAt).length || 1) *
               100
             ).toFixed(1)}%

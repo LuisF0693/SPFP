@@ -70,10 +70,11 @@ export const calculateCommission = (
 /**
  * Calculate KPI completion rate
  */
-export const calculateKPICompletion = (kpis: PartnerKPI[]): number => {
-  if (kpis.length === 0) return 0;
-  const completed = kpis.filter(k => k.current >= k.target).length;
-  return (completed / kpis.length) * 100;
+export const calculateKPICompletion = (kpis: PartnerKPI[] | undefined): number => {
+  const safeKpis = Array.isArray(kpis) ? kpis : [];
+  if (safeKpis.length === 0) return 0;
+  const completed = safeKpis.filter(k => k.current >= k.target).length;
+  return (completed / safeKpis.length) * 100;
 };
 
 /**
@@ -124,7 +125,7 @@ export const partnershipService = {
     };
     return {
       ...partner,
-      kpis: [...partner.kpis, newKPI],
+      kpis: [...(Array.isArray(partner.kpis) ? partner.kpis : []), newKPI],
       updatedAt: new Date().toISOString()
     };
   },
@@ -133,9 +134,10 @@ export const partnershipService = {
    * Update KPI progress
    */
   updateKPI: (partner: Partner, kpiId: string, current: number): Partner => {
+    const safeKpis = Array.isArray(partner.kpis) ? partner.kpis : [];
     return {
       ...partner,
-      kpis: partner.kpis.map(k =>
+      kpis: safeKpis.map(k =>
         k.id === kpiId ? { ...k, current } : k
       ),
       updatedAt: new Date().toISOString()

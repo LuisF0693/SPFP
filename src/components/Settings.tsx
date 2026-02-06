@@ -311,7 +311,7 @@ export const Settings: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const newChildren = formData.children.filter((_c, i) => i !== index);
+                                                const newChildren = (formData.children || []).filter((_c, i) => i !== index);
                                                 handleChange('children', newChildren);
                                             }}
                                             className="p-2 text-gray-400 hover:text-red-500 transition-colors"

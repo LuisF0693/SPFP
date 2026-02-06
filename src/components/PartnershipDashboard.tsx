@@ -271,7 +271,7 @@ export const PartnershipDashboard: React.FC<PartnershipDashboardProps> = ({
                 <span>Indicadores de Desempenho</span>
               </label>
               <div className="space-y-2">
-                {selectedPartner.kpis.map(kpi => {
+                {(Array.isArray(selectedPartner.kpis) ? selectedPartner.kpis : []).map(kpi => {
                   const percentage = (kpi.current / kpi.target) * 100;
                   const isComplete = kpi.current >= kpi.target;
                   return (
