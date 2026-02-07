@@ -144,13 +144,21 @@ export const Retirement: React.FC = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Chart */}
-        <div className="lg:col-span-2 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-5">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-white">Independência financeira</h2>
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-500">Idade atual:</span>
-              <span className="text-white font-bold">{currentAge} anos</span>
+        {/* Left: Chart - Premium Glassmorphism Container */}
+        <div className="lg:col-span-2 relative overflow-hidden bg-slate-800/30 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <h2 className="text-xl font-bold text-white">Independência financeira</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Projeção de crescimento patrimonial</p>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 border border-white/10 rounded-xl backdrop-blur-sm">
+                <span className="text-slate-400 text-xs">Idade atual:</span>
+                <span className="text-white font-bold text-sm">{currentAge} anos</span>
+              </div>
             </div>
           </div>
 
@@ -160,19 +168,19 @@ export const Retirement: React.FC = () => {
             targetAge={config.targetAge}
           />
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-4 mt-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              <span className="text-slate-400">Patrimônio projetado</span>
+          {/* Enhanced Legend with Glassmorphism */}
+          <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-500/50" />
+              <span className="text-slate-300 text-xs font-medium">Patrimônio projetado</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-500" />
-              <span className="text-slate-400">Patrimônio investido</span>
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-500/10 border border-slate-500/20 backdrop-blur-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+              <span className="text-slate-300 text-xs font-medium">Patrimônio investido</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-slate-400">Meta de patrimônio</span>
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-lg shadow-blue-500/50" />
+              <span className="text-slate-300 text-xs font-medium">Meta de patrimônio</span>
             </div>
           </div>
         </div>
