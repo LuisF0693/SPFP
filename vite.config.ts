@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { aiosEventsPlugin } from './vite-plugin-aios-events';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -34,7 +35,8 @@ export default defineConfig(({ mode }) => {
         open: false,
         gzipSize: true,
         brotliSize: true,
-      })
+      }),
+      aiosEventsPlugin()
     ],
     test: {
       globals: true,
@@ -101,6 +103,12 @@ export default defineConfig(({ mode }) => {
             }
             if (id.includes('node_modules/@google/generative-ai')) {
               return 'gemini-vendor';
+            }
+            if (id.includes('node_modules/pixi') || id.includes('node_modules/@pixi')) {
+              return 'pixi-vendor';
+            }
+            if (id.includes('node_modules/zustand')) {
+              return 'zustand-vendor';
             }
             // Group React and core dependencies
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {

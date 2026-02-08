@@ -68,3 +68,6 @@ Thumbs.db
 
 # AIOS Local (AIOS)
 .aios/install-log.txt
+
+# AIOS Virtual Office Events (runtime data)
+.aios-events/*.jsonl
