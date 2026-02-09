@@ -1,13 +1,18 @@
 // AIOS Virtual Office - Agent Avatar Component (CSS-based for MVP)
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { AgentState, Department, AgentStatus } from '../types';
 import { DEPARTMENT_COLORS } from '../data/agents';
+import { SpeechBubble } from './SpeechBubble';
 
 interface AgentAvatarProps {
   agent: AgentState;
   onClick?: () => void;
   selected?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  /** Show speech bubble when agent is active */
+  showSpeechBubble?: boolean;
+  /** Auto-hide speech bubble after ms of inactivity (default: 5000) */
+  speechBubbleAutoHide?: number;
 }
 
 const SIZES = {
@@ -16,13 +21,29 @@ const SIZES = {
   lg: { container: 'w-20 h-20', emoji: 'text-4xl', name: 'text-sm', role: 'text-xs', badge: 'w-4 h-4' }
 };
 
-export function AgentAvatar({ agent, onClick, selected = false, size = 'md' }: AgentAvatarProps) {
+export function AgentAvatar({
+  agent,
+  onClick,
+  selected = false,
+  size = 'md',
+  showSpeechBubble = true,
+  speechBubbleAutoHide = 5000
+}: AgentAvatarProps) {
   const colors = DEPARTMENT_COLORS[agent.department];
   const sizeClasses = SIZES[size];
 
   const handleClick = useCallback(() => {
     onClick?.();
   }, [onClick]);
+
+  // Determine if speech bubble should be visible
+  // Show when agent is working or thinking AND has current activity
+  const isBubbleVisible = useMemo(() => {
+    if (!showSpeechBubble) return false;
+    if (!agent.currentActivity) return false;
+    const activeStatuses: AgentStatus[] = ['working', 'thinking'];
+    return activeStatuses.includes(agent.status);
+  }, [showSpeechBubble, agent.currentActivity, agent.status]);
 
   return (
     <div
@@ -32,6 +53,16 @@ export function AgentAvatar({ agent, onClick, selected = false, size = 'md' }: A
       `}
       onClick={handleClick}
     >
+      {/* Speech Bubble - positioned above avatar */}
+      <SpeechBubble
+        text={agent.currentActivity || ''}
+        visible={isBubbleVisible}
+        status={agent.status}
+        autoHideDelay={speechBubbleAutoHide}
+        lastActivityTime={agent.lastActivityTime}
+        position="top"
+      />
+
       {/* Avatar Circle */}
       <div
         className={`
@@ -68,8 +99,8 @@ export function AgentAvatar({ agent, onClick, selected = false, size = 'md' }: A
         </p>
       </div>
 
-      {/* Activity Indicator */}
-      {agent.currentActivity && (
+      {/* Activity Indicator - only show when bubble is NOT visible (fallback for small view) */}
+      {agent.currentActivity && !isBubbleVisible && (
         <div
           className="absolute -bottom-6 left-1/2 -translate-x-1/2
             bg-gray-800/90 backdrop-blur-sm px-2 py-0.5 rounded-full
