@@ -11,6 +11,13 @@ export interface AssignTaskResult {
   error?: string;
 }
 
+export interface SendChatMessageResult {
+  success: boolean;
+  messageId?: string;
+  response?: string;
+  error?: string;
+}
+
 const DEFAULT_CONFIG: Partial<AIOSBridgeConfig> = {
   pollInterval: 500,
   eventsEndpoint: '/api/aios-events',
@@ -177,11 +184,68 @@ export function useAIOSBridge(config: Partial<AIOSBridgeConfig>) {
     }
   }, [isConnected]);
 
+  // Send chat message to an agent
+  const sendChatMessage = useCallback(async (
+    agentId: AgentId,
+    message: string
+  ): Promise<SendChatMessageResult> => {
+    const { commandsEndpoint } = configRef.current;
+
+    try {
+      const response = await fetch(commandsEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'chat_message',
+          timestamp: Date.now(),
+          targetAgent: agentId,
+          command: 'chat',
+          args: {
+            message
+          }
+        })
+      });
+
+      if (!response.ok) {
+        // In mock mode or when server unavailable, return success
+        // The store/component will handle the mock response
+        if (!isConnected) {
+          return {
+            success: true,
+            messageId: `local-${Date.now()}`
+          };
+        }
+        throw new Error(`Failed to send message: HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        messageId: result.messageId,
+        response: result.response
+      };
+    } catch (err) {
+      // In mock mode, simulate success
+      if (!isConnected) {
+        return {
+          success: true,
+          messageId: `mock-${Date.now()}`
+        };
+      }
+      console.error('Failed to send chat message:', err);
+      return {
+        success: false,
+        error: (err as Error).message
+      };
+    }
+  }, [isConnected]);
+
   return {
     isConnected,
     error,
     sendCommand,
     assignTask,
+    sendChatMessage,
     lastEventTime
   };
 }

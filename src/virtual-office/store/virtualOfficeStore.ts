@@ -16,6 +16,15 @@ export interface Task {
   completedAt?: number;
 }
 
+// Chat types
+export interface ChatMessage {
+  id: string;
+  agentId: AgentId;
+  content: string;
+  isUser: boolean;
+  timestamp: number;
+}
+
 // Camera configuration
 export const CAMERA_CONFIG = {
   MIN_ZOOM: 0.5,
@@ -48,6 +57,9 @@ interface VirtualOfficeState {
   // Tasks
   tasks: Task[];
 
+  // Chat messages per agent
+  chatMessages: Record<AgentId, ChatMessage[]>;
+
   // Mode
   mockMode: boolean;
   isConnected: boolean;
@@ -71,6 +83,10 @@ interface VirtualOfficeState {
   // Task actions
   assignTask: (agentId: AgentId, description: string, priority: TaskPriority) => Task;
   updateTaskStatus: (taskId: string, status: Task['status']) => void;
+
+  // Chat actions
+  addChatMessage: (agentId: AgentId, message: Omit<ChatMessage, 'id' | 'agentId' | 'timestamp'>) => void;
+  clearChatMessages: (agentId?: AgentId) => void;
 }
 
 // Initialize agents from config
@@ -119,6 +135,7 @@ export const useVirtualOfficeStore = create<VirtualOfficeState>((set, get) => ({
   camera: initialCamera,
   activities: [],
   tasks: [],
+  chatMessages: {} as Record<AgentId, ChatMessage[]>,
   mockMode: true, // Start in mock mode by default
   isConnected: false,
 
@@ -291,5 +308,37 @@ export const useVirtualOfficeStore = create<VirtualOfficeState>((set, get) => ({
             }
           : task
       )
-    }))
+    })),
+
+  // Chat actions
+  addChatMessage: (agentId, message) =>
+    set((state) => {
+      const newMessage: ChatMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        agentId,
+        content: message.content,
+        isUser: message.isUser,
+        timestamp: Date.now()
+      };
+
+      const existingMessages = state.chatMessages[agentId] || [];
+
+      return {
+        chatMessages: {
+          ...state.chatMessages,
+          [agentId]: [...existingMessages, newMessage].slice(-100) // Keep last 100 messages per agent
+        }
+      };
+    }),
+
+  clearChatMessages: (agentId) =>
+    set((state) => {
+      if (agentId) {
+        // Clear messages for specific agent
+        const { [agentId]: _, ...rest } = state.chatMessages;
+        return { chatMessages: rest as Record<AgentId, ChatMessage[]> };
+      }
+      // Clear all messages
+      return { chatMessages: {} as Record<AgentId, ChatMessage[]> };
+    })
 }));

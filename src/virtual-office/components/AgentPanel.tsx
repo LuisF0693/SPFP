@@ -1,9 +1,10 @@
 // AIOS Virtual Office - Agent Detail Panel Component
 import { useCallback, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, MessageSquare } from 'lucide-react';
 import type { AgentState, Activity } from '../types';
 import { DEPARTMENT_COLORS, DEPARTMENTS } from '../data/agents';
 import { TaskAssignmentModal, type TaskPriority } from './TaskAssignmentModal';
+import { AgentChatModal } from './AgentChatModal';
 import { ToastContainer, useToast } from './Toast';
 
 interface AgentPanelProps {
@@ -22,6 +23,7 @@ export function AgentPanel({
   onAssignTask
 }: AgentPanelProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toasts, dismissToast, success, error } = useToast();
 
@@ -37,6 +39,14 @@ export function AgentPanel({
 
   const handleCloseTaskModal = useCallback(() => {
     setIsTaskModalOpen(false);
+  }, []);
+
+  const handleOpenChatModal = useCallback(() => {
+    setIsChatModalOpen(true);
+  }, []);
+
+  const handleCloseChatModal = useCallback(() => {
+    setIsChatModalOpen(false);
   }, []);
 
   const handleAssignTask = useCallback(async (taskDescription: string, priority: TaskPriority): Promise<boolean> => {
@@ -165,8 +175,21 @@ export function AgentPanel({
           )}
         </div>
 
-        {/* Assign Task Button */}
-        <div className="px-6 py-4">
+        {/* Action Buttons */}
+        <div className="px-6 py-4 space-y-3">
+          {/* Chat Button */}
+          <button
+            onClick={handleOpenChatModal}
+            className="w-full py-3 rounded-xl font-medium text-white
+              flex items-center justify-center gap-2
+              transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+              bg-gray-700/80 hover:bg-gray-600/80 border border-gray-600/50"
+          >
+            <MessageSquare className="w-5 h-5" />
+            Chat
+          </button>
+
+          {/* Assign Task Button */}
           <button
             onClick={handleOpenTaskModal}
             className="w-full py-3 rounded-xl font-medium text-white
@@ -188,6 +211,13 @@ export function AgentPanel({
         onClose={handleCloseTaskModal}
         onAssign={handleAssignTask}
         isSubmitting={isSubmitting}
+      />
+
+      {/* Agent Chat Modal */}
+      <AgentChatModal
+        agent={agent}
+        isOpen={isChatModalOpen}
+        onClose={handleCloseChatModal}
       />
 
       {/* Toast Notifications */}
