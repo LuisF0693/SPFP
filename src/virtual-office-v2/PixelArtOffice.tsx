@@ -1,10 +1,12 @@
 // Pixel Art Virtual Office v2.0 - Main Component
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { usePixiApp } from './hooks/usePixiApp';
+import { useChatBubbles } from './hooks/useChatBubbles';
+import { useTileMap } from './hooks/useTileMap';
 import { TileMapLayer } from './pixi/TileMapLayer';
 import { AgentSpriteManager } from './pixi/AgentSpriteManager';
 import { useVirtualOfficeStore } from '../virtual-office/store/virtualOfficeStore';
-import type { AgentId } from './types';
+import type { AgentId, AgentStatus } from './types';
 
 interface PixelArtOfficeProps {
   width?: number;
@@ -30,6 +32,53 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     state.selectedAgentId ? state.agents[state.selectedAgentId] : null
   );
   const selectAgent = useVirtualOfficeStore((state) => state.selectAgent);
+  const setAgentStatus = useVirtualOfficeStore((state) => state.setAgentStatus);
+
+  // Chat bubbles
+  const { showBubble, updateAgentPosition } = useChatBubbles({
+    parentContainer: agentsContainer,
+  });
+
+  // Get spawn points for bubble positioning
+  const { getSpawnPoint } = useTileMap();
+
+  // Change agent status for animation testing
+  const handleStatusChange = useCallback((status: AgentStatus) => {
+    if (selectedAgentId) {
+      setAgentStatus(selectedAgentId, status, status === 'working' ? 'Coding feature...' : undefined);
+
+      // Update bubble position and show status bubble
+      const spawn = getSpawnPoint(selectedAgentId);
+      if (spawn) {
+        updateAgentPosition(selectedAgentId, spawn.x, spawn.y);
+        showBubble({
+          agentId: selectedAgentId,
+          message: status === 'working' ? 'On it!' : status === 'thinking' ? 'Hmm...' : status === 'waiting' ? 'Ready!' : 'Chillin\'',
+          type: status === 'working' ? 'success' : status === 'thinking' ? 'thinking' : 'info',
+          duration: 3000,
+        });
+      }
+    }
+  }, [selectedAgentId, setAgentStatus, getSpawnPoint, updateAgentPosition, showBubble]);
+
+  // Send custom message
+  const [customMessage, setCustomMessage] = useState('');
+
+  const handleSendMessage = useCallback(() => {
+    if (selectedAgentId && customMessage.trim()) {
+      const spawn = getSpawnPoint(selectedAgentId);
+      if (spawn) {
+        updateAgentPosition(selectedAgentId, spawn.x, spawn.y);
+        showBubble({
+          agentId: selectedAgentId,
+          message: customMessage.trim(),
+          type: 'info',
+          duration: 5000,
+        });
+      }
+      setCustomMessage('');
+    }
+  }, [selectedAgentId, customMessage, getSpawnPoint, updateAgentPosition, showBubble]);
 
   // Drag state
   const isDragging = useRef(false);
@@ -188,6 +237,7 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
           <>
             <TileMapLayer parentContainer={mainContainer} />
             <AgentSpriteManager
+              app={app}
               parentContainer={agentsContainer}
               onAgentClick={handleAgentClick}
             />
@@ -241,6 +291,75 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
               </div>
             )}
 
+            {/* Animation Test Controls */}
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-2">Test Animations</p>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  onClick={() => handleStatusChange('idle')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'idle'
+                      ? 'bg-gray-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Idle
+                </button>
+                <button
+                  onClick={() => handleStatusChange('working')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'working'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Working
+                </button>
+                <button
+                  onClick={() => handleStatusChange('thinking')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'thinking'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Thinking
+                </button>
+                <button
+                  onClick={() => handleStatusChange('waiting')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'waiting'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Waiting
+                </button>
+              </div>
+            </div>
+
+            {/* Send Message */}
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-2">Send Chat Bubble</p>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type message..."
+                  className="flex-1 px-2 py-1 text-xs bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!customMessage.trim()}
+                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+
             {/* Department */}
             <div className="text-xs text-gray-500">
               Department: <span className="text-gray-400 capitalize">{selectedAgent.department}</span>
@@ -250,24 +369,24 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
 
         {/* Info panel */}
         <div className="absolute bottom-4 left-4 p-4 rounded-xl bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 text-xs text-gray-400 space-y-1">
-          <div className="text-white font-semibold mb-2">Sprint 1 - Tile Map + Agents</div>
+          <div className="text-white font-semibold mb-2">Sprint 4 - Chat Bubbles</div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Pixi.js v8 + WebGL
+            <span className="text-green-400">✓</span> Pixi.js + WebGL
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> TileMap with departments
+            <span className="text-green-400">✓</span> TileMap + Agents
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Pixel art agent sprites
+            <span className="text-green-400">✓</span> Animations (idle, work, think)
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Click interaction
+            <span className="text-green-400">✓</span> Chat bubbles overlay
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Store integration
+            <span className="text-green-400">✓</span> Agent panel + controls
           </div>
           <div className="flex items-center gap-2 text-yellow-400">
-            <span>○</span> Next: Animations (Sprint 3)
+            <span>○</span> Next: Polish (Sprint 5)
           </div>
         </div>
 

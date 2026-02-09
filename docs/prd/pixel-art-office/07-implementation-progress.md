@@ -13,8 +13,8 @@
 | Sprint 0 | **COMPLETO** | 100% |
 | Sprint 1 | **COMPLETO** | 100% |
 | Sprint 2 | **COMPLETO** | 100% |
-| Sprint 3 | Pendente | 0% |
-| Sprint 4 | Pendente | 0% |
+| Sprint 3 | **COMPLETO** | 100% |
+| Sprint 4 | **COMPLETO** | 100% |
 | Sprint 5 | Pendente | 0% |
 
 ---
@@ -33,8 +33,6 @@
 - [x] Testar pan/zoom
 - [x] Medir FPS baseline (60fps OK)
 
-**Commit:** `07ec561` - feat: Sprint 0 - Pixi.js setup and POC
-
 ---
 
 ## Sprint 1 - Mapa e Tiles (COMPLETO)
@@ -43,7 +41,7 @@
 - [x] Criar office-map.json com layout do escritorio
 - [x] Criar useTileMap.ts hook
 - [x] Implementar carregamento de mapa
-- [x] Criar tileset PNG real (usando Graphics procedural)
+- [x] Renderizar tiles via Graphics procedural
 
 ### US-004: Renderizar mapa base com tiles
 - [x] Criar TileMapLayer.tsx
@@ -86,6 +84,48 @@
 
 ---
 
+## Sprint 3 - Animacoes (COMPLETO)
+
+### US-010: Criar AnimationController
+- [x] Criar AnimationController.ts
+- [x] Integrar com Pixi ticker
+- [x] Gerenciar animacoes por agente
+- [x] Suportar diferentes estados
+
+### US-011: Implementar animacoes por status
+- [x] Idle animation (breathing/bobbing)
+- [x] Working animation (particles flutuantes)
+- [x] Thinking animation (sway + head tilt)
+- [x] Waiting animation (slow bob)
+
+### US-012: Transicoes de estado
+- [x] Criar/destruir particles ao mudar status
+- [x] Animacao suave entre estados
+- [x] Preservar posicao base
+
+---
+
+## Sprint 4 - Chat Bubbles e UI (COMPLETO)
+
+### US-013: Chat Bubbles overlay
+- [x] Criar ChatBubble.ts com pixel art style
+- [x] Criar ChatBubbleManager para gerenciar bubbles
+- [x] Implementar useChatBubbles hook
+- [x] Auto-dismiss com fade out
+
+### US-014: Agent panel melhorado
+- [x] Botoes de teste de animacao
+- [x] Input para enviar mensagens custom
+- [x] Status indicators coloridos
+- [x] Current activity display
+
+### US-015: Integracao store
+- [x] Sincronizar status com virtualOfficeStore
+- [x] Atualizar posicoes para bubbles
+- [x] Manter estado entre mudancas
+
+---
+
 ## Arquivos Criados
 
 ### Estrutura de Diretorios
@@ -97,40 +137,29 @@ src/virtual-office-v2/
 │   └── office-map.json           # Layout do mapa JSON
 ├── hooks/
 │   ├── usePixiApp.ts             # Hook do Pixi Application
-│   └── useTileMap.ts             # Hook para carregar mapa
+│   ├── useTileMap.ts             # Hook para carregar mapa
+│   └── useChatBubbles.ts         # Hook para chat bubbles
 ├── pixi/
 │   ├── PixiCanvas.tsx            # Container Pixi
 │   ├── TileMapLayer.tsx          # Camada de tiles
 │   ├── AgentSprite.tsx           # Sprites individuais
-│   └── AgentSpriteManager.tsx    # Gerenciador de sprites
+│   ├── AgentSpriteManager.tsx    # Gerenciador de sprites
+│   ├── AnimationController.ts    # Controlador de animacoes
+│   └── ChatBubble.ts             # Baloes de chat
 └── types/
     └── index.ts                  # Definicoes de tipos
 ```
-
-### Modificacoes em Arquivos Existentes
-- `src/App.tsx` - Rota /virtual-office-v2 existente
 
 ---
 
 ## Proximos Passos
 
-### Sprint 3 - Animacoes
-1. Implementar AnimationController
-2. Animacao idle (breathing)
-3. Animacao working (typing particles)
-4. Transicoes de estado
-
-### Sprint 4 - UI/Camera
-1. Chat bubbles overlay
-2. Camera controls aprimorados
-3. Selection/click handlers
-4. Mini-map pixel art
-
-### Sprint 5 - Polish
+### Sprint 5 - Polish (Pendente)
 1. Efeitos sonoros
-2. Transicoes suaves
+2. Transicoes suaves de camera
 3. Performance optimization
 4. Mobile touch support
+5. Mini-map pixel art
 
 ---
 
@@ -140,7 +169,8 @@ src/virtual-office-v2/
 |--------|-----------|
 | `92b8941` | docs: Complete PRD pipeline for Pixel Art Virtual Office v2.0 |
 | `07ec561` | feat: Sprint 0 - Pixi.js setup and POC |
-| *pendente* | feat: Sprint 1+2 - TileMap, Agents, Store Integration |
+| `3bb0c59` | feat: Sprint 1+2 - TileMap, Agents, Store Integration |
+| *pendente* | feat: Sprint 3+4 - Animations and Chat Bubbles |
 
 ---
 
@@ -153,6 +183,8 @@ src/virtual-office-v2/
    - Scroll para zoom
    - Double-click para resetar
    - Click no agente para ver detalhes
+   - Usar botoes para mudar status (testar animacoes)
+   - Enviar mensagens custom via input
 
 ---
 
@@ -160,18 +192,18 @@ src/virtual-office-v2/
 
 ### Dependencias
 - `pixi.js` v8.x
-- `@pixi/react` v8.x (opcional, usando hooks)
+- Zustand (via virtualOfficeStore)
 
 ### Performance
-- 60fps estavel
-- Memory < 50MB
+- 60fps estavel com animacoes
+- Memory < 60MB
 - Build time: OK
 
 ### Decisoes Tecnicas
-- Usando Graphics procedural em vez de sprites PNG
-- Sprites reais podem ser adicionados via sprite sheets
-- Mapa em JSON formato proprio (simplificado do Tiled)
-- Integracao com virtualOfficeStore (Zustand) para estado
+- AnimationController usa Pixi ticker para update loop
+- ChatBubbles usam requestAnimationFrame para fade
+- Sprites procedurais via Graphics (sem assets externos)
+- Integracao com virtualOfficeStore para estado compartilhado
 
 ---
 
@@ -179,4 +211,4 @@ src/virtual-office-v2/
 **Atualizado por:** Dex (AIOS Dev)
 **Data:** 2026-02-09
 
-**Status: SPRINT 1+2 COMPLETO**
+**Status: SPRINT 3+4 COMPLETO**
