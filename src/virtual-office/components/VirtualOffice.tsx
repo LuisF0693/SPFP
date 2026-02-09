@@ -1,11 +1,19 @@
 // AIOS Virtual Office - Main Component
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useVirtualOfficeStore, CAMERA_CONFIG, type TaskPriority } from '../store/virtualOfficeStore';
+import { useVirtualOfficeStore, CAMERA_CONFIG, type TaskPriority, type ResolvedTheme, getThemeByTime } from '../store/virtualOfficeStore';
+import { useUserAvatarStore } from '../store/userAvatarStore';
 import { DepartmentArea } from './DepartmentArea';
 import { ActivityFeed } from './ActivityFeed';
 import { AgentPanel } from './AgentPanel';
 import { MiniMap } from './MiniMap';
-import { getAgentsByDepartment } from '../data/agents';
+import { ThemeToggle } from './ThemeToggle';
+import { DepartmentMetrics } from './DepartmentMetrics';
+import { UserAvatarOffice } from './UserAvatarOffice';
+import { SoundControls } from './SoundControls';
+import { AvatarCustomizer } from './AvatarCustomizer';
+import { UserAvatar } from './UserAvatar';
+import { useSound } from '../hooks/useSound';
+import { getAgentsByDepartment, AGENTS } from '../data/agents';
 import { useAIOSBridge } from '../bridge';
 import type { AIOSInboundEvent } from '../bridge/EventTypes';
 import type { Department, AgentId, AgentStatus } from '../types';
@@ -19,6 +27,8 @@ export function VirtualOffice() {
     mockMode,
     isConnected,
     camera,
+    themeMode,
+    getResolvedTheme,
     selectAgent,
     setAgentStatus,
     addActivity,
@@ -28,16 +38,48 @@ export function VirtualOffice() {
     zoomCamera,
     centerOnAgent,
     resetCamera,
-    assignTask
+    assignTask,
+    soundSettings,
+    toggleSound,
+    setSoundVolume,
+    toggleAmbient,
+    openCustomizer
   } = useVirtualOfficeStore();
+
+  // User avatar store
+  const { moveToPosition, moveToAgent, isMoving: isUserMoving } = useUserAvatarStore();
+
+  // Sound hook
+  const { playSuccess, playNotification } = useSound({
+    volume: soundSettings.volume,
+    enabled: soundSettings.enabled
+  });
 
   // Refs for pan/zoom
   const officeContainerRef = useRef<HTMLDivElement>(null);
+  const officeGridRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
+  const clickStartPos = useRef({ x: 0, y: 0 });
 
   // Container dimensions for minimap viewport calculation
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+
+  // Theme state - resolved theme for rendering
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(getResolvedTheme());
+
+  // Update resolved theme when mode changes or on interval (for auto mode)
+  useEffect(() => {
+    setResolvedTheme(getResolvedTheme());
+
+    // If in auto mode, check every minute for time changes
+    if (themeMode === 'auto') {
+      const interval = setInterval(() => {
+        setResolvedTheme(getThemeByTime());
+      }, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [themeMode, getResolvedTheme]);
 
   // Update container size on resize
   useEffect(() => {
@@ -58,10 +100,11 @@ export function VirtualOffice() {
     // Only start drag on left mouse button and not on interactive elements
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[data-agent]')) return;
+    if (target.closest('button') || target.closest('[data-agent]') || target.closest('[data-user-avatar]')) return;
 
     isDragging.current = true;
     lastMousePos.current = { x: e.clientX, y: e.clientY };
+    clickStartPos.current = { x: e.clientX, y: e.clientY };
     e.currentTarget.style.cursor = 'grabbing';
   }, []);
 
@@ -77,9 +120,29 @@ export function VirtualOffice() {
   }, [panCamera]);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    const wasDragging = isDragging.current;
     isDragging.current = false;
     e.currentTarget.style.cursor = 'grab';
-  }, []);
+
+    // Check if this was a click (not a drag) - move user avatar to clicked position
+    const target = e.target as HTMLElement;
+    const deltaX = Math.abs(e.clientX - clickStartPos.current.x);
+    const deltaY = Math.abs(e.clientY - clickStartPos.current.y);
+    const isClick = deltaX < 5 && deltaY < 5;
+
+    // Only move if it was a click on empty area (not on agent or button)
+    if (isClick && !target.closest('[data-agent]') && !target.closest('button') && !target.closest('[data-user-avatar]')) {
+      // Calculate click position relative to the office grid
+      if (officeGridRef.current) {
+        const gridRect = officeGridRef.current.getBoundingClientRect();
+        const clickX = (e.clientX - gridRect.left) / camera.zoom;
+        const clickY = (e.clientY - gridRect.top) / camera.zoom;
+
+        // Move user avatar to the clicked position
+        moveToPosition({ x: clickX, y: clickY });
+      }
+    }
+  }, [camera.zoom, moveToPosition]);
 
   const handleMouseLeave = useCallback((e: React.MouseEvent) => {
     isDragging.current = false;
@@ -219,11 +282,16 @@ export function VirtualOffice() {
 
   const handleAgentClick = useCallback((agentId: string, isDoubleClick = false) => {
     if (isDoubleClick) {
+      // Double-click: move user avatar to agent and open panel
+      const agent = agents[agentId as AgentId];
+      if (agent) {
+        moveToAgent(agent.position);
+      }
       handleDoubleClick(agentId as AgentId);
     } else {
       selectAgent(agentId as AgentId);
     }
-  }, [selectAgent, handleDoubleClick]);
+  }, [selectAgent, handleDoubleClick, agents, moveToAgent]);
 
   const handleActivityClick = useCallback((agentId: AgentId) => {
     selectAgent(agentId);
@@ -264,19 +332,48 @@ export function VirtualOffice() {
 
   const selectedAgent = selectedAgentId ? agents[selectedAgentId] : null;
 
+  // Theme-specific classes
+  const themeClasses = resolvedTheme === 'day'
+    ? 'theme-day bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100'
+    : 'theme-night bg-gradient-to-br from-gray-950 via-slate-900 to-indigo-950';
+
+  const headerClasses = resolvedTheme === 'day'
+    ? 'border-sky-200/50 bg-white/40 backdrop-blur-sm'
+    : 'border-gray-800/50 bg-gray-900/40 backdrop-blur-sm';
+
+  const sidebarClasses = resolvedTheme === 'day'
+    ? 'border-sky-200/50 bg-white/30 backdrop-blur-sm'
+    : 'border-gray-800 bg-gray-900/30 backdrop-blur-sm';
+
+  const titleClasses = resolvedTheme === 'day'
+    ? 'text-gray-800'
+    : 'text-white';
+
+  const subtitleClasses = resolvedTheme === 'day'
+    ? 'text-gray-600'
+    : 'text-gray-400';
+
+  const controlBgClasses = resolvedTheme === 'day'
+    ? 'bg-white/60 border-sky-200/50'
+    : 'bg-gray-800/50 border-gray-700/50';
+
+  const controlTextClasses = resolvedTheme === 'day'
+    ? 'text-gray-600 hover:text-gray-900'
+    : 'text-gray-400 hover:text-white';
+
   return (
-    <div className="h-screen bg-gray-950 flex overflow-hidden">
+    <div className={`h-screen flex overflow-hidden transition-all duration-500 ease-in-out ${themeClasses}`}>
       {/* Main Office Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header - Fixed */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-800/50">
+        <div className={`flex-shrink-0 p-4 border-b transition-all duration-500 ${headerClasses}`}>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+              <h1 className={`text-2xl font-bold flex items-center gap-3 transition-colors duration-500 ${titleClasses}`}>
                 <span className="text-3xl">🏢</span>
                 AIOS Virtual Office
               </h1>
-              <p className="text-gray-400 text-sm mt-1">
+              <p className={`text-sm mt-1 transition-colors duration-500 ${subtitleClasses}`}>
                 Monitor your AI agents in real-time • Drag to pan, scroll to zoom
               </p>
             </div>
@@ -284,30 +381,30 @@ export function VirtualOffice() {
             {/* Status & Controls */}
             <div className="flex items-center gap-4">
               {/* Zoom Controls */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-500 ${controlBgClasses}`}>
                 <button
                   onClick={() => zoomCamera(-1)}
                   disabled={camera.zoom <= CAMERA_CONFIG.MIN_ZOOM}
-                  className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className={`w-6 h-6 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-500 ${controlTextClasses}`}
                   title="Zoom Out"
                 >
                   -
                 </button>
-                <span className="text-xs text-gray-400 w-12 text-center">
+                <span className={`text-xs w-12 text-center transition-colors duration-500 ${subtitleClasses}`}>
                   {Math.round(camera.zoom * 100)}%
                 </span>
                 <button
                   onClick={() => zoomCamera(1)}
                   disabled={camera.zoom >= CAMERA_CONFIG.MAX_ZOOM}
-                  className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className={`w-6 h-6 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-500 ${controlTextClasses}`}
                   title="Zoom In"
                 >
                   +
                 </button>
-                <div className="w-px h-4 bg-gray-700 mx-1" />
+                <div className={`w-px h-4 mx-1 transition-colors duration-500 ${resolvedTheme === 'day' ? 'bg-sky-200' : 'bg-gray-700'}`} />
                 <button
                   onClick={resetCamera}
-                  className="text-xs text-gray-400 hover:text-white transition-colors"
+                  className={`text-xs transition-colors duration-500 ${controlTextClasses}`}
                   title="Reset View"
                 >
                   Reset
@@ -315,7 +412,7 @@ export function VirtualOffice() {
               </div>
 
               {/* Connection Status */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800/50">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-500 ${controlBgClasses}`}>
                 <div
                   className={`w-2 h-2 rounded-full ${
                     mockMode
@@ -325,7 +422,7 @@ export function VirtualOffice() {
                       : 'bg-red-500'
                   }`}
                 />
-                <span className="text-xs text-gray-400">
+                <span className={`text-xs transition-colors duration-500 ${subtitleClasses}`}>
                   {mockMode ? 'Mock Mode' : isConnected ? 'Connected' : 'Disconnected'}
                 </span>
               </div>
@@ -333,14 +430,32 @@ export function VirtualOffice() {
               {/* Mock Toggle */}
               <button
                 onClick={() => setMockMode(!mockMode)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-500 ${
                   mockMode
                     ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                    : resolvedTheme === 'day'
+                    ? 'bg-white/60 text-gray-600 border border-sky-200/50'
                     : 'bg-gray-800/50 text-gray-400 border border-gray-700'
                 }`}
               >
                 {mockMode ? 'Disable Mock' : 'Enable Mock'}
               </button>
+
+              {/* Sound Controls */}
+              <SoundControls
+                enabled={soundSettings.enabled}
+                volume={soundSettings.volume}
+                ambientPlaying={soundSettings.ambientPlaying}
+                onToggleEnabled={toggleSound}
+                onVolumeChange={setSoundVolume}
+                onToggleAmbient={toggleAmbient}
+              />
+
+              {/* User Avatar */}
+              <UserAvatar size="sm" onClick={openCustomizer} />
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -366,7 +481,7 @@ export function VirtualOffice() {
             }}
           >
             {/* Office Grid */}
-            <div className="p-6 space-y-4">
+            <div ref={officeGridRef} className="p-6 space-y-4 relative">
               {/* Top Row - Product, Engineering, Quality, Design */}
               <div className="grid grid-cols-4 gap-4">
                 <DepartmentArea
@@ -407,6 +522,9 @@ export function VirtualOffice() {
                 onAgentClick={handleAgentClick}
                 onAgentDoubleClick={handleDoubleClick}
               />
+
+              {/* User Avatar - positioned above all departments */}
+              <UserAvatarOffice showDestination={true} />
             </div>
           </div>
 
@@ -416,11 +534,14 @@ export function VirtualOffice() {
             containerWidth={containerSize.width}
             containerHeight={containerSize.height}
           />
+
+          {/* Department Metrics Widget */}
+          <DepartmentMetrics />
         </div>
       </div>
 
       {/* Activity Feed Sidebar */}
-      <div className="w-80 p-4 border-l border-gray-800">
+      <div className={`w-80 p-4 border-l transition-all duration-500 ${sidebarClasses}`}>
         <ActivityFeed
           activities={activities}
           onActivityClick={handleActivityClick}
@@ -435,6 +556,9 @@ export function VirtualOffice() {
         onClose={handleClosePanel}
         onAssignTask={handleAssignTask}
       />
+
+      {/* Avatar Customizer Modal */}
+      <AvatarCustomizer />
     </div>
   );
 }

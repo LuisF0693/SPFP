@@ -7,7 +7,7 @@ import { aiosEventsPlugin } from './vite-plugin-aios-events';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    server: {
+        server: {
       port: 3000,
       host: '0.0.0.0',
       headers: {
@@ -72,7 +72,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     optimizeDeps: {
+      entries: ['index.html'],
       include: ['pdfjs-dist'],
+      exclude: ['aios-core-main']
     },
     build: {
       target: 'esnext',

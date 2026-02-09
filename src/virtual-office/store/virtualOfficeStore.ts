@@ -1,7 +1,45 @@
 // AIOS Virtual Office - Zustand Store
 import { create } from 'zustand';
-import type { AgentId, AgentState, AgentStatus, Activity, Position } from '../types';
-import { AGENTS } from '../data/agents';
+import type { AgentId, AgentState, AgentStatus, Activity, Position, Department } from '../types';
+import { AGENTS, getAgentsByDepartment } from '../data/agents';
+
+// Theme types
+export type ThemeMode = 'auto' | 'day' | 'night';
+export type ResolvedTheme = 'day' | 'night';
+
+// User avatar customization types
+export interface UserCustomization {
+  emoji: string;
+  displayName: string;
+  accentColor: string;
+}
+
+// Predefined accent colors
+export const ACCENT_COLORS = [
+  '#4A90D9', // Blue
+  '#50C878', // Green
+  '#FF6B6B', // Red
+  '#FFA500', // Orange
+  '#9B59B6', // Purple
+  '#F1C40F', // Yellow
+  '#E91E63', // Pink
+  '#00BCD4', // Cyan
+] as const;
+
+// Predefined avatar emojis (6x4 grid = 24 emojis)
+export const AVATAR_EMOJIS = [
+  '👨‍💻', '👩‍💻', '🧑‍💼', '👨‍🎨', '👩‍🔬', '🧙‍♂️',
+  '🦸‍♀️', '🧑‍🚀', '🧑‍🏫', '👨‍🔧', '👩‍⚕️', '🧑‍🍳',
+  '👨‍✈️', '👩‍🎤', '🧑‍🎓', '👨‍🌾', '🦊', '🐺',
+  '🦁', '🐯', '🐻', '🐼', '🐨', '🐵',
+] as const;
+
+// Default user customization
+export const DEFAULT_USER_CUSTOMIZATION: UserCustomization = {
+  emoji: '👤',
+  displayName: 'You',
+  accentColor: '#4A90D9',
+};
 
 // Task types
 export type TaskPriority = 'low' | 'medium' | 'high';
@@ -23,6 +61,13 @@ export interface ChatMessage {
   content: string;
   isUser: boolean;
   timestamp: number;
+}
+
+// Sound settings
+export interface SoundSettings {
+  enabled: boolean;
+  volume: number; // 0-100
+  ambientPlaying: boolean;
 }
 
 // Camera configuration
@@ -64,6 +109,16 @@ interface VirtualOfficeState {
   mockMode: boolean;
   isConnected: boolean;
 
+  // Theme
+  themeMode: ThemeMode;
+
+  // User customization
+  userCustomization: UserCustomization;
+  isCustomizerOpen: boolean;
+
+  // Sound settings
+  soundSettings: SoundSettings;
+
   // Actions
   setAgentStatus: (agentId: AgentId, status: AgentStatus, activity?: string) => void;
   selectAgent: (agentId: AgentId | null) => void;
@@ -87,6 +142,24 @@ interface VirtualOfficeState {
   // Chat actions
   addChatMessage: (agentId: AgentId, message: Omit<ChatMessage, 'id' | 'agentId' | 'timestamp'>) => void;
   clearChatMessages: (agentId?: AgentId) => void;
+
+  // Theme actions
+  setThemeMode: (mode: ThemeMode) => void;
+  getResolvedTheme: () => ResolvedTheme;
+
+  // User customization actions
+  setUserCustomization: (customization: UserCustomization) => void;
+  updateUserCustomization: (partial: Partial<UserCustomization>) => void;
+  resetUserCustomization: () => void;
+  openCustomizer: () => void;
+  closeCustomizer: () => void;
+
+  // Sound actions
+  setSoundEnabled: (enabled: boolean) => void;
+  setSoundVolume: (volume: number) => void;
+  setAmbientPlaying: (playing: boolean) => void;
+  toggleSound: () => void;
+  toggleAmbient: () => void;
 }
 
 // Initialize agents from config
@@ -108,6 +181,94 @@ const initialCamera: CameraState = {
   position: { x: 0, y: 0 },
   zoom: 1.0
 };
+
+// Theme localStorage key
+const THEME_STORAGE_KEY = 'aios_virtual_office_theme';
+
+// User customization localStorage key
+const USER_CUSTOMIZATION_KEY = 'aios_user_customization';
+
+// Sound settings localStorage key
+const SOUND_SETTINGS_KEY = 'aios_virtual_office_sound';
+
+// Default sound settings (muted by default)
+const DEFAULT_SOUND_SETTINGS: SoundSettings = {
+  enabled: false,
+  volume: 50,
+  ambientPlaying: false
+};
+
+// Load sound settings from localStorage
+function loadSoundSettings(): SoundSettings {
+  try {
+    const saved = localStorage.getItem(SOUND_SETTINGS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : false,
+        volume: typeof parsed.volume === 'number' ? Math.min(100, Math.max(0, parsed.volume)) : 50,
+        ambientPlaying: false // Always start with ambient off
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load sound settings:', e);
+  }
+  return DEFAULT_SOUND_SETTINGS;
+}
+
+// Save sound settings to localStorage
+function saveSoundSettings(settings: Omit<SoundSettings, 'ambientPlaying'>): void {
+  try {
+    localStorage.setItem(SOUND_SETTINGS_KEY, JSON.stringify({
+      enabled: settings.enabled,
+      volume: settings.volume
+    }));
+  } catch (e) {
+    console.error('Failed to save sound settings:', e);
+  }
+}
+
+// Load user customization from localStorage
+function loadUserCustomization(): UserCustomization {
+  try {
+    const saved = localStorage.getItem(USER_CUSTOMIZATION_KEY);
+    if (saved) {
+      return { ...DEFAULT_USER_CUSTOMIZATION, ...JSON.parse(saved) };
+    }
+  } catch (e) {
+    console.error('Failed to load user customization:', e);
+  }
+  return DEFAULT_USER_CUSTOMIZATION;
+}
+
+// Save user customization to localStorage
+function saveUserCustomization(customization: UserCustomization): void {
+  try {
+    localStorage.setItem(USER_CUSTOMIZATION_KEY, JSON.stringify(customization));
+  } catch (e) {
+    console.error('Failed to save user customization:', e);
+  }
+}
+
+// Load persisted theme mode
+function loadThemeMode(): ThemeMode {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored && ['auto', 'day', 'night'].includes(stored)) {
+      return stored as ThemeMode;
+    }
+  } catch {
+    // localStorage not available
+  }
+  return 'auto';
+}
+
+// Helper to determine theme based on time of day
+export function getThemeByTime(): ResolvedTheme {
+  const hour = new Date().getHours();
+  // Day: 6:00 - 17:59, Night: 18:00 - 5:59
+  return hour >= 6 && hour < 18 ? 'day' : 'night';
+}
 
 // Helper function to clamp camera position within bounds
 function clampCameraPosition(position: Position, zoom: number): Position {
@@ -138,6 +299,10 @@ export const useVirtualOfficeStore = create<VirtualOfficeState>((set, get) => ({
   chatMessages: {} as Record<AgentId, ChatMessage[]>,
   mockMode: true, // Start in mock mode by default
   isConnected: false,
+  themeMode: loadThemeMode(),
+  userCustomization: loadUserCustomization(),
+  isCustomizerOpen: false,
+  soundSettings: loadSoundSettings(),
 
   // Actions
   setAgentStatus: (agentId, status, activity) =>
@@ -340,5 +505,158 @@ export const useVirtualOfficeStore = create<VirtualOfficeState>((set, get) => ({
       }
       // Clear all messages
       return { chatMessages: {} as Record<AgentId, ChatMessage[]> };
-    })
+    }),
+
+  // Theme actions
+  setThemeMode: (mode) => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      // localStorage not available
+    }
+    set({ themeMode: mode });
+  },
+
+  getResolvedTheme: () => {
+    const state = get();
+    if (state.themeMode === 'auto') {
+      return getThemeByTime();
+    }
+    return state.themeMode;
+  },
+
+  // User customization actions
+  setUserCustomization: (customization) => {
+    saveUserCustomization(customization);
+    set({ userCustomization: customization });
+  },
+
+  updateUserCustomization: (partial) => {
+    const state = get();
+    const updated = { ...state.userCustomization, ...partial };
+    saveUserCustomization(updated);
+    set({ userCustomization: updated });
+  },
+
+  resetUserCustomization: () => {
+    saveUserCustomization(DEFAULT_USER_CUSTOMIZATION);
+    set({ userCustomization: DEFAULT_USER_CUSTOMIZATION });
+  },
+
+  openCustomizer: () => set({ isCustomizerOpen: true }),
+
+  closeCustomizer: () => set({ isCustomizerOpen: false }),
+
+  // Sound actions
+  setSoundEnabled: (enabled) => {
+    const state = get();
+    const newSettings = { ...state.soundSettings, enabled };
+    saveSoundSettings(newSettings);
+    set({ soundSettings: newSettings });
+  },
+
+  setSoundVolume: (volume) => {
+    const state = get();
+    const clampedVolume = Math.min(100, Math.max(0, volume));
+    const newSettings = { ...state.soundSettings, volume: clampedVolume };
+    saveSoundSettings(newSettings);
+    set({ soundSettings: newSettings });
+  },
+
+  setAmbientPlaying: (playing) => {
+    set((state) => ({
+      soundSettings: { ...state.soundSettings, ambientPlaying: playing }
+    }));
+  },
+
+  toggleSound: () => {
+    const state = get();
+    const newSettings = { ...state.soundSettings, enabled: !state.soundSettings.enabled };
+    saveSoundSettings(newSettings);
+    set({ soundSettings: newSettings });
+  },
+
+  toggleAmbient: () => {
+    set((state) => ({
+      soundSettings: {
+        ...state.soundSettings,
+        ambientPlaying: !state.soundSettings.ambientPlaying
+      }
+    }));
+  }
 }));
+
+// ============================================================================
+// Selectors - Computed values for department metrics
+// ============================================================================
+
+export interface DepartmentMetrics {
+  department: Department;
+  activeAgents: number;
+  totalAgents: number;
+  completedTasksToday: number;
+}
+
+/**
+ * Selector to get metrics for a specific department
+ */
+export function selectDepartmentMetrics(
+  state: Pick<VirtualOfficeState, 'agents' | 'activities'>,
+  department: Department
+): DepartmentMetrics {
+  const deptAgents = getAgentsByDepartment(department);
+  const deptAgentIds = deptAgents.map(a => a.id);
+
+  // Count active agents (status !== 'idle')
+  const activeAgents = deptAgentIds.filter(
+    (id) => state.agents[id]?.status !== 'idle'
+  ).length;
+
+  // Get today's start timestamp
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayTimestamp = todayStart.getTime();
+
+  // Count completed tasks today (tool_complete activities with success)
+  const completedTasksToday = state.activities.filter(
+    (activity) =>
+      activity.type === 'tool_complete' &&
+      activity.success === true &&
+      deptAgentIds.includes(activity.agentId) &&
+      activity.timestamp >= todayTimestamp
+  ).length;
+
+  return {
+    department,
+    activeAgents,
+    totalAgents: deptAgents.length,
+    completedTasksToday
+  };
+}
+
+/**
+ * Selector to get metrics for all departments
+ */
+export function selectAllDepartmentMetrics(
+  state: Pick<VirtualOfficeState, 'agents' | 'activities'>
+): DepartmentMetrics[] {
+  const departments: Department[] = ['product', 'engineering', 'quality', 'design', 'operations'];
+  return departments.map(dept => selectDepartmentMetrics(state, dept));
+}
+
+/**
+ * Selector to get total metrics across all departments
+ */
+export function selectTotalMetrics(
+  state: Pick<VirtualOfficeState, 'agents' | 'activities'>
+): { activeAgents: number; totalAgents: number; completedTasksToday: number } {
+  const allMetrics = selectAllDepartmentMetrics(state);
+  return allMetrics.reduce(
+    (acc, m) => ({
+      activeAgents: acc.activeAgents + m.activeAgents,
+      totalAgents: acc.totalAgents + m.totalAgents,
+      completedTasksToday: acc.completedTasksToday + m.completedTasksToday
+    }),
+    { activeAgents: 0, totalAgents: 0, completedTasksToday: 0 }
+  );
+}
