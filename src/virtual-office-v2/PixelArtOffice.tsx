@@ -1,6 +1,10 @@
 // Pixel Art Virtual Office v2.0 - Main Component
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePixiApp } from './hooks/usePixiApp';
+import { TileMapLayer } from './pixi/TileMapLayer';
+import { AgentSpriteManager } from './pixi/AgentSpriteManager';
+import { useVirtualOfficeStore } from '../virtual-office/store/virtualOfficeStore';
+import type { AgentId } from './types';
 
 interface PixelArtOfficeProps {
   width?: number;
@@ -12,18 +16,31 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     canvasRef,
     app,
     mainContainer,
+    agentsContainer,
     isReady,
     fps,
     panTo,
     zoomTo,
     resetCamera,
-  } = usePixiApp({ width, height });
+  } = usePixiApp({ width, height, skipPlaceholders: true });
+
+  // Store state
+  const selectedAgentId = useVirtualOfficeStore((state) => state.selectedAgentId);
+  const selectedAgent = useVirtualOfficeStore((state) =>
+    state.selectedAgentId ? state.agents[state.selectedAgentId] : null
+  );
+  const selectAgent = useVirtualOfficeStore((state) => state.selectAgent);
 
   // Drag state
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  // Handle agent click
+  const handleAgentClick = useCallback((agentId: AgentId) => {
+    selectAgent(agentId);
+  }, [selectAgent]);
 
   // Mouse handlers for pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -74,6 +91,11 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     setPosition({ x: 0, y: 0 });
   }, [resetCamera]);
 
+  // Close panel when clicking outside
+  const handleClosePanel = useCallback(() => {
+    selectAgent(null);
+  }, [selectAgent]);
+
   return (
     <div className="pixel-art-office h-screen flex flex-col bg-gray-950">
       {/* Header */}
@@ -81,14 +103,14 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-              <span className="text-3xl">🎮</span>
+              <span className="text-3xl">🏢</span>
               Pixel Art Virtual Office
-              <span className="text-sm font-normal text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded">
-                POC v0.1
+              <span className="text-sm font-normal text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                v2.0
               </span>
             </h1>
             <p className="text-sm text-gray-400 mt-1">
-              Pixi.js WebGL rendering • Drag to pan, scroll to zoom, double-click to reset
+              Pixi.js WebGL • Drag to pan, scroll to zoom, double-click to reset • Click agent for details
             </p>
           </div>
 
@@ -161,6 +183,17 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
           onDoubleClick={handleDoubleClick}
         />
 
+        {/* Pixi Components (rendered via hooks) */}
+        {isReady && mainContainer && (
+          <>
+            <TileMapLayer parentContainer={mainContainer} />
+            <AgentSpriteManager
+              parentContainer={agentsContainer}
+              onAgentClick={handleAgentClick}
+            />
+          </>
+        )}
+
         {/* Loading overlay */}
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-950">
@@ -171,26 +204,70 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
           </div>
         )}
 
+        {/* Agent Panel */}
+        {selectedAgent && (
+          <div className="absolute top-4 right-4 w-72 p-4 rounded-xl bg-gray-900/90 backdrop-blur-sm border border-gray-700/50 shadow-xl">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="text-lg font-bold text-white">{selectedAgent.name}</h3>
+                <p className="text-sm text-gray-400">{selectedAgent.role}</p>
+              </div>
+              <button
+                onClick={handleClosePanel}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`w-2 h-2 rounded-full ${
+                selectedAgent.status === 'working' ? 'bg-green-500' :
+                selectedAgent.status === 'thinking' ? 'bg-yellow-500' :
+                selectedAgent.status === 'waiting' ? 'bg-blue-500' :
+                'bg-gray-500'
+              }`} />
+              <span className="text-sm text-gray-300 capitalize">{selectedAgent.status}</span>
+            </div>
+
+            {/* Current Activity */}
+            {selectedAgent.currentActivity && (
+              <div className="p-3 rounded-lg bg-gray-800/50 mb-3">
+                <p className="text-xs text-gray-400 mb-1">Current Activity</p>
+                <p className="text-sm text-white">{selectedAgent.currentActivity}</p>
+              </div>
+            )}
+
+            {/* Department */}
+            <div className="text-xs text-gray-500">
+              Department: <span className="text-gray-400 capitalize">{selectedAgent.department}</span>
+            </div>
+          </div>
+        )}
+
         {/* Info panel */}
         <div className="absolute bottom-4 left-4 p-4 rounded-xl bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 text-xs text-gray-400 space-y-1">
-          <div className="text-white font-semibold mb-2">Sprint 0 - POC Status</div>
+          <div className="text-white font-semibold mb-2">Sprint 1 - Tile Map + Agents</div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Pixi.js v8 initialized
+            <span className="text-green-400">✓</span> Pixi.js v8 + WebGL
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> WebGL canvas rendering
+            <span className="text-green-400">✓</span> TileMap with departments
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Pan/Zoom controls
+            <span className="text-green-400">✓</span> Pixel art agent sprites
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Department areas (placeholder)
+            <span className="text-green-400">✓</span> Click interaction
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Agent positions (placeholder)
+            <span className="text-green-400">✓</span> Store integration
           </div>
           <div className="flex items-center gap-2 text-yellow-400">
-            <span>○</span> Next: Load real sprites (Sprint 1)
+            <span>○</span> Next: Animations (Sprint 3)
           </div>
         </div>
 

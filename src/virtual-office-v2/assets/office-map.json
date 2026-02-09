@@ -1,0 +1,174 @@
+{
+  "width": 40,
+  "height": 30,
+  "tileWidth": 32,
+  "tileHeight": 32,
+  "layers": [
+    {
+      "name": "floor",
+      "type": "tilelayer",
+      "visible": true,
+      "data": []
+    },
+    {
+      "name": "walls",
+      "type": "tilelayer",
+      "visible": true,
+      "data": []
+    },
+    {
+      "name": "departments",
+      "type": "objectgroup",
+      "visible": true,
+      "objects": [
+        {
+          "id": 1,
+          "name": "entrance",
+          "type": "common",
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 160,
+          "properties": { "label": "ENTRANCE" }
+        },
+        {
+          "id": 2,
+          "name": "lounge",
+          "type": "common",
+          "x": 320,
+          "y": 0,
+          "width": 320,
+          "height": 160,
+          "properties": { "label": "LOUNGE" }
+        },
+        {
+          "id": 3,
+          "name": "meeting",
+          "type": "common",
+          "x": 640,
+          "y": 0,
+          "width": 320,
+          "height": 160,
+          "properties": { "label": "MEETING ROOM" }
+        },
+        {
+          "id": 4,
+          "name": "product",
+          "type": "department",
+          "x": 0,
+          "y": 320,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "PRODUCT",
+            "color": "#FF8C42"
+          }
+        },
+        {
+          "id": 5,
+          "name": "engineering",
+          "type": "department",
+          "x": 320,
+          "y": 320,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "ENGINEERING",
+            "color": "#4A90D9"
+          }
+        },
+        {
+          "id": 6,
+          "name": "quality",
+          "type": "department",
+          "x": 640,
+          "y": 320,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "QUALITY",
+            "color": "#50C878"
+          }
+        },
+        {
+          "id": 7,
+          "name": "design",
+          "type": "department",
+          "x": 0,
+          "y": 640,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "DESIGN",
+            "color": "#E91E63"
+          }
+        },
+        {
+          "id": 8,
+          "name": "analytics",
+          "type": "department",
+          "x": 320,
+          "y": 640,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "ANALYTICS",
+            "color": "#E74C3C"
+          }
+        },
+        {
+          "id": 9,
+          "name": "operations",
+          "type": "department",
+          "x": 640,
+          "y": 640,
+          "width": 320,
+          "height": 320,
+          "properties": {
+            "label": "OPERATIONS",
+            "color": "#9B59B6"
+          }
+        }
+      ]
+    },
+    {
+      "name": "spawn_points",
+      "type": "objectgroup",
+      "visible": true,
+      "objects": [
+        { "id": 101, "name": "morgan", "type": "agent", "x": 100, "y": 450 },
+        { "id": 102, "name": "sophie", "type": "agent", "x": 220, "y": 450 },
+        { "id": 103, "name": "dex", "type": "agent", "x": 400, "y": 450 },
+        { "id": 104, "name": "nova", "type": "agent", "x": 520, "y": 450 },
+        { "id": 105, "name": "gage", "type": "agent", "x": 460, "y": 550 },
+        { "id": 106, "name": "quinn", "type": "agent", "x": 780, "y": 450 },
+        { "id": 107, "name": "luna", "type": "agent", "x": 100, "y": 780 },
+        { "id": 108, "name": "aria", "type": "agent", "x": 220, "y": 780 },
+        { "id": 109, "name": "atlas", "type": "agent", "x": 460, "y": 780 },
+        { "id": 110, "name": "max", "type": "agent", "x": 780, "y": 780 }
+      ]
+    },
+    {
+      "name": "furniture",
+      "type": "objectgroup",
+      "visible": true,
+      "objects": [
+        { "id": 201, "name": "desk", "type": "desk", "x": 80, "y": 480, "width": 64, "height": 32 },
+        { "id": 202, "name": "desk", "type": "desk", "x": 200, "y": 480, "width": 64, "height": 32 },
+        { "id": 203, "name": "desk", "type": "desk", "x": 380, "y": 480, "width": 64, "height": 32 },
+        { "id": 204, "name": "desk", "type": "desk", "x": 500, "y": 480, "width": 64, "height": 32 },
+        { "id": 205, "name": "desk", "type": "desk", "x": 440, "y": 580, "width": 64, "height": 32 },
+        { "id": 206, "name": "desk", "type": "desk", "x": 760, "y": 480, "width": 64, "height": 32 },
+        { "id": 207, "name": "desk", "type": "desk", "x": 80, "y": 810, "width": 64, "height": 32 },
+        { "id": 208, "name": "desk", "type": "desk", "x": 200, "y": 810, "width": 64, "height": 32 },
+        { "id": 209, "name": "desk", "type": "desk", "x": 440, "y": 810, "width": 64, "height": 32 },
+        { "id": 210, "name": "desk", "type": "desk", "x": 760, "y": 810, "width": 64, "height": 32 },
+        { "id": 301, "name": "sofa", "type": "sofa", "x": 400, "y": 60, "width": 96, "height": 48 },
+        { "id": 302, "name": "table", "type": "table", "x": 720, "y": 60, "width": 128, "height": 64 },
+        { "id": 303, "name": "plant", "type": "decoration", "x": 290, "y": 10, "width": 32, "height": 32 },
+        { "id": 304, "name": "plant", "type": "decoration", "x": 610, "y": 10, "width": 32, "height": 32 },
+        { "id": 305, "name": "plant", "type": "decoration", "x": 930, "y": 10, "width": 32, "height": 32 }
+      ]
+    }
+  ]
+}
