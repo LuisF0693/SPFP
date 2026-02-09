@@ -1,15 +1,17 @@
 // AIOS Virtual Office - Agent Detail Panel Component
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { X } from 'lucide-react';
 import type { AgentState, Activity } from '../types';
 import { DEPARTMENT_COLORS, DEPARTMENTS } from '../data/agents';
+import { TaskAssignmentModal, type TaskPriority } from './TaskAssignmentModal';
+import { ToastContainer, useToast } from './Toast';
 
 interface AgentPanelProps {
   agent: AgentState | null;
   activities: Activity[];
   isOpen: boolean;
   onClose: () => void;
-  onAssignTask?: (agentId: string, task: string) => void;
+  onAssignTask?: (agentId: string, task: string, priority: TaskPriority) => Promise<boolean>;
 }
 
 export function AgentPanel({
@@ -19,11 +21,44 @@ export function AgentPanel({
   onClose,
   onAssignTask
 }: AgentPanelProps) {
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toasts, dismissToast, success, error } = useToast();
+
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   }, [onClose]);
+
+  const handleOpenTaskModal = useCallback(() => {
+    setIsTaskModalOpen(true);
+  }, []);
+
+  const handleCloseTaskModal = useCallback(() => {
+    setIsTaskModalOpen(false);
+  }, []);
+
+  const handleAssignTask = useCallback(async (taskDescription: string, priority: TaskPriority): Promise<boolean> => {
+    if (!agent || !onAssignTask) return false;
+
+    setIsSubmitting(true);
+    try {
+      const result = await onAssignTask(agent.id, taskDescription, priority);
+      if (result) {
+        success(`Task assigned to ${agent.name} successfully!`);
+        return true;
+      } else {
+        error(`Failed to assign task to ${agent.name}`);
+        return false;
+      }
+    } catch (err) {
+      error(`Error assigning task: ${(err as Error).message}`);
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [agent, onAssignTask, success, error]);
 
   if (!agent || !isOpen) return null;
 
@@ -133,12 +168,7 @@ export function AgentPanel({
         {/* Assign Task Button */}
         <div className="px-6 py-4">
           <button
-            onClick={() => {
-              const task = prompt(`Assign task to ${agent.name}:`);
-              if (task && onAssignTask) {
-                onAssignTask(agent.id, task);
-              }
-            }}
+            onClick={handleOpenTaskModal}
             className="w-full py-3 rounded-xl font-medium text-white
               transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             style={{
@@ -150,6 +180,18 @@ export function AgentPanel({
           </button>
         </div>
       </div>
+
+      {/* Task Assignment Modal */}
+      <TaskAssignmentModal
+        agent={agent}
+        isOpen={isTaskModalOpen}
+        onClose={handleCloseTaskModal}
+        onAssign={handleAssignTask}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

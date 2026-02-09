@@ -1,5 +1,5 @@
 // AIOS Virtual Office - Department Area Component
-import type { Department, AgentState } from '../types';
+import type { Department, AgentState, AgentId } from '../types';
 import { DEPARTMENTS, DEPARTMENT_COLORS } from '../data/agents';
 import { AgentAvatar } from './AgentAvatar';
 
@@ -8,13 +8,15 @@ interface DepartmentAreaProps {
   agents: AgentState[];
   selectedAgentId: string | null;
   onAgentClick: (agentId: string) => void;
+  onAgentDoubleClick?: (agentId: AgentId) => void;
 }
 
 export function DepartmentArea({
   department,
   agents,
   selectedAgentId,
-  onAgentClick
+  onAgentClick,
+  onAgentDoubleClick
 }: DepartmentAreaProps) {
   const config = DEPARTMENTS[department];
   const colors = DEPARTMENT_COLORS[department];
@@ -48,6 +50,7 @@ export function DepartmentArea({
             agent={agent}
             selected={selectedAgentId === agent.id}
             onClick={() => onAgentClick(agent.id)}
+            onDoubleClick={() => onAgentDoubleClick?.(agent.id)}
           />
         ))}
       </div>

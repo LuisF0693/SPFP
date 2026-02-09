@@ -7,6 +7,7 @@ import { SpeechBubble } from './SpeechBubble';
 interface AgentAvatarProps {
   agent: AgentState;
   onClick?: () => void;
+  onDoubleClick?: () => void;
   selected?: boolean;
   size?: 'sm' | 'md' | 'lg';
   /** Show speech bubble when agent is active */
@@ -24,6 +25,7 @@ const SIZES = {
 export function AgentAvatar({
   agent,
   onClick,
+  onDoubleClick,
   selected = false,
   size = 'md',
   showSpeechBubble = true,
@@ -36,6 +38,10 @@ export function AgentAvatar({
     onClick?.();
   }, [onClick]);
 
+  const handleDoubleClick = useCallback(() => {
+    onDoubleClick?.();
+  }, [onDoubleClick]);
+
   // Determine if speech bubble should be visible
   // Show when agent is working or thinking AND has current activity
   const isBubbleVisible = useMemo(() => {
@@ -47,11 +53,13 @@ export function AgentAvatar({
 
   return (
     <div
+      data-agent={agent.id}
       className={`
         relative cursor-pointer transition-all duration-200 flex flex-col items-center
         ${selected ? 'scale-110 z-10' : 'hover:scale-105'}
       `}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
     >
       {/* Speech Bubble - positioned above avatar */}
       <SpeechBubble
