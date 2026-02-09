@@ -2,9 +2,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { usePixiApp } from './hooks/usePixiApp';
 import { useChatBubbles } from './hooks/useChatBubbles';
+import { useCameraControls } from './hooks/useCameraControls';
 import { useTileMap } from './hooks/useTileMap';
 import { TileMapLayer } from './pixi/TileMapLayer';
 import { AgentSpriteManager } from './pixi/AgentSpriteManager';
+import { MiniMap } from './components/MiniMap';
 import { useVirtualOfficeStore } from '../virtual-office/store/virtualOfficeStore';
 import type { AgentId, AgentStatus } from './types';
 
@@ -80,65 +82,38 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     }
   }, [selectedAgentId, customMessage, getSpawnPoint, updateAgentPosition, showBubble]);
 
-  // Drag state
-  const isDragging = useRef(false);
-  const lastPos = useRef({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  // Camera controls with smooth transitions
+  const {
+    position,
+    zoom,
+    isDragging,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleWheel,
+    resetCamera: resetCameraSmooth,
+    setPosition: setCameraPosition,
+    zoomTo,
+  } = useCameraControls({
+    mainContainer,
+    viewportWidth: width,
+    viewportHeight: height,
+  });
 
   // Handle agent click
   const handleAgentClick = useCallback((agentId: AgentId) => {
     selectAgent(agentId);
   }, [selectAgent]);
 
-  // Mouse handlers for pan
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return; // Left click only
-    isDragging.current = true;
-    lastPos.current = { x: e.clientX, y: e.clientY };
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = 'grabbing';
-    }
-  }, [canvasRef]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current || !mainContainer) return;
-
-    const deltaX = e.clientX - lastPos.current.x;
-    const deltaY = e.clientY - lastPos.current.y;
-
-    mainContainer.x += deltaX;
-    mainContainer.y += deltaY;
-
-    setPosition({ x: mainContainer.x, y: mainContainer.y });
-    lastPos.current = { x: e.clientX, y: e.clientY };
-  }, [mainContainer]);
-
-  const handleMouseUp = useCallback(() => {
-    isDragging.current = false;
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = 'grab';
-    }
-  }, [canvasRef]);
-
-  // Wheel handler for zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    if (!mainContainer) return;
-
-    const delta = -Math.sign(e.deltaY) * 0.1;
-    const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
-
-    mainContainer.scale.set(newZoom);
-    setZoom(newZoom);
-  }, [mainContainer, zoom]);
+  // Handle mini-map navigation
+  const handleMiniMapNavigate = useCallback((x: number, y: number) => {
+    setCameraPosition(x, y);
+  }, [setCameraPosition]);
 
   // Reset camera on double click
   const handleDoubleClick = useCallback(() => {
-    resetCamera();
-    setZoom(1);
-    setPosition({ x: 0, y: 0 });
-  }, [resetCamera]);
+    resetCameraSmooth(true);
+  }, [resetCameraSmooth]);
 
   // Close panel when clicking outside
   const handleClosePanel = useCallback(() => {
@@ -168,11 +143,7 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
             {/* Zoom indicator */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
               <button
-                onClick={() => {
-                  const newZoom = Math.max(0.5, zoom - 0.1);
-                  mainContainer?.scale.set(newZoom);
-                  setZoom(newZoom);
-                }}
+                onClick={() => zoomTo(zoom - 0.1, true)}
                 className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white"
               >
                 -
@@ -181,11 +152,7 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
                 {Math.round(zoom * 100)}%
               </span>
               <button
-                onClick={() => {
-                  const newZoom = Math.min(2, zoom + 0.1);
-                  mainContainer?.scale.set(newZoom);
-                  setZoom(newZoom);
-                }}
+                onClick={() => zoomTo(zoom + 0.1, true)}
                 className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white"
               >
                 +
@@ -223,7 +190,7 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
         <div
           ref={canvasRef}
           className="absolute inset-0 flex items-center justify-center"
-          style={{ cursor: 'grab' }}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -231,6 +198,18 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
           onWheel={handleWheel}
           onDoubleClick={handleDoubleClick}
         />
+
+        {/* Mini Map */}
+        {isReady && (
+          <MiniMap
+            viewportX={position.x}
+            viewportY={position.y}
+            viewportWidth={width}
+            viewportHeight={height}
+            zoom={zoom}
+            onNavigate={handleMiniMapNavigate}
+          />
+        )}
 
         {/* Pixi Components (rendered via hooks) */}
         {isReady && mainContainer && (
@@ -369,24 +348,27 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
 
         {/* Info panel */}
         <div className="absolute bottom-4 left-4 p-4 rounded-xl bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 text-xs text-gray-400 space-y-1">
-          <div className="text-white font-semibold mb-2">Sprint 4 - Chat Bubbles</div>
+          <div className="text-white font-semibold mb-2">Sprint 5 - Complete!</div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Pixi.js + WebGL
+            <span className="text-green-400">✓</span> Pixi.js WebGL
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span> TileMap + Agents
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Animations (idle, work, think)
+            <span className="text-green-400">✓</span> Animations
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Chat bubbles overlay
+            <span className="text-green-400">✓</span> Chat Bubbles
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-400">✓</span> Agent panel + controls
+            <span className="text-green-400">✓</span> Mini-Map
           </div>
-          <div className="flex items-center gap-2 text-yellow-400">
-            <span>○</span> Next: Polish (Sprint 5)
+          <div className="flex items-center gap-2">
+            <span className="text-green-400">✓</span> Smooth Camera
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-400">✓</span> Keyboard Shortcuts
           </div>
         </div>
 
