@@ -40,6 +40,8 @@ const AGENT_DISPLAY_NAMES: Record<AgentId, string> = {
   atlas: 'Atlas',
   nova: 'Nova',
   gage: 'Gage',
+  nando: 'Nando',
+  orion: 'Orion',
 };
 
 export function AgentSpriteManager({ app, parentContainer, onAgentClick }: AgentSpriteManagerProps) {

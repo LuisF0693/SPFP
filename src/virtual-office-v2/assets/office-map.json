@@ -146,7 +146,8 @@
         { "id": 108, "name": "aria", "type": "agent", "x": 220, "y": 780 },
         { "id": 109, "name": "atlas", "type": "agent", "x": 460, "y": 780 },
         { "id": 110, "name": "max", "type": "agent", "x": 780, "y": 780 },
-        { "id": 111, "name": "nando", "type": "agent", "x": 900, "y": 450 }
+        { "id": 111, "name": "nando", "type": "agent", "x": 900, "y": 450 },
+        { "id": 112, "name": "orion", "type": "agent", "x": 800, "y": 780 }
       ]
     },
     {
