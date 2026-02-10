@@ -297,7 +297,7 @@ export const useVirtualOfficeStore = create<VirtualOfficeState>((set, get) => ({
   activities: [],
   tasks: [],
   chatMessages: {} as Record<AgentId, ChatMessage[]>,
-  mockMode: true, // Start in mock mode by default
+  mockMode: false, // Start connected to real AIOS events
   isConnected: false,
   themeMode: loadThemeMode(),
   userCustomization: loadUserCustomization(),
