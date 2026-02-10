@@ -38,6 +38,7 @@ const PixelArtOffice = React.lazy(() => import('./virtual-office-v2').then(m => 
 const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({ default: m.Portfolio })));
 const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
 const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
+const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -233,6 +234,13 @@ const AppContent: React.FC = () => {
               <PartnershipDashboard />
             </Layout>
           </AdminRoute>
+        } />
+        <Route path="/partnerships-v2" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <PartnershipsPage />
+            </Layout>
+          </PrivateRoute>
         } />
         <Route path="/virtual-office" element={
           <AdminRoute>

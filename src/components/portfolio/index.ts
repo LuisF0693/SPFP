@@ -8,3 +8,5 @@ export { AssetTable } from './AssetTable';
 export { EvolutionChart } from './EvolutionChart';
 export type { EvolutionDataPoint } from './EvolutionChart';
 export { InvestmentFormModal } from './InvestmentFormModal';
+export { GoalLinkingModal } from './GoalLinkingModal';
+export { GoalProgressCard } from './GoalProgressCard';
