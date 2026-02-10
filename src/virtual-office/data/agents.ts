@@ -89,6 +89,14 @@ export const AGENTS: Record<AgentId, AgentConfig> = {
     department: 'operations',
     emoji: '🚀',
     position: { x: 550, y: 380 }
+  },
+  nando: {
+    id: 'nando',
+    name: 'Nando',
+    role: 'CEO & Founder',
+    department: 'operations',
+    emoji: '👨‍💼',
+    position: { x: 400, y: 300 }
   }
 };
 

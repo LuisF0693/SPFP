@@ -23,9 +23,6 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     agentsContainer,
     isReady,
     fps,
-    panTo,
-    zoomTo,
-    resetCamera,
   } = usePixiApp({ width, height, skipPlaceholders: true });
 
   // Store state

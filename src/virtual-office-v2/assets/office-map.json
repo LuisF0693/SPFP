@@ -145,7 +145,8 @@
         { "id": 107, "name": "luna", "type": "agent", "x": 100, "y": 780 },
         { "id": 108, "name": "aria", "type": "agent", "x": 220, "y": 780 },
         { "id": 109, "name": "atlas", "type": "agent", "x": 460, "y": 780 },
-        { "id": 110, "name": "max", "type": "agent", "x": 780, "y": 780 }
+        { "id": 110, "name": "max", "type": "agent", "x": 780, "y": 780 },
+        { "id": 111, "name": "nando", "type": "agent", "x": 900, "y": 450 }
       ]
     },
     {
@@ -167,7 +168,8 @@
         { "id": 302, "name": "table", "type": "table", "x": 720, "y": 60, "width": 128, "height": 64 },
         { "id": 303, "name": "plant", "type": "decoration", "x": 290, "y": 10, "width": 32, "height": 32 },
         { "id": 304, "name": "plant", "type": "decoration", "x": 610, "y": 10, "width": 32, "height": 32 },
-        { "id": 305, "name": "plant", "type": "decoration", "x": 930, "y": 10, "width": 32, "height": 32 }
+        { "id": 305, "name": "plant", "type": "decoration", "x": 930, "y": 10, "width": 32, "height": 32 },
+        { "id": 211, "name": "ceo-desk", "type": "desk", "x": 880, "y": 480, "width": 80, "height": 40, "properties": { "label": "CEO" } }
       ]
     }
   ]

@@ -3,7 +3,7 @@
 export type AgentId =
   | 'orion' | 'morgan' | 'sophie' | 'max'
   | 'dex' | 'aria' | 'nova' | 'quinn'
-  | 'luna' | 'atlas' | 'gage';
+  | 'luna' | 'atlas' | 'gage' | 'nando';
 
 export type AgentStatus = 'idle' | 'working' | 'thinking' | 'waiting' | 'error';
 

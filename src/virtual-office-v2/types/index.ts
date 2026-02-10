@@ -131,4 +131,6 @@ export const AGENT_COLORS: Record<AgentId, { primary: string; hex: number }> = {
   atlas: { primary: '#E74C3C', hex: 0xe74c3c },
   nova: { primary: '#3F51B5', hex: 0x3f51b5 },
   gage: { primary: '#607D8B', hex: 0x607d8b },
+  nando: { primary: '#FFD700', hex: 0xffd700 },  // Gold for the CEO!
+  orion: { primary: '#8B4513', hex: 0x8b4513 },  // Saddle brown for orchestrator
 };
