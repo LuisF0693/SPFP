@@ -228,6 +228,125 @@ export function useTileMap(): UseTileMapReturn {
           furnitureGraphic.circle(item.x + 20, item.y + 8, 6);
           furnitureGraphic.fill(0x32cd32);
           break;
+
+        case 'coffee':
+          // Coffee machine body
+          furnitureGraphic.roundRect(item.x, item.y + 8, item.width, item.height - 8, 3);
+          furnitureGraphic.fill(0x2a2a2a);
+          furnitureGraphic.stroke({ width: 1, color: 0x1a1a1a });
+          // Water tank (top)
+          furnitureGraphic.roundRect(item.x + 4, item.y, item.width - 8, 12, 2);
+          furnitureGraphic.fill(0x87ceeb, 0.5);
+          // Display light
+          furnitureGraphic.circle(item.x + item.width / 2, item.y + 18, 3);
+          furnitureGraphic.fill(0x00ff00);
+          // Drip tray
+          furnitureGraphic.rect(item.x + 2, item.y + item.height - 6, item.width - 4, 4);
+          furnitureGraphic.fill(0x3d3d3d);
+          break;
+
+        case 'water':
+          // Water cooler
+          // Bottle (top)
+          furnitureGraphic.roundRect(item.x + 2, item.y, item.width - 4, 16, 4);
+          furnitureGraphic.fill(0x87ceeb, 0.6);
+          furnitureGraphic.stroke({ width: 1, color: 0x5cacee });
+          // Body
+          furnitureGraphic.roundRect(item.x, item.y + 14, item.width, item.height - 18, 2);
+          furnitureGraphic.fill(0xf0f0f0);
+          furnitureGraphic.stroke({ width: 1, color: 0xcccccc });
+          // Tap
+          furnitureGraphic.rect(item.x + item.width / 2 - 3, item.y + 22, 6, 4);
+          furnitureGraphic.fill(0x4a90d9);
+          break;
+
+        case 'whiteboard':
+          // Frame
+          furnitureGraphic.rect(item.x, item.y, item.width, item.height);
+          furnitureGraphic.fill(0x8b7355);
+          // Board surface
+          furnitureGraphic.rect(item.x + 2, item.y + 2, item.width - 4, item.height - 4);
+          furnitureGraphic.fill(0xffffff);
+          // Some scribbles
+          furnitureGraphic.setStrokeStyle({ width: 1, color: 0x333333 });
+          furnitureGraphic.moveTo(item.x + 6, item.y + 10);
+          furnitureGraphic.lineTo(item.x + 16, item.y + 10);
+          furnitureGraphic.moveTo(item.x + 6, item.y + 18);
+          furnitureGraphic.lineTo(item.x + 14, item.y + 18);
+          furnitureGraphic.moveTo(item.x + 6, item.y + 26);
+          furnitureGraphic.lineTo(item.x + 18, item.y + 26);
+          furnitureGraphic.stroke();
+          // Marker tray
+          furnitureGraphic.rect(item.x + 2, item.y + item.height - 4, item.width - 4, 4);
+          furnitureGraphic.fill(0x6b6b6b);
+          break;
+
+        case 'bookshelf':
+          // Shelf frame
+          furnitureGraphic.rect(item.x, item.y, item.width, item.height);
+          furnitureGraphic.fill(0x5c4a3d);
+          furnitureGraphic.stroke({ width: 1, color: 0x3d3229 });
+          // Shelves (4 levels)
+          for (let i = 0; i < 4; i++) {
+            const shelfY = item.y + 10 + i * 14;
+            furnitureGraphic.rect(item.x + 2, shelfY, item.width - 4, 2);
+            furnitureGraphic.fill(0x4a3d2d);
+            // Books
+            for (let j = 0; j < 3; j++) {
+              const bookColor = [0xe74c3c, 0x3498db, 0x2ecc71, 0xf1c40f, 0x9b59b6][Math.floor(Math.random() * 5)];
+              furnitureGraphic.rect(item.x + 4 + j * 10, shelfY - 10, 8, 10);
+              furnitureGraphic.fill(bookColor);
+            }
+          }
+          break;
+
+        case 'printer':
+          // Printer body
+          furnitureGraphic.roundRect(item.x, item.y + 8, item.width, item.height - 8, 3);
+          furnitureGraphic.fill(0x2a2a2a);
+          furnitureGraphic.stroke({ width: 1, color: 0x1a1a1a });
+          // Paper tray (top)
+          furnitureGraphic.rect(item.x + 4, item.y, item.width - 8, 10);
+          furnitureGraphic.fill(0xf5f5f5);
+          // Output tray
+          furnitureGraphic.rect(item.x + 2, item.y + item.height - 4, item.width - 4, 4);
+          furnitureGraphic.fill(0x3d3d3d);
+          // Status light
+          furnitureGraphic.circle(item.x + item.width - 6, item.y + 14, 2);
+          furnitureGraphic.fill(0x00ff00);
+          break;
+
+        case 'window':
+          // Window frame
+          furnitureGraphic.rect(item.x, item.y, item.width, item.height);
+          furnitureGraphic.fill(0x5a5a6a);
+          // Glass panes
+          furnitureGraphic.rect(item.x + 2, item.y + 2, item.width - 4, item.height / 2 - 3);
+          furnitureGraphic.fill(0x87ceeb, 0.4);
+          furnitureGraphic.rect(item.x + 2, item.y + item.height / 2 + 1, item.width - 4, item.height / 2 - 3);
+          furnitureGraphic.fill(0x87ceeb, 0.4);
+          // Light glow effect
+          furnitureGraphic.rect(item.x + 4, item.y + 4, item.width - 8, item.height - 8);
+          furnitureGraphic.fill(0xfffacd, 0.2);
+          break;
+
+        case 'server':
+          // Server rack
+          furnitureGraphic.rect(item.x, item.y, item.width, item.height);
+          furnitureGraphic.fill(0x1a1a1a);
+          furnitureGraphic.stroke({ width: 1, color: 0x333333 });
+          // Server units
+          for (let i = 0; i < 4; i++) {
+            const unitY = item.y + 4 + i * 11;
+            furnitureGraphic.rect(item.x + 2, unitY, item.width - 4, 9);
+            furnitureGraphic.fill(0x2a2a2a);
+            // LEDs
+            furnitureGraphic.circle(item.x + 6, unitY + 4, 2);
+            furnitureGraphic.fill(i % 2 === 0 ? 0x00ff00 : 0x4a90d9);
+            furnitureGraphic.circle(item.x + 12, unitY + 4, 2);
+            furnitureGraphic.fill(0x00ff00);
+          }
+          break;
       }
 
       container.addChild(furnitureGraphic);

@@ -160,6 +160,15 @@ export class AnimationController {
         case 'waiting':
           this.animateWaiting(agent, dt);
           break;
+        case 'walking':
+          this.animateWalking(agent, dt);
+          break;
+        case 'celebrating':
+          this.animateCelebrating(agent, dt);
+          break;
+        case 'error':
+          this.animateError(agent, dt);
+          break;
       }
     });
   }
@@ -230,6 +239,60 @@ export class AnimationController {
 
     // Reset rotation
     agent.container.rotation = 0;
+  }
+
+  /**
+   * Walking animation - bouncy step movement
+   */
+  private animateWalking(agent: AnimatedAgent, _dt: number): void {
+    // Walking bounce effect
+    const walkBounce = Math.abs(Math.sin(agent.time * 8)) * 4;
+    agent.container.y = agent.baseY - walkBounce;
+
+    // Slight side-to-side sway like walking
+    const sway = Math.sin(agent.time * 8) * 0.08;
+    agent.container.rotation = sway;
+
+    // Scale pulse with steps
+    const stepPulse = 1 + Math.abs(Math.sin(agent.time * 8)) * 0.03;
+    agent.container.scale.set(stepPulse);
+  }
+
+  /**
+   * Celebrating animation - jumping and spinning
+   */
+  private animateCelebrating(agent: AnimatedAgent, _dt: number): void {
+    // Jumping motion
+    const jump = Math.abs(Math.sin(agent.time * 5)) * 10;
+    agent.container.y = agent.baseY - jump;
+
+    // Spin slightly back and forth
+    const spin = Math.sin(agent.time * 6) * 0.15;
+    agent.container.rotation = spin;
+
+    // Scale up with excitement
+    const excitement = 1 + Math.sin(agent.time * 10) * 0.08;
+    agent.container.scale.set(excitement);
+  }
+
+  /**
+   * Error animation - shaking and flashing red
+   */
+  private animateError(agent: AnimatedAgent, _dt: number): void {
+    // Shake horizontally
+    const shake = Math.sin(agent.time * 20) * 3;
+    agent.container.x = agent.container.x + shake * 0.5;
+
+    // Slight vertical distress
+    const distress = Math.sin(agent.time * 4) * 2;
+    agent.container.y = agent.baseY + distress;
+
+    // Pulse red tint effect (using alpha flicker as proxy)
+    const flash = 0.7 + Math.abs(Math.sin(agent.time * 8)) * 0.3;
+    agent.container.alpha = flash;
+
+    // Reset rotation with jitter
+    agent.container.rotation = Math.sin(agent.time * 15) * 0.05;
   }
 
   /**

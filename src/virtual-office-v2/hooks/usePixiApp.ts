@@ -2,6 +2,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { Application, Container } from 'pixi.js';
 import { MAP_WIDTH_PX, MAP_HEIGHT_PX } from '../types';
+import { LightingOverlay, type TimeOfDay } from '../pixi/LightingOverlay';
+import { useVirtualOfficeStore } from '../../virtual-office/store/virtualOfficeStore';
 
 interface UsePixiAppOptions {
   width?: number;
@@ -18,6 +20,7 @@ interface UsePixiAppReturn {
   agentsContainer: Container | null;
   isReady: boolean;
   fps: number;
+  timeOfDay: TimeOfDay;
   // Camera controls
   panTo: (x: number, y: number) => void;
   zoomTo: (zoom: number) => void;
@@ -36,8 +39,14 @@ export function usePixiApp(options: UsePixiAppOptions = {}): UsePixiAppReturn {
   const appRef = useRef<Application | null>(null);
   const mainContainerRef = useRef<Container | null>(null);
   const agentsContainerRef = useRef<Container | null>(null);
+  const lightingRef = useRef<LightingOverlay | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [fps, setFps] = useState(60);
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('day');
+
+  // Get theme mode from store
+  const themeMode = useVirtualOfficeStore((state) => state.themeMode);
+  const getResolvedTheme = useVirtualOfficeStore((state) => state.getResolvedTheme);
 
   // Camera state
   const cameraRef = useRef({ x: 0, y: 0, zoom: 1 });
@@ -79,15 +88,34 @@ export function usePixiApp(options: UsePixiAppOptions = {}): UsePixiAppReturn {
 
       app.stage.addChild(mainContainer);
 
-      // Create agents container (on top of everything)
+      // Create agents container (on top of map, below lighting)
       const agentsContainer = new Container();
       agentsContainer.label = 'AgentsContainer';
       agentsContainer.sortableChildren = true; // Enable z-sorting for agents
       mainContainer.addChild(agentsContainer);
 
+      // Create lighting overlay (on top of everything for visual effects)
+      const lighting = new LightingOverlay(MAP_WIDTH_PX, MAP_HEIGHT_PX);
+      mainContainer.addChild(lighting.getContainer());
+
+      // Apply color filter to entire main container
+      mainContainer.filters = [lighting.getFilter()];
+
       appRef.current = app;
       mainContainerRef.current = mainContainer;
       agentsContainerRef.current = agentsContainer;
+      lightingRef.current = lighting;
+
+      // Lighting update loop
+      let lastTime = performance.now();
+      app.ticker.add(() => {
+        const now = performance.now();
+        const delta = now - lastTime;
+        lastTime = now;
+        if (lightingRef.current) {
+          lightingRef.current.update(delta);
+        }
+      });
 
       // FPS tracking
       app.ticker.add(() => {
@@ -109,6 +137,44 @@ export function usePixiApp(options: UsePixiAppOptions = {}): UsePixiAppReturn {
       }
     };
   }, [width, height, backgroundColor, skipPlaceholders]);
+
+  // Update lighting based on theme mode
+  useEffect(() => {
+    if (!lightingRef.current || !isReady) return;
+
+    let newTimeOfDay: TimeOfDay;
+
+    if (themeMode === 'auto') {
+      // Use current hour to determine time of day
+      const hour = new Date().getHours();
+      newTimeOfDay = LightingOverlay.getTimeFromHour(hour);
+    } else if (themeMode === 'night') {
+      newTimeOfDay = 'night';
+    } else {
+      newTimeOfDay = 'day';
+    }
+
+    lightingRef.current.setTimeOfDay(newTimeOfDay, true);
+    setTimeOfDay(newTimeOfDay);
+  }, [themeMode, isReady, getResolvedTheme]);
+
+  // Auto-update time of day when in auto mode
+  useEffect(() => {
+    if (themeMode !== 'auto' || !lightingRef.current) return;
+
+    const updateTime = () => {
+      const hour = new Date().getHours();
+      const newTimeOfDay = LightingOverlay.getTimeFromHour(hour);
+      if (lightingRef.current && newTimeOfDay !== lightingRef.current.getCurrentTime()) {
+        lightingRef.current.setTimeOfDay(newTimeOfDay, true);
+        setTimeOfDay(newTimeOfDay);
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, [themeMode]);
 
   // Camera controls
   const panTo = useCallback((x: number, y: number) => {
@@ -141,6 +207,7 @@ export function usePixiApp(options: UsePixiAppOptions = {}): UsePixiAppReturn {
     agentsContainer: agentsContainerRef.current,
     isReady,
     fps,
+    timeOfDay,
     panTo,
     zoomTo,
     resetCamera,

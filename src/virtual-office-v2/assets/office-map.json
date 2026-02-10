@@ -170,7 +170,40 @@
         { "id": 303, "name": "plant", "type": "decoration", "x": 290, "y": 10, "width": 32, "height": 32 },
         { "id": 304, "name": "plant", "type": "decoration", "x": 610, "y": 10, "width": 32, "height": 32 },
         { "id": 305, "name": "plant", "type": "decoration", "x": 930, "y": 10, "width": 32, "height": 32 },
-        { "id": 211, "name": "ceo-desk", "type": "desk", "x": 880, "y": 480, "width": 80, "height": 40, "properties": { "label": "CEO" } }
+        { "id": 211, "name": "ceo-desk", "type": "desk", "x": 880, "y": 480, "width": 80, "height": 40, "properties": { "label": "CEO" } },
+        { "id": 212, "name": "orion-desk", "type": "desk", "x": 780, "y": 810, "width": 64, "height": 32 },
+
+        { "id": 401, "name": "coffee-machine", "type": "coffee", "x": 340, "y": 100, "width": 24, "height": 32 },
+        { "id": 402, "name": "water-cooler", "type": "water", "x": 550, "y": 100, "width": 20, "height": 36 },
+
+        { "id": 501, "name": "whiteboard", "type": "whiteboard", "x": 680, "y": 90, "width": 24, "height": 48 },
+        { "id": 502, "name": "whiteboard", "type": "whiteboard", "x": 260, "y": 360, "width": 24, "height": 48 },
+        { "id": 503, "name": "whiteboard", "type": "whiteboard", "x": 580, "y": 360, "width": 24, "height": 48 },
+
+        { "id": 601, "name": "bookshelf", "type": "bookshelf", "x": 10, "y": 360, "width": 40, "height": 64 },
+        { "id": 602, "name": "bookshelf", "type": "bookshelf", "x": 10, "y": 680, "width": 40, "height": 64 },
+        { "id": 603, "name": "bookshelf", "type": "bookshelf", "x": 920, "y": 680, "width": 40, "height": 64 },
+
+        { "id": 701, "name": "printer", "type": "printer", "x": 280, "y": 580, "width": 36, "height": 28 },
+        { "id": 702, "name": "printer", "type": "printer", "x": 600, "y": 580, "width": 36, "height": 28 },
+        { "id": 703, "name": "printer", "type": "printer", "x": 920, "y": 580, "width": 36, "height": 28 },
+
+        { "id": 801, "name": "window", "type": "window", "x": 0, "y": 180, "width": 16, "height": 80 },
+        { "id": 802, "name": "window", "type": "window", "x": 0, "y": 500, "width": 16, "height": 80 },
+        { "id": 803, "name": "window", "type": "window", "x": 0, "y": 820, "width": 16, "height": 80 },
+        { "id": 804, "name": "window", "type": "window", "x": 944, "y": 180, "width": 16, "height": 80 },
+        { "id": 805, "name": "window", "type": "window", "x": 944, "y": 500, "width": 16, "height": 80 },
+        { "id": 806, "name": "window", "type": "window", "x": 944, "y": 820, "width": 16, "height": 80 },
+
+        { "id": 901, "name": "plant", "type": "decoration", "x": 150, "y": 360, "width": 32, "height": 32 },
+        { "id": 902, "name": "plant", "type": "decoration", "x": 470, "y": 360, "width": 32, "height": 32 },
+        { "id": 903, "name": "plant", "type": "decoration", "x": 790, "y": 360, "width": 32, "height": 32 },
+        { "id": 904, "name": "plant", "type": "decoration", "x": 150, "y": 680, "width": 32, "height": 32 },
+        { "id": 905, "name": "plant", "type": "decoration", "x": 470, "y": 680, "width": 32, "height": 32 },
+        { "id": 906, "name": "plant", "type": "decoration", "x": 790, "y": 680, "width": 32, "height": 32 },
+
+        { "id": 1001, "name": "server-rack", "type": "server", "x": 600, "y": 430, "width": 32, "height": 48 },
+        { "id": 1002, "name": "server-rack", "type": "server", "x": 920, "y": 750, "width": 32, "height": 48 }
       ]
     }
   ]

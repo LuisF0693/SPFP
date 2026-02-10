@@ -5,7 +5,7 @@ export type AgentId =
   | 'dex' | 'aria' | 'nova' | 'quinn'
   | 'luna' | 'atlas' | 'gage' | 'nando';
 
-export type AgentStatus = 'idle' | 'working' | 'thinking' | 'waiting' | 'error';
+export type AgentStatus = 'idle' | 'working' | 'thinking' | 'waiting' | 'error' | 'walking' | 'celebrating';
 
 export type Department = 'product' | 'engineering' | 'quality' | 'design' | 'operations';
 

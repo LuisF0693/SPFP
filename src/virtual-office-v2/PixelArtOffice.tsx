@@ -8,6 +8,8 @@ import { TileMapLayer } from './pixi/TileMapLayer';
 import { AgentSpriteManager } from './pixi/AgentSpriteManager';
 import { MiniMap } from './components/MiniMap';
 import { useVirtualOfficeStore } from '../virtual-office/store/virtualOfficeStore';
+import { useSound } from './hooks/useSound';
+import { useAIOSIntegration } from './hooks/useAIOSIntegration';
 import type { AgentId, AgentStatus } from './types';
 
 interface PixelArtOfficeProps {
@@ -23,7 +25,69 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     agentsContainer,
     isReady,
     fps,
+    timeOfDay,
   } = usePixiApp({ width, height, skipPlaceholders: true });
+
+  // Theme controls
+  const themeMode = useVirtualOfficeStore((state) => state.themeMode);
+  const setThemeMode = useVirtualOfficeStore((state) => state.setThemeMode);
+
+  const cycleTheme = useCallback(() => {
+    const modes: Array<'auto' | 'day' | 'night'> = ['auto', 'day', 'night'];
+    const currentIndex = modes.indexOf(themeMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setThemeMode(modes[nextIndex]);
+  }, [themeMode, setThemeMode]);
+
+  const themeIcons: Record<string, string> = {
+    auto: '🔄',
+    day: '☀️',
+    night: '🌙',
+  };
+
+  const timeIcons: Record<string, string> = {
+    dawn: '🌅',
+    day: '☀️',
+    dusk: '🌆',
+    night: '🌙',
+  };
+
+  // Sound system
+  const { play: playSound, toggleAmbient, isAmbientPlaying } = useSound();
+  const soundEnabled = useVirtualOfficeStore((state) => state.soundSettings.enabled);
+  const toggleSound = useVirtualOfficeStore((state) => state.toggleSound);
+
+  // AIOS Bridge integration
+  const { isConnected: aiosConnected } = useAIOSIntegration({
+    onAgentStatusChange: (agentId, status, activity) => {
+      // Update animations when real events come in
+      const spawn = getSpawnPoint(agentId);
+      if (spawn) {
+        updateAgentPosition(agentId, spawn.x, spawn.y);
+        if (activity) {
+          showBubble({
+            agentId,
+            message: activity.length > 30 ? activity.substring(0, 27) + '...' : activity,
+            type: status === 'error' ? 'error' : status === 'working' ? 'success' : 'info',
+            duration: 4000,
+          });
+        }
+      }
+    },
+    onTaskComplete: (agentId, success) => {
+      const spawn = getSpawnPoint(agentId);
+      if (spawn) {
+        showBubble({
+          agentId,
+          message: success ? 'Done! ✓' : 'Failed ✗',
+          type: success ? 'success' : 'error',
+          duration: 3000,
+        });
+      }
+    },
+  });
+  const mockMode = useVirtualOfficeStore((state) => state.mockMode);
+  const setMockMode = useVirtualOfficeStore((state) => state.setMockMode);
 
   // Store state
   const selectedAgentId = useVirtualOfficeStore((state) => state.selectedAgentId);
@@ -44,21 +108,53 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
   // Change agent status for animation testing
   const handleStatusChange = useCallback((status: AgentStatus) => {
     if (selectedAgentId) {
-      setAgentStatus(selectedAgentId, status, status === 'working' ? 'Coding feature...' : undefined);
+      const activityMessages: Record<AgentStatus, string | undefined> = {
+        idle: undefined,
+        working: 'Coding feature...',
+        thinking: 'Analyzing problem...',
+        waiting: 'Awaiting instructions...',
+        walking: 'On the move...',
+        celebrating: 'Task completed!',
+        error: 'Something went wrong!',
+      };
+      setAgentStatus(selectedAgentId, status, activityMessages[status]);
 
       // Update bubble position and show status bubble
       const spawn = getSpawnPoint(selectedAgentId);
       if (spawn) {
         updateAgentPosition(selectedAgentId, spawn.x, spawn.y);
+        const bubbleMessages: Record<AgentStatus, string> = {
+          idle: 'Chillin\'',
+          working: 'On it!',
+          thinking: 'Hmm...',
+          waiting: 'Ready!',
+          walking: 'Be right there!',
+          celebrating: 'Woohoo! 🎉',
+          error: 'Oops! 😰',
+        };
+        const bubbleTypes: Record<AgentStatus, 'info' | 'success' | 'error'> = {
+          idle: 'info',
+          working: 'success',
+          thinking: 'info',
+          waiting: 'info',
+          walking: 'info',
+          celebrating: 'success',
+          error: 'error',
+        };
         showBubble({
           agentId: selectedAgentId,
-          message: status === 'working' ? 'On it!' : status === 'thinking' ? 'Hmm...' : status === 'waiting' ? 'Ready!' : 'Chillin\'',
-          type: status === 'working' ? 'success' : status === 'thinking' ? 'thinking' : 'info',
+          message: bubbleMessages[status],
+          type: bubbleTypes[status],
           duration: 3000,
         });
+
+        // Play sound based on status
+        if (status === 'celebrating') playSound('success');
+        else if (status === 'error') playSound('error');
+        else playSound('click');
       }
     }
-  }, [selectedAgentId, setAgentStatus, getSpawnPoint, updateAgentPosition, showBubble]);
+  }, [selectedAgentId, setAgentStatus, getSpawnPoint, updateAgentPosition, showBubble, playSound]);
 
   // Send custom message
   const [customMessage, setCustomMessage] = useState('');
@@ -88,6 +184,9 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
     handleMouseMove,
     handleMouseUp,
     handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
     resetCamera: resetCameraSmooth,
     setPosition: setCameraPosition,
     zoomTo,
@@ -100,7 +199,8 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
   // Handle agent click
   const handleAgentClick = useCallback((agentId: AgentId) => {
     selectAgent(agentId);
-  }, [selectAgent]);
+    playSound('select');
+  }, [selectAgent, playSound]);
 
   // Handle mini-map navigation
   const handleMiniMapNavigate = useCallback((x: number, y: number) => {
@@ -156,6 +256,37 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
               </button>
             </div>
 
+            {/* Sound controls */}
+            <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <button
+                onClick={() => { toggleSound(); playSound('click'); }}
+                className={`px-2 py-1 rounded text-sm transition-colors ${soundEnabled ? 'text-green-400' : 'text-gray-500'}`}
+                title={soundEnabled ? 'Sound On' : 'Sound Off'}
+              >
+                {soundEnabled ? '🔊' : '🔇'}
+              </button>
+              <button
+                onClick={() => { toggleAmbient(); playSound('click'); }}
+                className={`px-2 py-1 rounded text-sm transition-colors ${isAmbientPlaying ? 'text-blue-400' : 'text-gray-500'}`}
+                title={isAmbientPlaying ? 'Ambient On' : 'Ambient Off'}
+                disabled={!soundEnabled}
+              >
+                🎵
+              </button>
+            </div>
+
+            {/* Theme toggle */}
+            <button
+              onClick={() => { cycleTheme(); playSound('click'); }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/50 transition-colors"
+              title={`Theme: ${themeMode} | Time: ${timeOfDay}`}
+            >
+              <span className="text-sm">{themeIcons[themeMode]}</span>
+              <span className="text-xs text-gray-400 capitalize">{themeMode}</span>
+              <span className="text-xs text-gray-500">→</span>
+              <span className="text-sm">{timeIcons[timeOfDay]}</span>
+            </button>
+
             {/* FPS */}
             <div className="px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
               <span className={`text-xs font-mono ${fps >= 55 ? 'text-green-400' : fps >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
@@ -163,11 +294,25 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
               </span>
             </div>
 
+            {/* AIOS Connection Status */}
+            <button
+              onClick={() => setMockMode(!mockMode)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/50 transition-colors"
+              title={`${mockMode ? 'Mock Mode' : 'Live Mode'} - Click to toggle`}
+            >
+              <div className={`w-2 h-2 rounded-full ${
+                aiosConnected ? 'bg-green-500' : mockMode ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'
+              }`} />
+              <span className="text-xs text-gray-400">
+                {aiosConnected ? 'AIOS' : mockMode ? 'Mock' : 'Offline'}
+              </span>
+            </button>
+
             {/* Status */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800/50 border border-gray-700/50">
               <div className={`w-2 h-2 rounded-full ${isReady ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
               <span className="text-xs text-gray-400">
-                {isReady ? 'WebGL Ready' : 'Initializing...'}
+                {isReady ? 'WebGL' : 'Init...'}
               </span>
             </div>
 
@@ -186,7 +331,7 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
       <div className="flex-1 relative overflow-hidden">
         <div
           ref={canvasRef}
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center touch-none"
           style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -194,6 +339,9 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
           onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
           onDoubleClick={handleDoubleClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         />
 
         {/* Mini Map */}
@@ -310,6 +458,36 @@ export function PixelArtOffice({ width = 1200, height = 800 }: PixelArtOfficePro
                   }`}
                 >
                   Waiting
+                </button>
+                <button
+                  onClick={() => handleStatusChange('walking')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'walking'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Walking
+                </button>
+                <button
+                  onClick={() => handleStatusChange('celebrating')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'celebrating'
+                      ? 'bg-pink-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Celebrate
+                </button>
+                <button
+                  onClick={() => handleStatusChange('error')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    selectedAgent.status === 'error'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Error
                 </button>
               </div>
             </div>

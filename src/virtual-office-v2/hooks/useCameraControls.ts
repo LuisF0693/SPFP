@@ -32,12 +32,46 @@ interface UseCameraControlsReturn {
   handleMouseMove: (e: React.MouseEvent) => void;
   handleMouseUp: () => void;
   handleWheel: (e: React.WheelEvent) => void;
+  // Touch handlers (mobile)
+  handleTouchStart: (e: React.TouchEvent) => void;
+  handleTouchMove: (e: React.TouchEvent) => void;
+  handleTouchEnd: (e: React.TouchEvent) => void;
   // Direct position update (for mini-map)
   setPosition: (x: number, y: number) => void;
 }
 
 const ANIMATION_DURATION = 300; // ms
 const ZOOM_STEP = 0.1;
+const CAMERA_STORAGE_KEY = 'pixel_office_camera';
+
+// Load camera state from localStorage
+function loadCameraState(): CameraState | null {
+  try {
+    const saved = localStorage.getItem(CAMERA_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (typeof parsed.x === 'number' && typeof parsed.y === 'number' && typeof parsed.zoom === 'number') {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load camera state:', e);
+  }
+  return null;
+}
+
+// Save camera state to localStorage (debounced)
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+function saveCameraState(state: CameraState): void {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    try {
+      localStorage.setItem(CAMERA_STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Failed to save camera state:', e);
+    }
+  }, 500); // Debounce 500ms
+}
 
 export function useCameraControls({
   mainContainer,
@@ -53,19 +87,34 @@ export function useCameraControls({
   const lastPosRef = useRef({ x: 0, y: 0 });
   const animationRef = useRef<number | null>(null);
 
+  // Touch state for pinch zoom
+  const touchStateRef = useRef({
+    lastTouches: [] as { x: number; y: number }[],
+    initialPinchDistance: 0,
+    initialZoom: 1,
+  });
+
   // Calculate initial center position
   const getDefaultPosition = useCallback(() => ({
     x: viewportWidth / 2 - MAP_WIDTH_PX / 2,
     y: viewportHeight / 2 - MAP_HEIGHT_PX / 2,
   }), [viewportWidth, viewportHeight]);
 
-  // Initialize position
+  // Initialize position (load from localStorage or use default)
   useEffect(() => {
+    const savedState = loadCameraState();
     const defaultPos = getDefaultPosition();
-    setPosition(defaultPos);
+
+    const initialPos = savedState ? { x: savedState.x, y: savedState.y } : defaultPos;
+    const initialZoom = savedState?.zoom ?? 1;
+
+    setPosition(initialPos);
+    setZoom(initialZoom);
+
     if (mainContainer) {
-      mainContainer.x = defaultPos.x;
-      mainContainer.y = defaultPos.y;
+      mainContainer.x = initialPos.x;
+      mainContainer.y = initialPos.y;
+      mainContainer.scale.set(initialZoom);
     }
   }, [mainContainer, getDefaultPosition]);
 
@@ -223,6 +272,88 @@ export function useCameraControls({
     setZoom(newZoom);
   }, [mainContainer, zoom, minZoom, maxZoom]);
 
+  // Touch handlers for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touches = Array.from(e.touches);
+
+    if (touches.length === 1) {
+      // Single touch - start panning
+      setIsDragging(true);
+      lastPosRef.current = { x: touches[0].clientX, y: touches[0].clientY };
+      touchStateRef.current.lastTouches = [{ x: touches[0].clientX, y: touches[0].clientY }];
+    } else if (touches.length === 2) {
+      // Two touches - start pinch zoom
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      touchStateRef.current.initialPinchDistance = distance;
+      touchStateRef.current.initialZoom = zoom;
+      touchStateRef.current.lastTouches = [
+        { x: touches[0].clientX, y: touches[0].clientY },
+        { x: touches[1].clientX, y: touches[1].clientY },
+      ];
+    }
+  }, [zoom]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent browser scroll/zoom
+
+    if (!mainContainer) return;
+
+    const touches = Array.from(e.touches);
+
+    if (touches.length === 1 && isDragging) {
+      // Single touch - panning
+      const deltaX = touches[0].clientX - lastPosRef.current.x;
+      const deltaY = touches[0].clientY - lastPosRef.current.y;
+
+      mainContainer.x += deltaX;
+      mainContainer.y += deltaY;
+
+      setPosition({ x: mainContainer.x, y: mainContainer.y });
+      lastPosRef.current = { x: touches[0].clientX, y: touches[0].clientY };
+    } else if (touches.length === 2) {
+      // Two touches - pinch zoom
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      const scale = distance / touchStateRef.current.initialPinchDistance;
+      const newZoom = Math.max(minZoom, Math.min(maxZoom, touchStateRef.current.initialZoom * scale));
+
+      // Calculate center point of the pinch
+      const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+      const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+
+      // Zoom towards center of pinch
+      const zoomRatio = newZoom / zoom;
+      const newX = centerX - (centerX - mainContainer.x) * zoomRatio;
+      const newY = centerY - (centerY - mainContainer.y) * zoomRatio;
+
+      mainContainer.x = newX;
+      mainContainer.y = newY;
+      mainContainer.scale.set(newZoom);
+
+      setPosition({ x: newX, y: newY });
+      setZoom(newZoom);
+    }
+  }, [mainContainer, isDragging, zoom, minZoom, maxZoom]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const touches = Array.from(e.touches);
+
+    if (touches.length === 0) {
+      // All touches released
+      setIsDragging(false);
+      touchStateRef.current.lastTouches = [];
+    } else if (touches.length === 1) {
+      // One touch remains - continue panning
+      lastPosRef.current = { x: touches[0].clientX, y: touches[0].clientY };
+      touchStateRef.current.lastTouches = [{ x: touches[0].clientX, y: touches[0].clientY }];
+    }
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -266,6 +397,11 @@ export function useCameraControls({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [resetCamera, zoomTo, panTo, zoom, position]);
 
+  // Persist camera state to localStorage
+  useEffect(() => {
+    saveCameraState({ x: position.x, y: position.y, zoom });
+  }, [position.x, position.y, zoom]);
+
   // Cleanup animation on unmount
   useEffect(() => {
     return () => {
@@ -287,6 +423,9 @@ export function useCameraControls({
     handleMouseMove,
     handleMouseUp,
     handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
     setPosition: setPositionDirect,
   };
 }

@@ -108,6 +108,9 @@ export const STATUS_TO_ANIMATION: Record<AgentStatus, AnimationState> = {
   working: 'work',
   thinking: 'think',
   waiting: 'idle',
+  walking: 'walk',
+  celebrating: 'celebrate',
+  error: 'error',
 };
 
 // Department colors (matching Luna's design spec)
