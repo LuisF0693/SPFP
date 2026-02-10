@@ -10,6 +10,8 @@ export default {
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
+        display: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
       },
       colors: {
         // Esquema SPFP: Preto e Azul Neon
@@ -21,6 +23,25 @@ export default {
         warning: '#f59e0b',
         'card-dark': '#0f172a',
         'bg-dark': '#020617',
+        // STITCH Design System Colors
+        stitch: {
+          primary: '#135bec',
+          'primary-hover': '#1048c7',
+          'primary-light': 'rgba(19, 91, 236, 0.1)',
+          'bg-light': '#f6f6f8',
+          'bg-dark': '#101622',
+          'surface-light': '#FFFFFF',
+          'surface-dark': '#1A2233',
+          'surface-darker': '#111722',
+          'border-light': '#e6e8eb',
+          'border-dark': '#2e374a',
+          'border-hover': '#3e4a63',
+          'text-primary-light': '#111418',
+          'text-primary-dark': '#FFFFFF',
+          'text-secondary-light': '#637588',
+          'text-secondary-dark': '#92a4c9',
+          'text-muted': '#6e85a3',
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-out',

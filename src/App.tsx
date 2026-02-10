@@ -35,6 +35,9 @@ const Retirement = React.lazy(() => import('./components/Retirement').then(m => 
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
 const VirtualOffice = React.lazy(() => import('./virtual-office').then(m => ({ default: m.VirtualOffice })));
 const PixelArtOffice = React.lazy(() => import('./virtual-office-v2').then(m => ({ default: m.PixelArtOffice })));
+const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({ default: m.Portfolio })));
+const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
+const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -133,10 +136,24 @@ const AppContent: React.FC = () => {
             </Layout>
           </PrivateRoute>
         } />
+        <Route path="/goals-v2" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <GoalsAdvanced />
+            </Layout>
+          </PrivateRoute>
+        } />
         <Route path="/investments" element={
           <PrivateRoute>
             <Layout mode="personal">
               <Investments />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/portfolio" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <Portfolio />
             </Layout>
           </PrivateRoute>
         } />
@@ -172,6 +189,13 @@ const AppContent: React.FC = () => {
           <PrivateRoute>
             <Layout mode="personal">
               <Retirement />
+            </Layout>
+          </PrivateRoute>
+        } />
+        <Route path="/retirement-v2" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <RetirementAdvanced />
             </Layout>
           </PrivateRoute>
         } />

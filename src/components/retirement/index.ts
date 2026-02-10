@@ -6,3 +6,7 @@ export { RetirementChart } from './RetirementChart';
 export type { ProjectionPoint } from './RetirementChart';
 export { RetirementProjects } from './RetirementProjects';
 export type { RetirementProject, ProjectPriority } from './RetirementProjects';
+export { RetirementSettingsPanel } from './RetirementSettingsPanel';
+export { RetirementChart100Years } from './RetirementChart100Years';
+export type { Projection100Point } from './RetirementChart100Years';
+export { RetirementAdvanced } from './RetirementAdvanced';
