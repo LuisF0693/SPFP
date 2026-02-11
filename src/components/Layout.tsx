@@ -78,7 +78,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'portfolio', path: '/portfolio', icon: TrendingUp, label: 'Portfólio', emoji: '📈' },
     { id: 'goals', path: '/goals-v2', icon: Target, label: 'Objetivos', emoji: '🎯' },
     { id: 'retirement', path: '/retirement-v2', icon: Umbrella, label: 'Aposentadoria', emoji: '🏖️' },
-    { id: 'partnerships', path: '/partnerships-v2', icon: Users, label: 'Parcerias', emoji: '🤝' },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio', emoji: '💰' },
     { id: 'acquisition', path: '/acquisition', icon: Building, label: 'Aquisição', emoji: '🏠' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios', emoji: '📈' },
@@ -111,7 +110,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     if (currentPath === '/acquisition') return 'Aquisição';
     if (currentPath === '/portfolio') return 'Portfólio de Investimentos';
     if (currentPath === '/goals-v2') return 'Objetivos Financeiros';
-    if (currentPath === '/partnerships-v2') return 'Gestão de Parcerias';
+    if (currentPath === '/partnerships') return 'Gestão de Parcerias';
 
     // Search in all items including children
     const findTitle = (items: NavItem[]): string | null => {

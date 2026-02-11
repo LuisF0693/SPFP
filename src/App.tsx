@@ -29,7 +29,7 @@ const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
-const PartnershipDashboard = React.lazy(() => import('./components/PartnershipDashboard').then(m => ({ default: m.PartnershipDashboard })));
+// PartnershipDashboard removed - using PartnershipsPage in CRM instead
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
 const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
@@ -231,16 +231,9 @@ const AppContent: React.FC = () => {
         <Route path="/partnerships" element={
           <AdminRoute>
             <Layout mode="crm">
-              <PartnershipDashboard />
-            </Layout>
-          </AdminRoute>
-        } />
-        <Route path="/partnerships-v2" element={
-          <PrivateRoute>
-            <Layout mode="personal">
               <PartnershipsPage />
             </Layout>
-          </PrivateRoute>
+          </AdminRoute>
         } />
         <Route path="/virtual-office" element={
           <AdminRoute>
