@@ -1,0 +1,197 @@
+# LGPD Compliance Checklist
+# Lei Geral de Proteção de Dados (Lei nº 13.709/2018)
+
+checklist:
+  name: "Verificação de Compliance LGPD"
+  version: "1.0.0"
+  last_updated: "2026-02-11"
+
+categories:
+  - id: legal_basis
+    name: "Base Legal (Art. 7)"
+    description: "Verificar se existe base legal válida para o tratamento"
+    weight: critical
+    items:
+      - id: consent
+        question: "O tratamento é baseado em consentimento do titular?"
+        help: "Consentimento deve ser livre, informado e inequívoco"
+        applies_to: [all]
+
+      - id: legal_obligation
+        question: "O tratamento é necessário para cumprir obrigação legal?"
+        help: "Ex: obrigações fiscais, trabalhistas, regulatórias"
+        applies_to: [service_agreement, terms_of_service]
+
+      - id: contract_execution
+        question: "O tratamento é necessário para execução de contrato?"
+        help: "Dados necessários para prestação do serviço contratado"
+        applies_to: [service_agreement, partnership]
+
+      - id: legitimate_interest
+        question: "O tratamento é baseado em legítimo interesse?"
+        help: "Deve haver balanceamento com direitos do titular"
+        applies_to: [all]
+
+  - id: principles
+    name: "Princípios (Art. 6)"
+    description: "Verificar conformidade com os princípios da LGPD"
+    weight: high
+    items:
+      - id: purpose
+        question: "A finalidade do tratamento está clara e específica?"
+        help: "Deve haver propósito legítimo e informado ao titular"
+
+      - id: adequacy
+        question: "O tratamento é compatível com a finalidade informada?"
+        help: "Não desviar do propósito original"
+
+      - id: necessity
+        question: "São coletados apenas os dados estritamente necessários?"
+        help: "Princípio da minimização de dados"
+
+      - id: free_access
+        question: "O titular tem acesso fácil aos seus dados?"
+        help: "Consulta gratuita e facilitada"
+
+      - id: quality
+        question: "Os dados são mantidos atualizados e precisos?"
+        help: "Mecanismos de atualização disponíveis"
+
+      - id: transparency
+        question: "As informações sobre tratamento são claras e acessíveis?"
+        help: "Linguagem simples e objetiva"
+
+      - id: security
+        question: "Existem medidas de segurança adequadas?"
+        help: "Técnicas e administrativas"
+
+      - id: prevention
+        question: "Existem medidas para prevenir danos?"
+        help: "Prevenção de incidentes de segurança"
+
+      - id: non_discrimination
+        question: "O tratamento não resulta em discriminação ilícita?"
+        help: "Dados sensíveis tratados com cuidado especial"
+
+      - id: accountability
+        question: "Existe demonstração de conformidade?"
+        help: "Registros e documentação do tratamento"
+
+  - id: rights
+    name: "Direitos do Titular (Art. 18)"
+    description: "Verificar se os direitos do titular são respeitados"
+    weight: high
+    items:
+      - id: confirmation
+        question: "O titular pode confirmar a existência de tratamento?"
+        help: "Resposta em até 15 dias"
+
+      - id: access
+        question: "O titular pode acessar seus dados?"
+        help: "Formato simplificado ou completo"
+
+      - id: correction
+        question: "O titular pode corrigir dados incorretos?"
+        help: "Mecanismo de atualização disponível"
+
+      - id: anonymization
+        question: "O titular pode solicitar anonimização?"
+        help: "Para dados desnecessários ou excessivos"
+
+      - id: portability
+        question: "O titular pode solicitar portabilidade?"
+        help: "Transferência para outro fornecedor"
+
+      - id: deletion
+        question: "O titular pode solicitar eliminação dos dados?"
+        help: "Exceto quando há obrigação legal de retenção"
+
+      - id: sharing_info
+        question: "O titular é informado sobre compartilhamento?"
+        help: "Com quem os dados são compartilhados"
+
+      - id: consent_revocation
+        question: "O titular pode revogar o consentimento?"
+        help: "Procedimento gratuito e facilitado"
+
+  - id: security
+    name: "Segurança (Art. 46)"
+    description: "Verificar medidas de segurança implementadas"
+    weight: critical
+    items:
+      - id: technical_measures
+        question: "Existem medidas técnicas de proteção?"
+        help: "Criptografia, controle de acesso, logs"
+
+      - id: administrative_measures
+        question: "Existem medidas administrativas?"
+        help: "Políticas, treinamentos, procedimentos"
+
+      - id: access_protection
+        question: "Os dados são protegidos contra acesso não autorizado?"
+        help: "Autenticação, autorização, auditoria"
+
+      - id: incident_plan
+        question: "Existe plano de resposta a incidentes?"
+        help: "Procedimentos em caso de vazamento"
+
+  - id: data_sharing
+    name: "Compartilhamento (Art. 26-27)"
+    description: "Verificar regras de compartilhamento de dados"
+    weight: medium
+    items:
+      - id: sharing_basis
+        question: "O compartilhamento tem base legal?"
+        help: "Mesmo requisitos do tratamento original"
+
+      - id: international_transfer
+        question: "Há transferência internacional de dados?"
+        help: "Requer garantias adequadas"
+
+      - id: third_party_contracts
+        question: "Contratos com terceiros incluem cláusulas LGPD?"
+        help: "Operadores devem seguir instruções do controlador"
+
+  - id: retention
+    name: "Retenção e Eliminação (Art. 15-16)"
+    description: "Verificar política de retenção de dados"
+    weight: medium
+    items:
+      - id: retention_period
+        question: "Existe período definido de retenção?"
+        help: "Dados não podem ser mantidos indefinidamente"
+
+      - id: retention_justification
+        question: "A retenção é justificada?"
+        help: "Necessidade real de manter os dados"
+
+      - id: deletion_process
+        question: "Existe processo de eliminação segura?"
+        help: "Exclusão definitiva quando não mais necessário"
+
+scoring:
+  critical:
+    weight: 3
+    fail_threshold: 0  # Qualquer item crítico falho = não conforme
+  high:
+    weight: 2
+    fail_threshold: 2  # Até 2 itens altos falhos = atenção
+  medium:
+    weight: 1
+    fail_threshold: 4  # Até 4 itens médios falhos = atenção
+
+results:
+  compliant:
+    min_score: 90
+    message: "✅ Documento em conformidade com a LGPD"
+    color: "green"
+
+  attention:
+    min_score: 70
+    message: "⚠️ Documento requer ajustes para conformidade"
+    color: "yellow"
+
+  non_compliant:
+    min_score: 0
+    message: "❌ Documento não está em conformidade com a LGPD"
+    color: "red"
