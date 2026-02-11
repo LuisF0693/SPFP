@@ -21,12 +21,13 @@ O Squad de Marketing Digital é um conjunto de agentes IA que trabalham juntos p
 
 ### Advisory Board (Estratégico)
 
-| Persona | Especialidade |
-|---------|---------------|
-| 🧘 Naval Ravikant | Filosofia, wealth building, leverage |
-| 💪 Alex Hormozi | Ofertas irresistíveis, conversão, escala |
-| 🎯 Peter Thiel | Pensamento contrarian, estratégia de monopólio |
-| 🚀 Elon Musk | Visão audaciosa, first principles thinking |
+| Persona | Especialidade | Source |
+|---------|---------------|--------|
+| 🧠 Alex Hormozi | Value Equation, Bottleneck Theory, Grand Slam Offers | `.aios-core/agents/alex-hormozi.md` |
+| 📝 Eugene Schwartz | Five Levels of Awareness, Breakthrough Advertising, Copy Architecture | `.aios-core/agents/eugene-schwartz.md` |
+| 🧘 Naval Ravikant | Filosofia, wealth building, leverage | Inline |
+| 🎯 Peter Thiel | Pensamento contrarian, estratégia de monopólio | Inline |
+| 🚀 Elon Musk | Visão audaciosa, first principles thinking | Inline |
 
 ## Pipeline de Conteúdo
 
