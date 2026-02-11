@@ -1,7 +1,7 @@
 {
-  "name": "SPFP - Sistema de Planejamento Financeiro Pessoal",
+  "name": "SPFP - Consultor IA para suas Finanças 24/7",
   "short_name": "SPFP",
-  "description": "Aplicativo de planejamento financeiro pessoal com IA",
+  "description": "Planejamento financeiro inteligente para empreendedores. Consultor IA dedicado às suas finanças.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

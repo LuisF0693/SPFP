@@ -50,16 +50,16 @@ export const SalesPage: React.FC = () => {
 
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-900/20 border border-blue-500/20 mb-10 animate-fade-in relative z-10">
                         <span className="w-2 h-2 rounded-full bg-blue-400 mr-3 animate-pulse"></span>
-                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Inteligência Patrimonial Premium</span>
+                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Planejador Financeiro Premium</span>
                     </div>
 
                     <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto animate-slide-up relative z-10">
-                        Sua liberdade financeira <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600">começa no controle</span>
+                        Consultor IA totalmente dedicado <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600">às suas finanças 24/7</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light mb-14 animate-fade-in delay-300 relative z-10">
-                        Domine cada centavo com a tecnologia mais avançada em gestão de patrimônio. Simples o suficiente para o dia a dia, potente o suficiente para investidores.
+                        Planejamento financeiro inteligente para empreendedores que querem crescer sem perder o controle do dinheiro.
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in delay-500 relative z-10">
@@ -138,11 +138,11 @@ export const SalesPage: React.FC = () => {
                             price="99,90"
                             description="Ideal para quem busca organização e simplicidade."
                             features={[
-                                { text: "Direito somente ao App", included: true },
+                                { text: "Acesso completo ao App", included: true },
                                 { text: "Whatsapp Limitado", included: true, highlight: "Suporte" },
                                 { text: "Controle de Gastos", included: true },
                                 { text: "Gerenciamento Manual", included: true },
-                                { text: "Conexão Bancária", included: false },
+                                { text: "Relatórios Básicos", included: true },
                                 { text: "Consultor IA", included: false },
                             ]}
                         />
@@ -189,12 +189,14 @@ export const SalesPage: React.FC = () => {
                             <p className="text-blue-100 text-lg mb-12 max-w-2xl mx-auto opacity-90 leading-relaxed font-light">
                                 Junte-se a centenas de pessoas que transformaram sua relação com o dinheiro usando a metodologia SPFP.
                             </p>
-                            <button
-                                onClick={handleLoginClick}
-                                className="px-12 py-5 rounded-2xl bg-white text-blue-900 font-bold tracking-widest uppercase hover:bg-gray-100 hover:scale-105 transition-all shadow-2xl"
+                            <a
+                                href="https://infinitypay.io/checkout/spfp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-12 py-5 rounded-2xl bg-white text-blue-900 font-bold tracking-widest uppercase hover:bg-gray-100 hover:scale-105 transition-all shadow-2xl inline-block"
                             >
-                                Criar conta agora
-                            </button>
+                                Assine Agora!
+                            </a>
                         </div>
                     </div>
                 </section>
@@ -247,9 +249,10 @@ interface PricingCardProps {
         icon?: React.ReactNode;
     }[];
     featured?: boolean;
+    checkoutUrl?: string;
 }
 
-const PricingCard: React.FC<PricingCardProps> = ({ title, price, description, features, featured = false }) => {
+const PricingCard: React.FC<PricingCardProps> = ({ title, price, description, features, featured = false, checkoutUrl = "https://infinitypay.io/checkout/spfp" }) => {
     return (
         <div className={`relative p-10 rounded-[2.5rem] border flex flex-col transition-all duration-500 hover:-translate-y-3 group
       ${featured
@@ -291,14 +294,18 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, description, fe
                 ))}
             </ul>
 
-            <button className={`w-full py-5 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95
+            <a
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-full py-5 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 block text-center
         ${featured
                     ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/25 border border-white/10'
                     : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30'
                 }`}
             >
-                Assinar Agora
-            </button>
+                Assine Agora!
+            </a>
         </div>
     );
 };
