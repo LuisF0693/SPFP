@@ -9,7 +9,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Technology**: React 19 + TypeScript + Vite
 - **UI Framework**: TailwindCSS with glassmorphism and dark mode
 - **Backend**: Supabase (PostgreSQL, Auth, Real-time)
-- **AI**: Google Gemini API (chat-based financial insights)
 - **Charts**: Recharts (financial data visualization)
 - **Documentation**: PDF export via jsPDF
 - **Routing**: React Router DOM v7
