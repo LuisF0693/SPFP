@@ -1,0 +1,52 @@
+name: time-de-marketing
+version: 1.0.0
+description: |
+  Setor de Marketing Digital completo com IA para one-person enterprise.
+  Squad para empreendedor solo (R$0-2k/mês) que precisa de um time de marketing
+  profissional sem contratar funcionários.
+
+author: Luis Fernando Gomes Diniz
+license: MIT
+slashPrefix: mkt
+
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+target_user:
+  profile: Empreendedor solo
+  budget: R$0-2k/mês
+  need: Time de marketing completo sem custos de contratação
+
+components:
+  agents:
+    - cmo.md
+    - copywriter.md
+    - designer.md
+    - analista.md
+  tasks: []
+  workflows: []
+  checklists: []
+  templates: []
+  tools: []
+  scripts: []
+
+config:
+  extends: extend
+  coding-standards: config/coding-standards.md
+  tech-stack: config/tech-stack.md
+  source-tree: config/source-tree.md
+
+dependencies:
+  node: []
+  python: []
+  squads: []
+
+tags:
+  - marketing
+  - digital
+  - one-person-enterprise
+  - growth
+  - branding
+  - copywriting
+  - analytics
