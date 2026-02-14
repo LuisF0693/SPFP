@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { Partner, PartnershipClient } from '../types/investments';
-import { generateId } from '../utils';
 
 const PARTNERS_STORAGE_KEY = 'spfp_partners_v2';
 const CLIENTS_STORAGE_KEY = 'spfp_partnership_clients';
@@ -84,43 +83,54 @@ export function usePartnerships() {
 
   // Add partner
   const addPartner = useCallback(
-    async (data: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => {
-      const newPartner: Partner = {
-        ...data,
-        id: generateId(),
-        user_id: user?.id || 'local',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      // Optimistic update
-      const newPartners = [newPartner, ...partners];
-      setPartners(newPartners);
-      localStorage.setItem(
-        `${PARTNERS_STORAGE_KEY}_${user?.id || 'local'}`,
-        JSON.stringify(newPartners)
-      );
-
-      // Save to Supabase if authenticated
-      if (user) {
-        try {
-          const { error: insertError } = await supabase
-            .from('partners_v2')
-            .insert({
-              ...newPartner,
-              user_id: user.id,
-            });
-
-          if (insertError) {
-            console.error('Failed to save partner:', insertError);
-            setError('Erro ao salvar parceiro');
-          }
-        } catch (err) {
-          console.error('Failed to save partner:', err);
-        }
+    async (data: Omit<Partner, 'id' | 'created_at' | 'updated_at'>): Promise<{ success: boolean; partner?: Partner; error?: string }> => {
+      // For non-authenticated users, use localStorage only with crypto UUID
+      if (!user) {
+        const localPartner: Partner = {
+          ...data,
+          id: crypto.randomUUID(),
+          user_id: 'local',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        const newPartners = [localPartner, ...partners];
+        setPartners(newPartners);
+        localStorage.setItem(`${PARTNERS_STORAGE_KEY}_local`, JSON.stringify(newPartners));
+        return { success: true, partner: localPartner };
       }
 
-      return newPartner;
+      // For authenticated users, let Supabase generate the UUID
+      try {
+        const { data: insertedPartner, error: insertError } = await supabase
+          .from('partners_v2')
+          .insert({
+            user_id: user.id,
+            name: data.name,
+            email: data.email || null,
+            phone: data.phone || null,
+            default_commission_rate: data.default_commission_rate,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Failed to save partner:', insertError);
+          setError('Erro ao salvar parceiro. Tente novamente.');
+          return { success: false, error: 'Erro ao salvar parceiro. Tente novamente.' };
+        }
+
+        // Update local state with the real data from Supabase
+        const newPartners = [insertedPartner, ...partners];
+        setPartners(newPartners);
+        localStorage.setItem(`${PARTNERS_STORAGE_KEY}_${user.id}`, JSON.stringify(newPartners));
+        setError(null);
+
+        return { success: true, partner: insertedPartner };
+      } catch (err) {
+        console.error('Failed to save partner:', err);
+        setError('Erro ao salvar parceiro. Verifique sua conexão.');
+        return { success: false, error: 'Erro ao salvar parceiro. Verifique sua conexão.' };
+      }
     },
     [partners, user]
   );
@@ -189,47 +199,67 @@ export function usePartnerships() {
 
   // Add client
   const addClient = useCallback(
-    async (data: Omit<PartnershipClient, 'id' | 'created_at' | 'total_commission' | 'my_share' | 'partner_share'>) => {
+    async (data: Omit<PartnershipClient, 'id' | 'created_at' | 'total_commission' | 'my_share' | 'partner_share'>): Promise<{ success: boolean; client?: PartnershipClient; error?: string }> => {
       const totalCommission = (data.contract_value * data.commission_rate) / 100;
       const partner = partners.find(p => p.id === data.partner_id);
 
-      const newClient: PartnershipClient = {
-        ...data,
-        id: generateId(),
-        user_id: user?.id || 'local',
-        total_commission: totalCommission,
-        my_share: totalCommission / 2,
-        partner_share: totalCommission / 2,
-        partner,
-        created_at: new Date().toISOString(),
-      };
-
-      const newClients = [newClient, ...clients];
-      setClients(newClients);
-      localStorage.setItem(
-        `${CLIENTS_STORAGE_KEY}_${user?.id || 'local'}`,
-        JSON.stringify(newClients)
-      );
-
-      if (user) {
-        try {
-          const { partner: _, ...clientData } = newClient;
-          const { error: insertError } = await supabase
-            .from('partnership_clients')
-            .insert({
-              ...clientData,
-              user_id: user.id,
-            });
-
-          if (insertError) {
-            console.error('Failed to save client:', insertError);
-          }
-        } catch (err) {
-          console.error('Failed to save client:', err);
-        }
+      // For non-authenticated users, use localStorage only with crypto UUID
+      if (!user) {
+        const localClient: PartnershipClient = {
+          ...data,
+          id: crypto.randomUUID(),
+          user_id: 'local',
+          total_commission: totalCommission,
+          my_share: totalCommission / 2,
+          partner_share: totalCommission / 2,
+          partner,
+          created_at: new Date().toISOString(),
+        };
+        const newClients = [localClient, ...clients];
+        setClients(newClients);
+        localStorage.setItem(`${CLIENTS_STORAGE_KEY}_local`, JSON.stringify(newClients));
+        return { success: true, client: localClient };
       }
 
-      return newClient;
+      // For authenticated users, let Supabase generate the UUID
+      // Note: total_commission, my_share, partner_share are computed columns in DB
+      try {
+        const { data: insertedClient, error: insertError } = await supabase
+          .from('partnership_clients')
+          .insert({
+            user_id: user.id,
+            partner_id: data.partner_id,
+            client_name: data.client_name,
+            contract_value: data.contract_value,
+            commission_rate: data.commission_rate,
+            status: data.status || 'pending',
+            closed_at: data.closed_at || null,
+            notes: (data as any).notes || null,
+          })
+          .select(`
+            *,
+            partner:partners_v2(*)
+          `)
+          .single();
+
+        if (insertError) {
+          console.error('Failed to save client:', insertError);
+          setError('Erro ao salvar cliente. Tente novamente.');
+          return { success: false, error: 'Erro ao salvar cliente. Tente novamente.' };
+        }
+
+        // Update local state with the real data from Supabase
+        const newClients = [insertedClient, ...clients];
+        setClients(newClients);
+        localStorage.setItem(`${CLIENTS_STORAGE_KEY}_${user.id}`, JSON.stringify(newClients));
+        setError(null);
+
+        return { success: true, client: insertedClient };
+      } catch (err) {
+        console.error('Failed to save client:', err);
+        setError('Erro ao salvar cliente. Verifique sua conexão.');
+        return { success: false, error: 'Erro ao salvar cliente. Verifique sua conexão.' };
+      }
     },
     [clients, partners, user]
   );

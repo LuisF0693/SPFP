@@ -10,6 +10,7 @@ import { ClientForm } from './ClientForm';
 import { usePartnerships } from '../../hooks/usePartnerships';
 import { Partner, PartnershipClient } from '../../types/investments';
 import { formatCurrency } from '../../utils';
+import { ToastContainer, useToast } from '../../virtual-office/components/Toast';
 import {
   BarChart,
   Bar,
@@ -43,26 +44,56 @@ export const PartnershipsPage: React.FC = () => {
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [editingClient, setEditingClient] = useState<PartnershipClient | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
-  const handleSavePartner = (data: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => {
-    if (editingPartner) {
-      updatePartner(editingPartner.id, data);
-    } else {
-      addPartner(data);
+  const handleSavePartner = async (data: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => {
+    setSaving(true);
+    try {
+      if (editingPartner) {
+        await updatePartner(editingPartner.id, data);
+        toast.success('Parceiro atualizado com sucesso!');
+      } else {
+        const result = await addPartner(data);
+        if (result.success) {
+          toast.success('Parceiro criado com sucesso!');
+        } else {
+          toast.error(result.error || 'Erro ao criar parceiro');
+          return; // Don't close modal on error
+        }
+      }
+      setShowPartnerForm(false);
+      setEditingPartner(null);
+    } catch (err) {
+      toast.error('Erro inesperado. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
-    setShowPartnerForm(false);
-    setEditingPartner(null);
   };
 
-  const handleSaveClient = (data: Omit<PartnershipClient, 'id' | 'created_at' | 'total_commission' | 'my_share' | 'partner_share'>) => {
-    if (editingClient) {
-      updateClient(editingClient.id, data);
-    } else {
-      addClient(data);
+  const handleSaveClient = async (data: Omit<PartnershipClient, 'id' | 'created_at' | 'total_commission' | 'my_share' | 'partner_share'>) => {
+    setSaving(true);
+    try {
+      if (editingClient) {
+        await updateClient(editingClient.id, data);
+        toast.success('Cliente atualizado com sucesso!');
+      } else {
+        const result = await addClient(data);
+        if (result.success) {
+          toast.success('Cliente adicionado com sucesso!');
+        } else {
+          toast.error(result.error || 'Erro ao adicionar cliente');
+          return; // Don't close modal on error
+        }
+      }
+      setShowClientForm(false);
+      setEditingClient(null);
+      setSelectedPartnerId(null);
+    } catch (err) {
+      toast.error('Erro inesperado. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
-    setShowClientForm(false);
-    setEditingClient(null);
-    setSelectedPartnerId(null);
   };
 
   const handleDeletePartner = (id: string) => {
@@ -89,6 +120,7 @@ export const PartnershipsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f6f6f8] dark:bg-[#101622]">
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
       <div className="max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
