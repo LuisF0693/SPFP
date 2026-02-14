@@ -24,7 +24,23 @@ components:
     - copywriter.md
     - designer.md
     - analista.md
-  tasks: []
+  tasks:
+    # CMO
+    - cmo-estrategia-marca.md
+    - cmo-briefing-campanha.md
+    - cmo-analise-competitiva.md
+    # Copywriter
+    - copywriter-criar-copy.md
+    - copywriter-capturar-dna.md
+    - copywriter-sequencia-email.md
+    # Designer
+    - designer-criar-carrossel.md
+    - designer-criar-thumbnail.md
+    - designer-brand-guide.md
+    # Analista
+    - analista-relatorio-semanal.md
+    - analista-analise-campanha.md
+    - analista-diagnostico.md
   workflows: []
   checklists: []
   templates: []
