@@ -71,3 +71,6 @@ Thumbs.db
 
 # AIOS Virtual Office Events (runtime data)
 .aios-events/*.jsonl
+
+# Ralph reference (local only)
+ralph-main/
