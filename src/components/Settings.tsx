@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useUI } from '../context/UIContext';
 import { AIConfig } from '../types';
-import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2, Globe } from 'lucide-react';
+import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2, Globe, ChevronDown } from 'lucide-react';
+import { CategoryManagement } from './transaction/CategoryManagement';
 
 /**
  * Settings component.
@@ -12,10 +13,11 @@ import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun
  */
 export const Settings: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { userProfile, updateUserProfile } = useSafeFinance();
+    const { userProfile, updateUserProfile, categories, transactions, updateCategory, deleteCategory } = useSafeFinance();
     const { theme, setTheme } = useUI();
     const [formData, setFormData] = useState(userProfile);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
 
     useEffect(() => {
         setFormData(userProfile);
@@ -331,6 +333,34 @@ export const Settings: React.FC = () => {
                                     <Plus size={16} className="mr-2" />
                                     Adicionar Filho(a)
                                 </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Category Management Section */}
+                    <div className="bg-white dark:bg-black p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                        <button
+                            type="button"
+                            onClick={() => setIsCategoryManagementOpen(!isCategoryManagementOpen)}
+                            className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
+                        >
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                                <span className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-600 flex items-center justify-center mr-3 text-sm">📁</span>
+                                Gerenciar Categorias
+                            </h3>
+                            <ChevronDown
+                                size={20}
+                                className={`text-gray-500 transition-transform duration-200 ${isCategoryManagementOpen ? 'rotate-180' : ''}`}
+                            />
+                        </button>
+                        {isCategoryManagementOpen && (
+                            <div className="mt-4 animate-fade-in">
+                                <CategoryManagement
+                                    categories={categories}
+                                    transactions={transactions}
+                                    onUpdateCategory={updateCategory}
+                                    onDeleteCategory={deleteCategory}
+                                />
                             </div>
                         )}
                     </div>
