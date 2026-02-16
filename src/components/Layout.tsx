@@ -76,11 +76,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
       ]
     },
     { id: 'portfolio', path: '/portfolio', icon: TrendingUp, label: 'Portfólio', emoji: '📈' },
-    { id: 'goals', path: '/goals-v2', icon: Target, label: 'Objetivos', emoji: '🎯' },
+    { id: 'goals', path: '/goals-v2', icon: Target, label: 'Objetivos', emoji: '🏆' },
     { id: 'retirement', path: '/retirement-v2', icon: Umbrella, label: 'Aposentadoria', emoji: '🏖️' },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio', emoji: '💰' },
     { id: 'acquisition', path: '/acquisition', icon: Building, label: 'Aquisição', emoji: '🏠' },
-    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios', emoji: '📈' },
+    { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios', emoji: '📋' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros', emoji: '💡' },
   ];
 
