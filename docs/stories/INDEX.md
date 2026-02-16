@@ -1,9 +1,30 @@
-# Story Index - Technical Debt Resolution Program (50+ Stories)
+# Story Index - SPFP Development Roadmap (59+ Stories)
 
-**Epic:** Technical Debt Resolution - SPFP
-**Status:** APPROVED - Ready for Sprint Planning
+**Epic:** Technical Debt Resolution + UX Restructure + CRM v2
+**Status:** APPROVED - In Execution
 **Created:** 2026-01-26
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-02-16
+
+---
+
+## 📁 Organização de Pastas
+
+```
+docs/stories/
+├── completas/              # ✅ 26 histórias completadas
+│   ├── story-001 a 051     # STY-001 até STY-051
+│   └── README.md           # Sumário histórias completas
+├── pendentes/              # 📋 14+ histórias pendentes
+│   ├── story-052 a 062     # STY-052 até STY-062
+│   ├── EPIC-*.md           # EPIC-001 (CRM), EPIC-004 (Fixes)
+│   └── README.md           # Roadmap & próximas ações
+├── INDEX.md                # Este arquivo (navegação central)
+└── *.md                    # Documentação de referência
+```
+
+**Navegação:**
+- 🟢 **[Ver Histórias Completas](completas/README.md)**
+- 🔵 **[Ver Histórias Pendentes](pendentes/README.md)**
 
 ---
 
