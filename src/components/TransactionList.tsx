@@ -12,6 +12,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { ImportExportModal } from './ImportExportModal';
 import { EmojiPicker } from './EmojiPicker';
 import { DeleteTransactionModal } from './DeleteTransactionModal';
+import { CategoryModal } from './transaction/CategoryModal';
 import { Modal } from './ui/Modal';
 import { Skeleton } from './ui/Skeleton';
 
@@ -58,6 +59,8 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
     const [activeTabModal, setActiveTabModal] = useState<'import' | 'export'>('import');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isBulkCategoryModalOpen, setIsBulkCategoryModalOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     // Filter Logic
     const filteredTransactions = useMemo(() => {
@@ -611,13 +614,25 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                         <div key={cat.id} className="bg-[#1e293b] p-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-transparent hover:border-gray-600 group relative">
                             <div className="text-2xl">{cat.icon || '📦'}</div>
                             <span className="text-xs font-bold text-gray-300 text-center">{cat.name}</span>
-                            <button
-                              onClick={() => deleteCategory(cat.id)}
-                              aria-label={`Excluir categoria: ${cat.name}`}
-                              className="absolute top-1 right-1 text-gray-600 hover:text-rose-500 opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 size={12} aria-hidden="true" />
-                            </button>
+                            <div className="flex gap-1 absolute top-1 right-1 opacity-0 group-hover:opacity-100">
+                              <button
+                                onClick={() => {
+                                  setEditingCategory(cat);
+                                  setIsCategoryModalOpen(true);
+                                }}
+                                aria-label={`Editar categoria: ${cat.name}`}
+                                className="text-gray-600 hover:text-blue-500 transition-colors"
+                              >
+                                <Edit2 size={12} aria-hidden="true" />
+                              </button>
+                              <button
+                                onClick={() => deleteCategory(cat.id)}
+                                aria-label={`Excluir categoria: ${cat.name}`}
+                                className="text-gray-600 hover:text-rose-500 transition-colors"
+                              >
+                                <Trash2 size={12} aria-hidden="true" />
+                              </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -670,6 +685,22 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                     onClose={() => setDeleteModalTransaction(null)}
                 />
             )}
+
+            {/* Category Edit Modal */}
+            <CategoryModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => {
+                    setIsCategoryModalOpen(false);
+                    setEditingCategory(null);
+                }}
+                mode="edit"
+                category={editingCategory || undefined}
+                onUpdateCategory={updateCategory}
+                onCategoryUpdated={() => {
+                    setIsCategoryModalOpen(false);
+                    setEditingCategory(null);
+                }}
+            />
         </div>
     );
 });
