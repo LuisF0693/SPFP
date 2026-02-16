@@ -23,13 +23,11 @@ const Insights = React.lazy(() => import('./components/Insights').then(m => ({ d
 const Settings = React.lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
 const Login = React.lazy(() => import('./components/Login').then(m => ({ default: m.Login })));
 const Goals = React.lazy(() => import('./components/Goals').then(m => ({ default: m.Goals })));
-const FutureCashFlow = React.lazy(() => import('./components/FutureCashFlow').then(m => ({ default: m.FutureCashFlow })));
 const Investments = React.lazy(() => import('./components/Investments').then(m => ({ default: m.Investments })));
 const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({ default: m.Patrimony })));
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
-// PartnershipDashboard removed - using PartnershipsPage in CRM instead
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
 const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
@@ -39,6 +37,7 @@ const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({
 const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
 const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
+// FutureCashFlow component removed - replaced by RetirementAdvanced (Projeções descontinuado)
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
