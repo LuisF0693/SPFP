@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
-import { CategoryGroup } from '../../types';
+import { CategoryGroup, Category } from '../../types';
 
 // Emojis disponíveis para categorias
 const AVAILABLE_EMOJIS = [
@@ -25,6 +25,7 @@ const GROUP_LABELS: Record<CategoryGroup, string> = {
 interface CreateCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  allCategories?: Category[]; // STY-404: For duplicate name validation
   onCreateCategory: (name: string, group: CategoryGroup, color: string, icon: string) => string;
   onCategoryCreated: (categoryId: string) => void;
 }
@@ -32,6 +33,7 @@ interface CreateCategoryModalProps {
 export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   isOpen,
   onClose,
+  allCategories = [],
   onCreateCategory,
   onCategoryCreated
 }) => {
@@ -39,9 +41,29 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   const [group, setGroup] = useState<CategoryGroup>('VARIABLE');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
   const [icon, setIcon] = useState('📦');
+  const [isDuplicateName, setIsDuplicateName] = useState(false);
+
+  /**
+   * STY-404: Validates if a category name is available.
+   * @param checkName - Name to validate
+   * @returns true if name is available, false if duplicate found
+   */
+  const isNameAvailable = (checkName: string): boolean => {
+    const trimmedName = checkName.trim().toLowerCase();
+
+    if (!trimmedName) return true; // Empty name is not a duplicate, just invalid
+
+    return !allCategories.some(cat => cat.name.toLowerCase() === trimmedName);
+  };
+
+  // Validate name on each change
+  useEffect(() => {
+    const available = isNameAvailable(name);
+    setIsDuplicateName(!available);
+  }, [name, allCategories]);
 
   const handleCreate = () => {
-    if (!name.trim()) return;
+    if (!name.trim() || isDuplicateName) return;
 
     const newId = onCreateCategory(name.trim(), group, color, icon);
     onCategoryCreated(newId);
@@ -73,8 +95,9 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       footer={
         <button
           onClick={handleCreate}
-          disabled={!name.trim()}
+          disabled={!name.trim() || isDuplicateName}
           className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-blue-400 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isDuplicateName ? 'Nome de categoria duplicado' : undefined}
         >
           Criar e Selecionar
         </button>
@@ -91,9 +114,18 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex: Assinaturas, Manutenção..."
-            className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-blue-500/50 text-slate-100 placeholder-slate-500"
+            className={`w-full p-3 bg-slate-800/50 border rounded-xl outline-none transition-colors text-slate-100 placeholder-slate-500 ${
+              isDuplicateName
+                ? 'border-red-500/50 focus:border-red-500/70'
+                : 'border-slate-700 focus:border-blue-500/50'
+            }`}
             autoFocus
           />
+          {isDuplicateName && (
+            <p className="mt-2 text-xs font-semibold text-red-400">
+              Já existe uma categoria com esse nome
+            </p>
+          )}
         </div>
 
         {/* Group Select */}

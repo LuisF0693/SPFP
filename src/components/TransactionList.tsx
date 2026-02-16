@@ -695,6 +695,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                 }}
                 mode="edit"
                 category={editingCategory || undefined}
+                allCategories={categories}
                 onUpdateCategory={updateCategory}
                 onCategoryUpdated={() => {
                     setIsCategoryModalOpen(false);

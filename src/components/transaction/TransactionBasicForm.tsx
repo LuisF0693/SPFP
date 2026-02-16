@@ -268,6 +268,7 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
       <CreateCategoryModal
         isOpen={isCreateCategoryOpen}
         onClose={() => setIsCreateCategoryOpen(false)}
+        allCategories={categories}
         onCreateCategory={onCreateCategory}
         onCategoryCreated={handleCategoryCreated}
       />

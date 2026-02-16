@@ -27,6 +27,7 @@ interface CategoryModalProps {
   onClose: () => void;
   mode?: 'create' | 'edit'; // default: 'create'
   category?: Category; // Required when mode='edit'
+  allCategories?: Category[]; // All existing categories for duplicate validation (STY-404)
   onCreateCategory?: (name: string, group: CategoryGroup, color: string, icon: string) => string;
   onUpdateCategory?: (category: Category) => void;
   onCategoryCreated?: (categoryId: string) => void;
@@ -38,6 +39,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   onClose,
   mode = 'create',
   category,
+  allCategories = [],
   onCreateCategory,
   onUpdateCategory,
   onCategoryCreated,
@@ -47,6 +49,34 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   const [group, setGroup] = useState<CategoryGroup>('VARIABLE');
   const [color, setColor] = useState(COLOR_PALETTE[0]);
   const [icon, setIcon] = useState('📦');
+  const [isDuplicateName, setIsDuplicateName] = useState(false);
+
+  /**
+   * STY-404: Validates if a category name is available.
+   * In edit mode, allows the current category's own name (case-insensitive).
+   * @param checkName - Name to validate
+   * @returns true if name is available, false if duplicate found
+   */
+  const isNameAvailable = (checkName: string): boolean => {
+    const trimmedName = checkName.trim().toLowerCase();
+
+    if (!trimmedName) return true; // Empty name is not a duplicate, just invalid
+
+    return !allCategories.some(cat => {
+      const catName = cat.name.toLowerCase();
+      const isSameName = catName === trimmedName;
+      const isEditingOwn = mode === 'edit' && category && cat.id === category.id;
+
+      // It's a duplicate if: names match AND (not editing OR not editing own category)
+      return isSameName && !isEditingOwn;
+    });
+  };
+
+  // Validate name on each change
+  useEffect(() => {
+    const available = isNameAvailable(name);
+    setIsDuplicateName(!available);
+  }, [name, allCategories, mode, category]);
 
   // Pre-populate fields when in edit mode
   useEffect(() => {
@@ -69,7 +99,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   const buttonText = isEditMode ? 'Salvar Alterações' : 'Criar e Selecionar';
 
   const handleSubmit = () => {
-    if (!name.trim()) return;
+    if (!name.trim() || isDuplicateName) return;
 
     if (isEditMode && category && onUpdateCategory) {
       const updatedCategory: Category = {
@@ -108,8 +138,9 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
       footer={
         <button
           onClick={handleSubmit}
-          disabled={!name.trim()}
+          disabled={!name.trim() || isDuplicateName}
           className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-blue-400 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isDuplicateName ? 'Nome de categoria duplicado' : undefined}
         >
           {buttonText}
         </button>
@@ -126,9 +157,18 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex: Assinaturas, Manutenção..."
-            className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-blue-500/50 text-slate-100 placeholder-slate-500"
+            className={`w-full p-3 bg-slate-800/50 border rounded-xl outline-none transition-colors text-slate-100 placeholder-slate-500 ${
+              isDuplicateName
+                ? 'border-red-500/50 focus:border-red-500/70'
+                : 'border-slate-700 focus:border-blue-500/50'
+            }`}
             autoFocus
           />
+          {isDuplicateName && (
+            <p className="mt-2 text-xs font-semibold text-red-400">
+              Já existe uma categoria com esse nome
+            </p>
+          )}
         </div>
 
         {/* Group Select */}
