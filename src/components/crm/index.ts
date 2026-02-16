@@ -1,0 +1,6 @@
+export { CRMDashboard } from './CRMDashboard'
+export { ClientList } from './ClientList'
+export { ClientProfile } from './ClientProfile'
+export { MeetingNotes } from './MeetingNotes'
+export { ClientFiles } from './ClientFiles'
+export { NewClientModal } from './NewClientModal'
