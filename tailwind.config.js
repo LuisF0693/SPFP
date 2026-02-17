@@ -12,6 +12,7 @@ export default {
         serif: ['Playfair Display', 'serif'],
         display: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
+        pixel: ['Courier New', 'monospace'],
       },
       colors: {
         // Esquema SPFP: Preto e Azul Neon

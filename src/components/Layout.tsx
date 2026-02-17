@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella, Building } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella, Building, Building2 } from 'lucide-react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
@@ -80,6 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'retirement', path: '/retirement-v2', icon: Umbrella, label: 'Aposentadoria', emoji: '🏖️' },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio', emoji: '💰' },
     { id: 'acquisition', path: '/acquisition', icon: Building, label: 'Aquisição', emoji: '🏠' },
+    { id: 'corporate', path: '/corporate', icon: Building2, label: 'Corporate HQ', emoji: '🏢' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios', emoji: '📋' },
     { id: 'insights', path: '/insights', icon: Lightbulb, label: 'Insights Financeiros', emoji: '💡' },
   ];

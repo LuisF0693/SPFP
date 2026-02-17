@@ -37,6 +37,7 @@ const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({
 const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
 const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
+const CorporateHQ = React.lazy(() => import('./components/corporate').then(m => ({ default: m.CorporateHQ })));
 // FutureCashFlow component removed - replaced by RetirementAdvanced (Projeções descontinuado)
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -233,6 +234,13 @@ const AppContent: React.FC = () => {
               <PartnershipsPage />
             </Layout>
           </AdminRoute>
+        } />
+        <Route path="/corporate" element={
+          <PrivateRoute>
+            <Layout mode="personal">
+              <CorporateHQ />
+            </Layout>
+          </PrivateRoute>
         } />
         <Route path="/virtual-office" element={
           <AdminRoute>
