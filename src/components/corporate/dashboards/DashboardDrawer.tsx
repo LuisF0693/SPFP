@@ -8,6 +8,8 @@ import { X } from 'lucide-react';
 import { useVirtualOffice } from '@/context/VirtualOfficeContext';
 import { FinancialDashboard } from './FinancialDashboard';
 import { SalesDashboard } from './SalesDashboard';
+import { MarketingDashboard } from './MarketingDashboard';
+import { OperationalDashboard } from './OperationalDashboard';
 
 export function DashboardDrawer() {
   const { selectedRoom, isModalOpen, closeModal } = useVirtualOffice();
@@ -55,8 +57,10 @@ export function DashboardDrawer() {
         <div className="flex-1 overflow-y-auto">
           {selectedRoom.department === 'financeiro' && <FinancialDashboard />}
           {selectedRoom.department === 'comercial' && <SalesDashboard />}
+          {selectedRoom.department === 'marketing' && <MarketingDashboard />}
+          {selectedRoom.department === 'operacional' && <OperationalDashboard />}
 
-          {selectedRoom.department !== 'financeiro' && selectedRoom.department !== 'comercial' && (
+          {selectedRoom.department !== 'financeiro' && selectedRoom.department !== 'comercial' && selectedRoom.department !== 'marketing' && selectedRoom.department !== 'operacional' && (
             <div className="p-6 space-y-4">
               <div className="p-4 bg-slate-700/50 rounded-lg">
                 <h3 className="text-sm font-semibold text-slate-300 mb-2">Informações da Sala</h3>
