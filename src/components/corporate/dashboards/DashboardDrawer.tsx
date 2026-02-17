@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useVirtualOffice } from '@/context/VirtualOfficeContext';
 import { FinancialDashboard } from './FinancialDashboard';
+import { SalesDashboard } from './SalesDashboard';
 
 export function DashboardDrawer() {
   const { selectedRoom, isModalOpen, closeModal } = useVirtualOffice();
@@ -53,8 +54,9 @@ export function DashboardDrawer() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {selectedRoom.department === 'financeiro' && <FinancialDashboard />}
+          {selectedRoom.department === 'comercial' && <SalesDashboard />}
 
-          {selectedRoom.department !== 'financeiro' && (
+          {selectedRoom.department !== 'financeiro' && selectedRoom.department !== 'comercial' && (
             <div className="p-6 space-y-4">
               <div className="p-4 bg-slate-700/50 rounded-lg">
                 <h3 className="text-sm font-semibold text-slate-300 mb-2">Informações da Sala</h3>
