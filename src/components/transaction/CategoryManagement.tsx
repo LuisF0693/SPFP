@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Trash2, Edit2, Search } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Trash2, Edit2, Search, X } from 'lucide-react';
 import { Category, CategoryGroup } from '../../types';
 import { CategoryModal } from './CategoryModal';
+import { DeleteCategoryModal } from './DeleteCategoryModal';
 import { useToast } from '../../virtual-office/components/Toast';
 
 interface CategoryManagementProps {
@@ -9,6 +10,7 @@ interface CategoryManagementProps {
   transactions?: any[];
   onUpdateCategory: (category: Category) => void;
   onDeleteCategory: (id: string) => void;
+  onAddCategory?: () => void;
 }
 
 const GROUP_LABELS: Record<CategoryGroup, string> = {
@@ -29,13 +31,17 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
   categories,
   transactions = [],
   onUpdateCategory,
-  onDeleteCategory
+  onDeleteCategory,
+  onAddCategory,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<CategoryGroup | 'ALL'>('ALL');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { success, warning, error } = useToast();
 
   // Filter categories based on search and group
@@ -64,19 +70,28 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
     success('Categoria atualizada com sucesso!');
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
-    const transactionCount = getCategoryTransactionCount(categoryId);
+  const handleDeleteCategory = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteModalOpen(true);
+  };
 
-    if (transactionCount > 0) {
-      warning(
-        `${transactionCount} transação(ões) usam esta categoria. Deseja deletar mesmo assim?`,
-        5000
-      );
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      onDeleteCategory(categoryToDelete.id);
+      success('Categoria deletada com sucesso!');
+      setDeleteModalOpen(false);
+      setCategoryToDelete(null);
+
+      // Focus management: move to search input after delete
+      searchInputRef.current?.focus();
+    } catch (err) {
+      error('Erro ao deletar categoria');
+    } finally {
+      setIsDeleting(false);
     }
-
-    onDeleteCategory(categoryId);
-    setDeleteConfirmId(null);
-    success('Categoria deletada com sucesso!');
   };
 
   const groups: (CategoryGroup | 'ALL')[] = ['ALL', 'FIXED', 'VARIABLE', 'INVESTMENT', 'INCOME'];
@@ -87,14 +102,34 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
       <div className="space-y-3">
         {/* Search Input */}
         <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" />
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"
+            aria-hidden="true"
+          />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Buscar categoria..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+            role="search"
+            aria-label="Buscar categorias por nome"
+            className="w-full pl-10 pr-10 py-2.5 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
           />
+          {searchTerm && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                searchInputRef.current?.focus();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1 hover:bg-slate-700/30 rounded"
+              aria-label="Limpar busca"
+              title="Limpar busca"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         {/* Group Filter */}
@@ -103,6 +138,8 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
             <button
               key={group}
               onClick={() => setSelectedGroup(group)}
+              aria-pressed={selectedGroup === group}
+              aria-label={`Filtrar por ${group === 'ALL' ? 'todas as categorias' : GROUP_LABELS[group as CategoryGroup]}`}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedGroup === group
                   ? 'bg-blue-600 text-white'
@@ -139,7 +176,10 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
                       <div className="text-sm font-medium text-slate-100 truncate">
                         {category.name}
                       </div>
-                      <div className={`text-xs px-2 py-0.5 rounded border mt-1 ${GROUP_COLORS[category.group]}`}>
+                      <div
+                        className={`text-xs px-2 py-0.5 rounded border mt-1 ${GROUP_COLORS[category.group]}`}
+                        aria-label={`Grupo: ${GROUP_LABELS[category.group]}`}
+                      >
                         {GROUP_LABELS[category.group]}
                       </div>
                     </div>
@@ -159,60 +199,53 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   </div>
                 )}
 
-                {/* Action buttons */}
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Action buttons - Always visible on mobile, hover on desktop */}
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEditCategory(category)}
                     className="flex-1 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-lg text-blue-400 text-xs font-medium transition-all flex items-center justify-center gap-1.5"
+                    aria-label={`Editar categoria ${category.name}`}
                     title="Editar categoria"
                   >
-                    <Edit2 size={14} />
+                    <Edit2 size={14} aria-hidden="true" />
                     Editar
                   </button>
                   <button
-                    onClick={() => setDeleteConfirmId(deleteConfirmId === category.id ? null : category.id)}
+                    onClick={() => handleDeleteCategory(category)}
                     className="flex-1 px-3 py-2 bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium transition-all flex items-center justify-center gap-1.5"
+                    aria-label={`Deletar categoria ${category.name}`}
                     title="Deletar categoria"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                     Deletar
                   </button>
                 </div>
-
-                {/* Delete confirmation */}
-                {deleteConfirmId === category.id && (
-                  <div className="mt-3 p-3 bg-red-600/20 border border-red-500/50 rounded-lg">
-                    <p className="text-xs text-red-300 mb-2">
-                      Tem certeza? {transactionCount > 0 && `${transactionCount} transação(ões) serão afetadas.`}
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDeleteCategory(category.id)}
-                        className="flex-1 px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-all"
-                      >
-                        Confirmar
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirmId(null)}
-                        className="flex-1 px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-medium rounded transition-all"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="text-center py-12 text-slate-500">
-          <div className="text-3xl mb-2">📁</div>
-          <p className="text-sm">
+        <div className="text-center py-12">
+          <div className="text-5xl mb-3">📁</div>
+          <p className="text-base font-medium text-slate-300 mb-2">
             {searchTerm || selectedGroup !== 'ALL'
-              ? 'Nenhuma categoria encontrada com esses filtros'
-              : 'Nenhuma categoria disponível'}
+              ? 'Nenhuma categoria encontrada'
+              : 'Nenhuma categoria criada ainda'}
           </p>
+          <p className="text-sm text-slate-500 mb-4">
+            {searchTerm || selectedGroup !== 'ALL'
+              ? 'Tente ajustar os filtros de busca'
+              : 'Crie sua primeira categoria para começar a organizar suas finanças'}
+          </p>
+          {!searchTerm && selectedGroup === 'ALL' && onAddCategory && (
+            <button
+              onClick={onAddCategory}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium text-sm"
+              aria-label="Criar nova categoria"
+            >
+              + Nova Categoria
+            </button>
+          )}
         </div>
       )}
 
@@ -231,6 +264,21 @@ export const CategoryManagement: React.FC<CategoryManagementProps> = ({
           setIsModalOpen(false);
           setEditingCategory(null);
         }}
+      />
+
+      {/* Delete Category Modal */}
+      <DeleteCategoryModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setCategoryToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        category={categoryToDelete}
+        transactionCount={
+          categoryToDelete ? getCategoryTransactionCount(categoryToDelete.id) : 0
+        }
+        isDeleting={isDeleting}
       />
     </div>
   );
