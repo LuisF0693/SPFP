@@ -40,14 +40,14 @@ export function Department({
       <div
         className={`
           absolute inset-0 rounded-none
-          border-4 transition-all duration-200
-          ${isSelected ? 'border-yellow-300 shadow-lg' : department.borderColor}
-          ${isHovered || isSelected ? 'shadow-2xl' : 'shadow-md'}
+          border-4 transition-all duration-300
+          ${isSelected ? 'border-yellow-300 shadow-2xl' : department.borderColor}
+          ${isHovered || isSelected ? 'shadow-2xl' : 'shadow-lg'}
         `}
         style={{
           boxShadow: isHovered || isSelected
-            ? `0 0 20px ${department.color}80, inset 0 0 20px ${department.color}40`
-            : `0 4px 8px rgba(0,0,0,0.2), inset 0 0 10px ${department.color}30`
+            ? `0 0 30px ${department.color}a0, 0 0 60px ${department.color}60, inset 0 0 20px ${department.color}40`
+            : `0 4px 12px rgba(0,0,0,0.3), inset 0 0 10px ${department.color}40`
         }}
       >
         {/* Background */}
@@ -72,15 +72,20 @@ export function Department({
           />
 
           {/* Content */}
-          <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
+          <div className="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-4">
             {/* Main emoji "sprite" */}
-            <div className="text-6xl mb-2 drop-shadow-lg animate-bounce" style={{ animationDuration: '2s' }}>
+            <div
+              className="text-5xl sm:text-6xl mb-2 sm:mb-3 drop-shadow-lg transition-transform duration-500"
+              style={{
+                transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+              }}
+            >
               {department.emoji}
             </div>
 
             {/* Department name */}
             <h2
-              className="text-center font-bold text-lg mb-3 font-pixel"
+              className="text-center font-bold text-base sm:text-lg mb-2 sm:mb-3 font-pixel"
               style={{
                 color: department.color,
                 textShadow: `2px 2px 0 rgba(0,0,0,0.3)`,
@@ -90,10 +95,10 @@ export function Department({
             </h2>
 
             {/* NPC at bottom */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-3xl">{department.npc.emoji}</div>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+              <div className="text-2xl sm:text-3xl">{department.npc.emoji}</div>
               <p
-                className="text-xs font-semibold font-pixel"
+                className="text-xs sm:text-sm font-semibold font-pixel"
                 style={{
                   color: department.color,
                   textShadow: `1px 1px 0 rgba(0,0,0,0.3)`,

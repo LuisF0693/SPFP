@@ -34,10 +34,10 @@ export function DepartmentModal() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 sm:p-4">
       {/* Modal container */}
       <div
-        className="bg-slate-800 border-4 rounded-none shadow-2xl w-full max-w-2xl"
+        className="bg-slate-800 border-4 rounded-none shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{
           borderColor: info.color,
           boxShadow: `0 0 30px ${info.color}60, inset 0 0 20px ${info.color}20`,
@@ -45,11 +45,11 @@ export function DepartmentModal() {
       >
         {/* Header */}
         <div
-          className="px-6 py-4 border-b-2 flex items-center justify-between"
+          className="px-4 sm:px-6 py-3 sm:py-4 border-b-2 flex items-center justify-between gap-2"
           style={{ borderColor: info.color, backgroundColor: `${info.color}20` }}
         >
           <h2
-            className="text-2xl font-black font-pixel"
+            className="text-lg sm:text-2xl font-black font-pixel"
             style={{
               color: info.color,
               textShadow: `2px 2px 0 rgba(0,0,0,0.5)`,
@@ -59,15 +59,15 @@ export function DepartmentModal() {
           </h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-slate-700 rounded transition-colors"
+            className="p-2 hover:bg-slate-700 rounded transition-colors flex-shrink-0"
             aria-label="Close modal"
           >
-            <X size={24} className="text-slate-300" />
+            <X size={20} className="text-slate-300 sm:size-6" />
           </button>
         </div>
 
         {/* Content - Placeholder */}
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
           <p className="text-slate-300 mb-4">{info.description}</p>
 
           {/* Coming soon message */}
@@ -98,10 +98,10 @@ export function DepartmentModal() {
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-4 bg-slate-700 border-t-2" style={{ borderColor: info.color }}>
+        <div className="px-4 sm:px-8 py-3 sm:py-4 bg-slate-700 border-t-2" style={{ borderColor: info.color }}>
           <button
             onClick={handleClose}
-            className="w-full py-2 bg-slate-600 hover:bg-slate-500 text-white font-bold rounded transition-colors"
+            className="w-full py-2 bg-slate-600 hover:bg-slate-500 text-white font-bold rounded transition-colors text-sm sm:text-base"
           >
             Close
           </button>

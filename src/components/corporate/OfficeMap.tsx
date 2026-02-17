@@ -67,9 +67,9 @@ export function OfficeMap() {
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <h1
-          className="text-4xl font-black font-pixel mb-2 tracking-widest"
+          className="text-3xl sm:text-4xl font-black font-pixel mb-1 sm:mb-2 tracking-widest"
           style={{
             color: '#FFD700',
             textShadow: `3px 3px 0 rgba(0,0,0,0.8), 6px 6px 0 rgba(255,215,0,0.3)`,
@@ -77,11 +77,11 @@ export function OfficeMap() {
         >
           CORPORATE HQ
         </h1>
-        <p className="text-slate-300 text-sm">Click on a department to view its dashboard</p>
+        <p className="text-slate-300 text-xs sm:text-sm">Click on a department to view its dashboard</p>
       </div>
 
       {/* Office Map Grid */}
-      <div className="grid grid-cols-2 gap-6 flex-1 max-w-6xl mx-auto w-full mb-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 flex-1 max-w-6xl mx-auto w-full mb-4 sm:mb-6">
         {departments.map((dept) => (
           <Department
             key={dept.id}
@@ -96,7 +96,7 @@ export function OfficeMap() {
       </div>
 
       {/* Footer hint */}
-      <div className="text-center text-slate-400 text-xs">
+      <div className="text-center text-slate-400 text-xs sm:text-sm">
         <p>Hover over departments to interact • Click to open dashboard</p>
       </div>
     </div>
