@@ -1,6 +1,6 @@
 # 📋 Histórias Pendentes
 
-**Total:** 14 histórias aguardando execução
+**Total:** 20 histórias aguardando execução
 
 ## Overview
 
@@ -88,14 +88,46 @@ Week 4: STY-055 + STY-058 + STY-059 + STY-061 (Final polish)
 
 ---
 
+### EPIC-002: Corporate HQ (Escritório Virtual Gamificado)
+**Status:** 📋 PRD READY - Stories Criadas
+**Total:** 6 stories | 58 developer-hours | 3 Sprints
+**Pré-requisito:** EPIC-001 CRM v2 (Sprint 5+)
+
+| ID | Título | Effort | Prioridade | Bloqueador |
+|----|--------|--------|-----------|-----------|
+| **STY-086** | Mapa do Escritório Virtual | 12h | P0 CRÍTICA | - |
+| **STY-087** | Pipeline Feed de Atividades | 8h | P1 ALTA | STY-086 |
+| **STY-088** | Dashboard Financeiro | 10h | P0 CRÍTICA | STY-086 |
+| **STY-089** | Dashboard Marketing | 8h | P1 ALTA | STY-086 |
+| **STY-090** | Dashboard Operacional (Kanban) | 10h | P1 ALTA | STY-086 |
+| **STY-091** | Dashboard Comercial (Pipeline) | 10h | P1 ALTA | STY-086 |
+
+#### Execution Order
+```
+Sprint 5: STY-086 (Mapa) → Bloqueador de todas as outras
+Sprint 6: STY-088 (Financeiro) + STY-091 (Comercial) - Paralelo
+Sprint 7: STY-087 (Feed) + STY-089 (Marketing) + STY-090 (Operacional)
+```
+
+#### Features Principais
+- 🏢 Mapa visual 2D com 4 departamentos
+- 📋 Feed de atividades em tempo real
+- 💰 Dashboard financeiro com DRE e fluxo de caixa
+- 📣 Gestão de posts de marketing
+- ✅ Kanban board operacional
+- 🤝 Pipeline de vendas com drag & drop
+
+---
+
 ## 📊 Summary
 
 | Categoria | Histórias | Esforço Total | Status |
 |-----------|-----------|--------------|--------|
 | UX Restructure | STY-052-062 | ~51h | READY (bloqueado por QA STY-051) |
 | EPIC-001 CRM | S1.1-S1.12 (12 stories) | 190h | READY (kickoff Feb 19) |
+| EPIC-002 Corporate HQ | STY-086-091 (6 stories) | 58h | PLANNED (Sprint 5+, após EPIC-001) |
 | EPIC-004 Fixes | F004.1-F004.4 | In progress | IN PROGRESS |
-| **TOTAL** | **14+** | **~240h** | |
+| **TOTAL** | **20+** | **~299h** | |
 
 ---
 
@@ -122,6 +154,7 @@ Week 4: STY-055 + STY-058 + STY-059 + STY-061 (Final polish)
 
 - **EPIC-001 Roadmap:** `pendentes/EPIC-001-PRIORITIZED-ROADMAP.md`
 - **EPIC-001 Quick Ref:** `pendentes/EPIC-001-QUICK-REFERENCE.md`
+- **EPIC-002 PRD:** `../prd/EPIC-002-Corporate-HQ.md`
 - **EPIC-004 Details:** `pendentes/EPIC-004-Core-Fixes-stories.md`
 - **Main Index:** `../INDEX.md`
 
