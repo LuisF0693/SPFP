@@ -6,6 +6,7 @@
 import { useAutomationState } from './useAutomationState';
 import { BrowserPreview } from './BrowserPreview';
 import { NavigationInput } from './NavigationInput';
+import { ActionLog } from './ActionLog';
 
 export function AutomationDashboard() {
   const {
@@ -177,49 +178,8 @@ export function AutomationDashboard() {
           </div>
         </div>
 
-        {/* Recent Actions */}
-        {history.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-              Ações Recentes
-            </h2>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {history.slice(0, 5).map((action) => (
-                <div
-                  key={action.id}
-                  className="flex items-center justify-between p-2 rounded bg-slate-50 dark:bg-slate-800 text-xs"
-                >
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="text-sm">📸</span>
-                    <div>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">
-                        {action.type === 'screenshot' ? 'Screenshot' : action.type}
-                      </div>
-                      <div className="text-slate-500">
-                        {new Date(action.timestamp).toLocaleTimeString('pt-BR')}
-                      </div>
-                    </div>
-                  </div>
-                  <span
-                    className={`font-mono text-xs ${
-                      action.status === 'success'
-                        ? 'text-green-600 dark:text-green-400'
-                        : action.status === 'error'
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-slate-500'
-                    }`}
-                  >
-                    {action.status === 'success'
-                      ? '✓'
-                      : action.status === 'error'
-                        ? '✗'
-                        : '⏳'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Action Log */}
+        <ActionLog actions={history} onClearHistory={clearHistory} />
 
         {/* Coming Soon - Other Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
