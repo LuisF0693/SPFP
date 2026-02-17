@@ -6,20 +6,24 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { MainMapScene } from './MainMapScene';
+import { VirtualOfficeScene } from './VirtualOfficeScene';
 import { DepartmentArea } from './types';
 
 interface PhaserGameProps {
   onDepartmentClick: (departmentId: string) => void;
   departments?: DepartmentArea[];
   className?: string;
+  useVirtualOffice?: boolean;
 }
 
-export function PhaserGame({ onDepartmentClick, departments, className = '' }: PhaserGameProps) {
+export function PhaserGame({ onDepartmentClick, departments, className = '', useVirtualOffice = true }: PhaserGameProps) {
   const gameRef = useRef<Phaser.Game | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (gameRef.current) return; // Já inicializado
+
+    const startTime = performance.now();
 
     // Config Phaser
     const config: Phaser.Types.Core.GameConfig = {
@@ -38,7 +42,7 @@ export function PhaserGame({ onDepartmentClick, departments, className = '' }: P
           debug: false,
         },
       },
-      scene: [MainMapScene],
+      scene: useVirtualOffice ? [VirtualOfficeScene] : [MainMapScene],
       backgroundColor: '#0f172a',
       render: {
         antialias: true,
@@ -51,13 +55,25 @@ export function PhaserGame({ onDepartmentClick, departments, className = '' }: P
     gameRef.current = game;
 
     // Aguardar scene e passar dados
-    const scene = game.scene.getScene('MainMap') as MainMapScene;
-    if (scene) {
-      scene.init({
-        departments,
-        onDepartmentClick,
-      });
+    if (useVirtualOffice) {
+      const scene = game.scene.getScene('VirtualOffice') as VirtualOfficeScene;
+      if (scene) {
+        scene.init({
+          onRoomSelect: onDepartmentClick,
+        });
+      }
+    } else {
+      const scene = game.scene.getScene('MainMap') as MainMapScene;
+      if (scene) {
+        scene.init({
+          departments,
+          onDepartmentClick,
+        });
+      }
     }
+
+    const loadTime = performance.now() - startTime;
+    console.log(`⏱️ Phaser scene initialized in ${loadTime.toFixed(2)}ms`);
 
     // Cleanup
     return () => {
@@ -66,7 +82,7 @@ export function PhaserGame({ onDepartmentClick, departments, className = '' }: P
         gameRef.current = null;
       }
     };
-  }, [onDepartmentClick, departments]);
+  }, [onDepartmentClick, departments, useVirtualOffice]);
 
   return (
     <div
