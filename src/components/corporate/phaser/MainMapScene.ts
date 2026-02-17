@@ -167,12 +167,25 @@ export class MainMapScene extends Phaser.Scene {
       area.graphics.lineStyle(4, 0xffff00, 1);
       area.text.setColor('#ffff00');
       area.npcEmoji.setScale(1.2);
+
+      // Animar com tween
+      this.tweens.add({
+        targets: area.npcEmoji,
+        y: area.zone.y + area.zone.height / 2 - 10,
+        duration: 200,
+        yoyo: true,
+        repeat: -1,
+      });
     } else {
       const dept = this.departments.find((d) => d.id === departmentId);
       if (dept) {
         area.graphics.lineStyle(2, parseInt(dept.color.replace('#', '0x')), 1);
         area.text.setColor('#ffffff');
         area.npcEmoji.setScale(1);
+
+        // Stop animation
+        this.tweens.killTweensOf(area.npcEmoji);
+        area.npcEmoji.y = dept.position.y + dept.size.height / 2;
       }
     }
   }
