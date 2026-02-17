@@ -1,16 +1,3 @@
-/**
- * ActivityFeed Component
- * Main feed container showing real-time activities
- *
- * Features:
- * - Real-time Supabase subscriptions
- * - Fallback polling (5s)
- * - Department filtering
- * - Connection status indicator
- * - Approval workflow
- * - Activity details modal
- */
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCorporateStore } from '@/stores/corporateStore';
@@ -19,6 +6,7 @@ import {
   startPollingActivities,
   approveActivity,
   rejectActivity,
+  fetchActivities,
 } from '@/services/corporateActivityService';
 import { CorporateActivity, Department } from '@/types/corporate';
 import { ActivityCard } from './ActivityCard';
@@ -28,21 +16,6 @@ interface ActivityFeedProps {
   className?: string;
 }
 
-/**
- * TODO: Implement ActivityFeed component
- *
- * Responsibilities:
- * 1. Setup real-time subscription on mount
- * 2. Manage subscription lifecycle (cleanup)
- * 3. Handle polling fallback
- * 4. Render activity list with filtering
- * 5. Show connection status
- * 6. Handle approval/rejection
- * 7. Open detail modal on activity click
- *
- * Usage:
- * <ActivityFeed className="h-full" />
- */
 export function ActivityFeed({ className = '' }: ActivityFeedProps) {
   const { user } = useAuth();
   const {
@@ -52,6 +25,7 @@ export function ActivityFeed({ className = '' }: ActivityFeedProps) {
     setRealtimeConnected,
     addActivity,
     updateActivity,
+    setActivities,
     setError,
     setLoading,
     addPendingApproval,
@@ -64,35 +38,42 @@ export function ActivityFeed({ className = '' }: ActivityFeedProps) {
   const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null);
   const [stopPolling, setStopPolling] = useState<(() => void) | null>(null);
 
-  // TODO: Setup real-time subscription
+  // Setup real-time subscription
   useEffect(() => {
     if (!user?.id) return;
 
     setLoading(true);
 
-    // TODO: Subscribe to real-time updates
+    // Initial load
+    fetchActivities(user.id, 100, 0)
+      .then((activities) => {
+        setActivities(activities);
+      })
+      .catch((err) => {
+        setError('Failed to load activities');
+        console.error(err);
+      });
+
+    // Subscribe to real-time updates
     const unsubFn = subscribeToActivities(
       user.id,
       (activity: CorporateActivity) => {
-        // TODO: Handle new activity
-        // - Check if exists (update) or new (add)
-        addActivity(activity);
+        // Check if activity already exists
+        const existing = activities.find((a) => a.id === activity.id);
+        if (existing) {
+          updateActivity(activity.id, activity);
+        } else {
+          addActivity(activity);
+        }
       },
       (error: Error) => {
-        // TODO: Handle subscription error
-        // - Log error
-        // - Start polling fallback
-        // - Set error state
         setError(error.message);
         setRealtimeConnected(false);
 
-        // TODO: Start polling fallback
-        const stopPoll = startPollingActivities(
-          user.id,
-          (fetchedActivities) => {
-            // TODO: Update store with fetched activities
-          }
-        );
+        // Start polling fallback
+        const stopPoll = startPollingActivities(user.id, (fetchedActivities) => {
+          setActivities(fetchedActivities);
+        });
         setStopPolling(() => stopPoll);
       }
     );
@@ -101,56 +82,59 @@ export function ActivityFeed({ className = '' }: ActivityFeedProps) {
     setRealtimeConnected(true);
     setLoading(false);
 
-    // TODO: Cleanup on unmount
+    // Cleanup
     return () => {
       unsubFn();
       stopPolling?.();
     };
-  }, [user?.id, addActivity, setError, setRealtimeConnected, setLoading]);
+  }, [user?.id, addActivity, updateActivity, setActivities, setError, setRealtimeConnected, setLoading, activities]);
 
-  // TODO: Handle approve activity
+  // Handle approve activity
   const handleApprove = async (activityId: string) => {
     if (!user?.id) return;
 
     addPendingApproval(activityId);
     try {
-      // TODO: Call approveActivity service
       const updated = await approveActivity(activityId, user.id);
       updateActivity(activityId, updated);
     } catch (error) {
-      // TODO: Handle error
       setError('Erro ao aprovar atividade');
     } finally {
       removePendingApproval(activityId);
     }
   };
 
-  // TODO: Handle reject activity
+  // Handle reject activity
   const handleReject = async (activityId: string) => {
     if (!user?.id) return;
 
     addPendingApproval(activityId);
     try {
-      // TODO: Call rejectActivity service
       const updated = await rejectActivity(activityId, user.id);
       updateActivity(activityId, updated);
     } catch (error) {
-      // TODO: Handle error
       setError('Erro ao rejeitar atividade');
     } finally {
       removePendingApproval(activityId);
     }
   };
 
-  // TODO: Filter activities
+  // Filter activities
   const filteredActivities =
     selectedDepartmentFilter === 'all'
       ? activities
       : activities.filter((a) => a.department === selectedDepartmentFilter);
 
+  const departmentEmojis: Record<Department, string> = {
+    financeiro: '💰',
+    marketing: '📣',
+    operacional: '⚙️',
+    comercial: '🤝',
+  };
+
   return (
     <div className={`flex flex-col bg-slate-800 border-l border-slate-700 ${className}`}>
-      {/* TODO: Header with connection status */}
+      {/* Header with connection status */}
       <div className="p-4 border-b border-slate-700 sticky top-0 bg-slate-800">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-slate-100">ATIVIDADES</h2>
@@ -166,13 +150,35 @@ export function ActivityFeed({ className = '' }: ActivityFeedProps) {
           </div>
         </div>
 
-        {/* TODO: Department filter tabs */}
+        {/* Department filter tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {/* TODO: Render department filter buttons */}
+          <button
+            onClick={() => useCorporateStore.setState({ selectedDepartmentFilter: 'all' })}
+            className={`px-3 py-1 text-xs rounded whitespace-nowrap transition-colors ${
+              selectedDepartmentFilter === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            Todos
+          </button>
+          {(['financeiro', 'marketing', 'operacional', 'comercial'] as const).map((dept) => (
+            <button
+              key={dept}
+              onClick={() => useCorporateStore.setState({ selectedDepartmentFilter: dept })}
+              className={`px-3 py-1 text-xs rounded whitespace-nowrap transition-colors ${
+                selectedDepartmentFilter === dept
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              {departmentEmojis[dept]} {dept}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* TODO: Activity list */}
+      {/* Activity list */}
       <div className="flex-1 overflow-y-auto p-3">
         {filteredActivities.length === 0 ? (
           <div className="flex items-center justify-center h-full text-slate-400">
@@ -197,7 +203,7 @@ export function ActivityFeed({ className = '' }: ActivityFeedProps) {
         )}
       </div>
 
-      {/* TODO: Activity detail modal */}
+      {/* Activity detail modal */}
       <ActivityDetailModal
         activity={selectedActivity}
         isOpen={isModalOpen}

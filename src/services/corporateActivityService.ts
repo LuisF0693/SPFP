@@ -12,166 +12,256 @@ import { supabase } from '@/supabase';
 import { CorporateActivity, Department } from '@/types/corporate';
 import { withErrorRecovery } from './errorRecovery';
 
+let pollingInterval: NodeJS.Timeout | null = null;
+
 /**
- * TODO: Implement subscribeToActivities
- *
  * Subscribes to real-time activity updates for a user
  * - Filters by user_id
  * - Handles INSERT, UPDATE, DELETE events
  * - Provides JOIN/LEAVE system events for connection status
  * - Returns unsubscribe function
- *
- * @param userId - User ID to subscribe for
- * @param onActivity - Callback when activity changes
- * @param onError - Error callback
- * @returns Unsubscribe function
  */
 export function subscribeToActivities(
   userId: string,
   onActivity: (activity: CorporateActivity) => void,
   onError: (error: Error) => void
 ): () => void {
-  // TODO: Implement subscription logic
+  const channel = supabase
+    .channel(`corporate-activities-${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'corporate_activities',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        onActivity(payload.new as CorporateActivity);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'corporate_activities',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        onActivity(payload.new as CorporateActivity);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'corporate_activities',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        // Handle deletion by sending activity with deleted marker
+        onActivity({ ...payload.old, status: 'completed' } as CorporateActivity);
+      }
+    )
+    .on('system', { event: 'JOIN' }, () => {
+      console.log('Realtime connected');
+    })
+    .on('system', { event: 'LEAVE' }, () => {
+      console.log('Realtime disconnected - fallback to polling');
+      onError(new Error('Realtime connection lost'));
+    })
+    .subscribe((status) => {
+      if (status === 'CLOSED') {
+        onError(new Error('Subscription closed'));
+      }
+    });
 
   return () => {
-    // TODO: Unsubscribe logic
+    channel.unsubscribe();
   };
 }
 
 /**
- * TODO: Implement fetchActivities
- *
  * One-time fetch of activities with pagination
  * Used for initial load and polling fallback
- *
- * @param userId - User ID
- * @param limit - Max activities to fetch (default: 100)
- * @param offset - Pagination offset (default: 0)
- * @returns Promise<CorporateActivity[]>
  */
 export async function fetchActivities(
   userId: string,
   limit: number = 100,
   offset: number = 0
 ): Promise<CorporateActivity[]> {
-  // TODO: Implement fetch logic
-  return [];
+  return withErrorRecovery(
+    async () => {
+      const { data, error } = await supabase
+        .from('corporate_activities')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+      return data || [];
+    },
+    'Fetch activities',
+    { maxRetries: 3, userId }
+  );
 }
 
 /**
- * TODO: Implement startPollingActivities
- *
  * Starts polling for activities every 5 seconds
  * Used as fallback when Realtime connection fails
- *
- * @param userId - User ID
- * @param onActivities - Callback with updated activities
- * @returns Stop polling function
  */
 export function startPollingActivities(
   userId: string,
   onActivities: (activities: CorporateActivity[]) => void
 ): () => void {
-  // TODO: Implement polling logic
+  if (pollingInterval) clearInterval(pollingInterval);
+
+  pollingInterval = setInterval(async () => {
+    try {
+      const activities = await fetchActivities(userId, 100, 0);
+      onActivities(activities);
+    } catch (error) {
+      console.error('Polling failed:', error);
+    }
+  }, 5000);
 
   return () => {
-    // TODO: Stop polling logic
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
   };
 }
 
 /**
- * TODO: Implement createActivity
- *
  * Creates a new activity (for testing/demo purposes)
  * In production, activities are created by backend/agents
- *
- * @param data - Activity data
- * @returns Promise<CorporateActivity>
  */
 export async function createActivity(
   data: Partial<CorporateActivity>
 ): Promise<CorporateActivity> {
-  // TODO: Implement create logic
-  throw new Error('Not implemented');
+  return withErrorRecovery(
+    async () => {
+      const { data: created, error } = await supabase
+        .from('corporate_activities')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return created as CorporateActivity;
+    },
+    'Create activity',
+    { maxRetries: 2 }
+  );
 }
 
 /**
- * TODO: Implement updateActivity
- *
  * Updates an activity (approval, status change, etc)
- *
- * @param id - Activity ID
- * @param updates - Partial updates
- * @returns Promise<CorporateActivity>
  */
 export async function updateActivity(
   id: string,
   updates: Partial<CorporateActivity>
 ): Promise<CorporateActivity> {
-  // TODO: Implement update logic
-  throw new Error('Not implemented');
+  return withErrorRecovery(
+    async () => {
+      const { data: updated, error } = await supabase
+        .from('corporate_activities')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updated as CorporateActivity;
+    },
+    'Update activity',
+    { maxRetries: 2 }
+  );
 }
 
 /**
- * TODO: Implement approveActivity
- *
  * Approves an activity that requires approval
- *
- * @param id - Activity ID
- * @param approvedBy - User ID approving
- * @returns Promise<CorporateActivity>
  */
 export async function approveActivity(
   id: string,
   approvedBy: string
 ): Promise<CorporateActivity> {
-  // TODO: Implement approve logic
-  throw new Error('Not implemented');
+  return withErrorRecovery(
+    async () => {
+      const { data: updated, error } = await supabase
+        .from('corporate_activities')
+        .update({
+          approved_at: new Date().toISOString(),
+          approved_by: approvedBy,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updated as CorporateActivity;
+    },
+    'Approve activity',
+    { maxRetries: 2 }
+  );
 }
 
 /**
- * TODO: Implement rejectActivity
- *
  * Rejects an activity that requires approval
- *
- * @param id - Activity ID
- * @param rejectedBy - User ID rejecting
- * @returns Promise<CorporateActivity>
  */
 export async function rejectActivity(
   id: string,
   rejectedBy: string
 ): Promise<CorporateActivity> {
-  // TODO: Implement reject logic
-  throw new Error('Not implemented');
+  return withErrorRecovery(
+    async () => {
+      const { data: updated, error } = await supabase
+        .from('corporate_activities')
+        .update({
+          rejected_at: new Date().toISOString(),
+          rejected_by: rejectedBy,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updated as CorporateActivity;
+    },
+    'Reject activity',
+    { maxRetries: 2 }
+  );
 }
 
 /**
- * TODO: Implement deleteActivity
- *
  * Deletes an activity (soft delete via RLS policy)
- *
- * @param id - Activity ID
- * @returns Promise<void>
  */
 export async function deleteActivity(id: string): Promise<void> {
-  // TODO: Implement delete logic
+  return withErrorRecovery(
+    async () => {
+      const { error } = await supabase
+        .from('corporate_activities')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    'Delete activity',
+    { maxRetries: 2 }
+  );
 }
 
 /**
- * TODO: Implement filterActivitiesByDepartment
- *
  * Helper to filter activities by department
- *
- * @param activities - Activities to filter
- * @param department - Department to filter by (or 'all')
- * @returns Filtered activities
  */
 export function filterActivitiesByDepartment(
   activities: CorporateActivity[],
   department: Department | 'all'
 ): CorporateActivity[] {
-  // TODO: Implement filter logic
   if (department === 'all') return activities;
-  return activities.filter(a => a.department === department);
+  return activities.filter((a) => a.department === department);
 }

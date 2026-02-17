@@ -1,12 +1,6 @@
 /**
  * ApprovalGate Component
  * Approve/Reject buttons for activities requiring approval
- *
- * Shows:
- * - Approve button (green)
- * - Reject button (red)
- * - Loading state while request in progress
- * - Disabled after approval/rejection
  */
 
 interface ApprovalGateProps {
@@ -17,24 +11,6 @@ interface ApprovalGateProps {
   disabled?: boolean;
 }
 
-/**
- * TODO: Implement ApprovalGate component
- *
- * Should render:
- * - Two buttons: Approve (green) and Reject (red)
- * - Show loading spinner while API call in progress
- * - Disable buttons after action completed
- * - Show error toast if action fails
- * - Optional: Show timestamp of approval/rejection
- *
- * Example usage:
- * <ApprovalGate
- *   activityId="123"
- *   onApprove={handleApprove}
- *   onReject={handleReject}
- *   isPending={isPending}
- * />
- */
 export function ApprovalGate({
   activityId,
   onApprove,
@@ -42,24 +18,16 @@ export function ApprovalGate({
   isPending = false,
   disabled = false,
 }: ApprovalGateProps) {
-  // TODO: Implement approval logic
-  // - Handle approve click
-  // - Handle reject click
-  // - Show loading state
-  // - Handle errors
-
   const handleApprove = async () => {
-    // TODO: Call onApprove
-    // - Show loading
-    // - Handle error
-    // - Show success
+    if (onApprove && !isPending && !disabled) {
+      await onApprove(activityId);
+    }
   };
 
   const handleReject = async () => {
-    // TODO: Call onReject
-    // - Show loading
-    // - Handle error
-    // - Show success
+    if (onReject && !isPending && !disabled) {
+      await onReject(activityId);
+    }
   };
 
   return (

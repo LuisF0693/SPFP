@@ -17,24 +17,7 @@ interface ActivityStatusProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-/**
- * TODO: Implement ActivityStatus component
- *
- * Should render:
- * - Emoji badge (color-coded)
- * - Status text label
- * - Animation for running/error states
- * - Responsive sizing
- *
- * Example usage:
- * <ActivityStatus status="running" size="md" />
- */
 export function ActivityStatus({ status, size = 'md' }: ActivityStatusProps) {
-  // TODO: Implement status logic
-  // - Map status to emoji and color
-  // - Apply animations
-  // - Handle sizing
-
   const statusConfig: Record<
     ActivityStatusType,
     { emoji: string; label: string; color: string; animate: boolean }
@@ -53,10 +36,9 @@ export function ActivityStatus({ status, size = 'md' }: ActivityStatusProps) {
     lg: 'text-lg',
   }[size];
 
-  // TODO: Render component
   return (
     <div className={`flex items-center gap-2 ${sizeClass}`}>
-      <span className={`${config.animate ? 'animate-pulse' : ''}`}>
+      <span className={`inline-block ${config.animate ? 'animate-pulse' : ''}`}>
         {config.emoji}
       </span>
       <span className={config.color}>{config.label}</span>
