@@ -4,13 +4,25 @@ export interface MarketData {
     symbol: string;
     longName: string;
     regularMarketPrice: number;
+    regularMarketChange?: number;
+    regularMarketChangePercent?: number;
     logourl?: string;
 }
 
 const CORS_PROXIES = [
     'https://api.allorigins.win/get?url=',
-    'https://corsproxy.io/?'
+    'https://corsproxy.io/?',
+    'https://thingproxy.freeboard.io/fetch/'
 ];
+
+// In-memory cache for market data (5 minutes expiration)
+interface CacheEntry {
+    data: MarketData[];
+    timestamp: number;
+}
+
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const marketDataCache: Record<string, CacheEntry> = {};
 
 export const MarketDataService = {
     /**
@@ -34,6 +46,15 @@ export const MarketDataService = {
         });
 
         const uniqueTickers = [...new Set(normalizedTickers.filter(t => t))];
+        const cacheKey = uniqueTickers.join(',');
+
+        // Check cache
+        const cached = marketDataCache[cacheKey];
+        if (cached && (Date.now() - cached.timestamp < CACHE_DURATION_MS)) {
+            console.log('[Market Data] Using cached data for:', cacheKey);
+            return cached.data;
+        }
+
         const tickerString = uniqueTickers.join(',');
         const targetUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickerString}`;
 
@@ -68,12 +89,22 @@ export const MarketDataService = {
 
                 if (data?.quoteResponse?.result) {
                     console.log(`[Market Data] Successfully fetched ${data.quoteResponse.result.length} quotes from ${proxyBase}`);
-                    return data.quoteResponse.result.map((r: any) => ({
+                    const mappedData: MarketData[] = data.quoteResponse.result.map((r: any) => ({
                         symbol: r.symbol.replace('.SA', ''),
                         longName: r.longName || r.shortName || r.symbol,
                         regularMarketPrice: r.regularMarketPrice,
+                        regularMarketChange: r.regularMarketChange,
+                        regularMarketChangePercent: r.regularMarketChangePercent,
                         logourl: `https://s.yimg.com/wm/geoblock/hq/${r.symbol.replace('.SA', '')}.png`
                     }));
+
+                    // Cache the result
+                    marketDataCache[cacheKey] = {
+                        data: mappedData,
+                        timestamp: Date.now()
+                    };
+
+                    return mappedData;
                 }
             } catch (error: any) {
                 logDetailedError(

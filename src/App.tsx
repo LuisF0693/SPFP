@@ -23,7 +23,6 @@ const Insights = React.lazy(() => import('./components/Insights').then(m => ({ d
 const Settings = React.lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
 const Login = React.lazy(() => import('./components/Login').then(m => ({ default: m.Login })));
 const Goals = React.lazy(() => import('./components/Goals').then(m => ({ default: m.Goals })));
-const Investments = React.lazy(() => import('./components/Investments').then(m => ({ default: m.Investments })));
 const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({ default: m.Patrimony })));
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
@@ -142,13 +141,6 @@ const AppContent: React.FC = () => {
           <PrivateRoute>
             <Layout mode="personal">
               <GoalsAdvanced />
-            </Layout>
-          </PrivateRoute>
-        } />
-        <Route path="/investments" element={
-          <PrivateRoute>
-            <Layout mode="personal">
-              <Investments />
             </Layout>
           </PrivateRoute>
         } />

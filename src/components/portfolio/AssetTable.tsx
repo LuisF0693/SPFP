@@ -2,10 +2,12 @@ import React from 'react';
 import { Trash2, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
 import { DataTable, Column } from '../ui/DataTable';
 import { Investment, INVESTMENT_TYPE_LABELS } from '../../types/investments';
+import { MarketData } from '../../services/MarketDataService';
 
 interface AssetTableProps {
   investments: Investment[];
   loading?: boolean;
+  marketPrices?: Record<string, MarketData>;
   onEdit?: (investment: Investment) => void;
   onDelete?: (id: string) => void;
 }
@@ -13,6 +15,7 @@ interface AssetTableProps {
 export const AssetTable: React.FC<AssetTableProps> = ({
   investments,
   loading,
+  marketPrices = {},
   onEdit,
   onDelete,
 }) => {
@@ -28,21 +31,38 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       key: 'name',
       header: 'Ativo',
       sortable: true,
-      render: (item) => (
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-full bg-white dark:bg-[#2e374a] flex items-center justify-center text-xs font-bold shadow-sm border border-gray-100 dark:border-gray-700">
-            {item.ticker || item.name.substring(0, 4).toUpperCase()}
+      render: (item) => {
+        const marketData = marketPrices[item.ticker];
+        const hasLogo = marketData?.logourl;
+
+        return (
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-full bg-white dark:bg-[#2e374a] flex items-center justify-center text-xs font-bold shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              {hasLogo ? (
+                <img
+                  src={marketData.logourl}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to initials if image fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <span>{item.ticker?.substring(0, 2).toUpperCase() || item.name.substring(0, 2).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <p className="text-sm font-bold text-[#111418] dark:text-white">
+                {item.name}
+              </p>
+              <p className="text-xs text-[#637588] dark:text-[#92a4c9]">
+                {INVESTMENT_TYPE_LABELS[item.type] || item.type}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <p className="text-sm font-bold text-[#111418] dark:text-white">
-              {item.name}
-            </p>
-            <p className="text-xs text-[#637588] dark:text-[#92a4c9]">
-              {INVESTMENT_TYPE_LABELS[item.type] || item.type}
-            </p>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'quantity',
@@ -68,16 +88,34 @@ export const AssetTable: React.FC<AssetTableProps> = ({
     },
     {
       key: 'current_price',
-      header: 'Preço Atual',
+      header: 'Preço Mercado',
       sortable: true,
       align: 'right',
-      render: (item) => (
-        <span className="text-sm font-medium text-[#111418] dark:text-white">
-          {item.current_price
-            ? formatCurrency(item.current_price, item.currency)
-            : '-'}
-        </span>
-      ),
+      render: (item) => {
+        const marketData = marketPrices[item.ticker];
+        const marketPrice = marketData?.regularMarketPrice;
+        const displayPrice = marketPrice || item.current_price;
+
+        return (
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-sm font-medium text-[#111418] dark:text-white">
+              {displayPrice ? formatCurrency(displayPrice, item.currency) : '-'}
+            </span>
+            {marketData?.regularMarketChangePercent !== undefined && (
+              <span
+                className={`text-xs font-medium ${
+                  marketData.regularMarketChangePercent >= 0
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {marketData.regularMarketChangePercent >= 0 ? '+' : ''}
+                {marketData.regularMarketChangePercent.toFixed(2)}%
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'total_value',

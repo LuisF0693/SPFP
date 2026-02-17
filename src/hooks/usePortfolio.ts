@@ -8,6 +8,7 @@ import {
 import { PortfolioStatsData } from '../components/portfolio/PortfolioStats';
 import { AllocationData } from '../components/portfolio/AssetAllocation';
 import { EvolutionDataPoint } from '../components/portfolio/EvolutionChart';
+import { MarketDataService, MarketData } from '../services/MarketDataService';
 
 interface UsePortfolioReturn {
   investments: Investment[];
@@ -16,10 +17,14 @@ interface UsePortfolioReturn {
   stats: PortfolioStatsData;
   allocationData: AllocationData[];
   evolutionData: EvolutionDataPoint[];
+  marketPrices: Record<string, MarketData>;
+  isLoadingPrices: boolean;
+  lastPriceUpdate: Date | null;
   addInvestment: (investment: Omit<Investment, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateInvestment: (id: string, investment: Partial<Investment>) => Promise<void>;
   deleteInvestment: (id: string) => Promise<void>;
   refreshInvestments: () => Promise<void>;
+  fetchMarketPrices: () => Promise<void>;
 }
 
 const ALLOCATION_COLORS: Record<string, string> = {
@@ -36,6 +41,9 @@ export function usePortfolio(): UsePortfolioReturn {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [marketPrices, setMarketPrices] = useState<Record<string, MarketData>>({});
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
 
   // Fetch investments
   const fetchInvestments = useCallback(async () => {
@@ -68,9 +76,54 @@ export function usePortfolio(): UsePortfolioReturn {
     }
   }, [user]);
 
+  // Fetch market prices for investments with tickers
+  const fetchMarketPrices = useCallback(async () => {
+    if (investments.length === 0) {
+      setMarketPrices({});
+      return;
+    }
+
+    setIsLoadingPrices(true);
+    try {
+      // Filter investments that have tickers (stocks, fiis, etfs, etc)
+      const tickerableTypes = ['acao', 'fii', 'etf', 'stock', 'reit'];
+      const investmentsWithTickers = investments.filter(
+        inv => inv.ticker && tickerableTypes.includes(inv.type)
+      );
+
+      if (investmentsWithTickers.length === 0) {
+        setMarketPrices({});
+        setIsLoadingPrices(false);
+        return;
+      }
+
+      const tickers = investmentsWithTickers.map(inv => inv.ticker);
+      const quotes = await MarketDataService.getQuotes(tickers);
+
+      // Create a map of symbol -> MarketData
+      const pricesMap: Record<string, MarketData> = {};
+      quotes.forEach(quote => {
+        pricesMap[quote.symbol] = quote;
+      });
+
+      setMarketPrices(pricesMap);
+      setLastPriceUpdate(new Date());
+    } catch (err) {
+      console.error('Error fetching market prices:', err);
+      // Don't show error to user, silently fail
+    } finally {
+      setIsLoadingPrices(false);
+    }
+  }, [investments]);
+
   useEffect(() => {
     fetchInvestments();
   }, [fetchInvestments]);
+
+  // Auto-fetch market prices on mount and when investments change
+  useEffect(() => {
+    fetchMarketPrices();
+  }, [investments, fetchMarketPrices]);
 
   // Calculate stats
   const stats = useMemo((): PortfolioStatsData => {
@@ -227,10 +280,14 @@ export function usePortfolio(): UsePortfolioReturn {
     stats,
     allocationData,
     evolutionData,
+    marketPrices,
+    isLoadingPrices,
+    lastPriceUpdate,
     addInvestment,
     updateInvestment,
     deleteInvestment,
     refreshInvestments: fetchInvestments,
+    fetchMarketPrices,
   };
 }
 

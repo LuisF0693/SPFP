@@ -51,7 +51,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
   const mobileNavItems: { id: string; path: string; icon: any; label: string; isFab?: boolean }[] = [
     { id: 'dashboard', path: '/dashboard', icon: Home, label: 'Início' },
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
-    { id: 'investments', path: '/investments', icon: TrendingUp, label: 'Investir', isFab: false },
+    { id: 'portfolio', path: '/portfolio', icon: TrendingUp, label: 'Portfólio', isFab: false },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
     { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
     { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas' },

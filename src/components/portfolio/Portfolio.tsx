@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { ChartCard } from '../ui/ChartCard';
 import { ActionButton } from '../ui/ActionButton';
 import { PortfolioStats } from './PortfolioStats';
@@ -19,7 +19,11 @@ export const Portfolio: React.FC = () => {
     evolutionData,
     addInvestment,
     updateInvestment,
-    deleteInvestment
+    deleteInvestment,
+    marketPrices,
+    isLoadingPrices,
+    lastPriceUpdate,
+    fetchMarketPrices
   } = usePortfolio();
 
   return (
@@ -37,12 +41,27 @@ export const Portfolio: React.FC = () => {
                 : `Bem-vindo de volta. Seus rendimentos caíram ${Math.abs(stats.dailyReturn).toFixed(1)}% hoje.`
               }
             </p>
+            {lastPriceUpdate && (
+              <p className="text-xs text-[#92a4c9] dark:text-[#637588] mt-1">
+                Cotações atualizadas em {lastPriceUpdate.toLocaleTimeString('pt-BR')}
+              </p>
+            )}
           </div>
-          <ActionButton
-            label="Novo Aporte"
-            icon={<Plus className="w-5 h-5" />}
-            onClick={() => setShowInvestmentModal(true)}
-          />
+          <div className="flex flex-col md:flex-row gap-3">
+            <button
+              onClick={fetchMarketPrices}
+              disabled={isLoadingPrices}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingPrices ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Atualizar Cotações</span>
+            </button>
+            <ActionButton
+              label="Novo Aporte"
+              icon={<Plus className="w-5 h-5" />}
+              onClick={() => setShowInvestmentModal(true)}
+            />
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -69,6 +88,7 @@ export const Portfolio: React.FC = () => {
         <AssetTable
           investments={investments}
           loading={loading}
+          marketPrices={marketPrices}
           onEdit={(investment) => {
             // TODO: Open edit modal
             console.log('Edit:', investment);
