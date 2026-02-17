@@ -19,7 +19,7 @@ import {
   RetirementSummaryCard,
   RetirementChart,
   ProjectionPoint,
-} from './retirement';
+} from './retirement/index';
 
 const STORAGE_KEY = 'spfp_retirement_v2';
 

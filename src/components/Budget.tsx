@@ -20,7 +20,7 @@ import {
   CategoryBudgetItem,
   InsightCard,
   EmergencyFundCard
-} from './budget';
+} from './budget/index';
 
 type ViewMode = 'MONTHLY' | 'YEARLY';
 

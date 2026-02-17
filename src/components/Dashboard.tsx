@@ -7,13 +7,15 @@ import {
   DashboardMetrics,
   DashboardChart,
   DashboardAlerts,
-  DashboardTransactions,
+  DashboardTransactions
+} from './dashboard/index';
+import {
   useMonthlyMetrics,
   useBudgetAlerts,
   useAtypicalSpending,
   useTrendData,
   useCategoryChartData
-} from './dashboard';
+} from './dashboard/dashboardUtils';
 import { DashboardErrorBoundary } from './dashboard/DashboardErrorBoundary';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { Skeleton } from './ui/Skeleton';

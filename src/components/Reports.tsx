@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { CategoryIcon } from './CategoryIcon';
 import { generatePDFReport } from '../services/pdfService';
-import { ReportMetricCard, ReportExportButton } from './reports';
+import { ReportMetricCard, ReportExportButton } from './reports/index';
 
 /**
  * Reports component.

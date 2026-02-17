@@ -116,9 +116,13 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
               return 'react-vendor';
             }
-            // Lazy-loaded components get their own chunks
-            if (id.includes('Dashboard') || id.includes('TransactionList') || id.includes('Insights')) {
-              const match = id.match(/(\w+)\.(tsx?)/);
+            // Lazy-loaded components get their own chunks - be specific to avoid circular deps
+            if (
+              id.endsWith('/Dashboard.tsx') ||
+              id.endsWith('/TransactionList.tsx') ||
+              id.endsWith('/Insights.tsx')
+            ) {
+              const match = id.match(/\/(\w+)\.tsx?$/);
               return match ? `lazy-${match[1]}` : undefined;
             }
           }
