@@ -10,6 +10,7 @@ import { VirtualRoom } from '@/types/virtual-office';
 
 interface SceneInitData {
   onRoomSelect?: (roomId: string) => void;
+  onRoomHover?: (roomId: string | null) => void;
   onNPCClick?: (npcId: string) => void;
 }
 
@@ -38,9 +39,15 @@ export class VirtualOfficeScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#0F172A');
 
     // Initialize managers
-    this.roomManager = new RoomManager(this, (roomId) => {
-      this.initData.onRoomSelect?.(roomId);
-    });
+    this.roomManager = new RoomManager(
+      this,
+      (roomId) => {
+        this.initData.onRoomSelect?.(roomId);
+      },
+      (roomId) => {
+        this.initData.onRoomHover?.(roomId);
+      }
+    );
 
     this.npcManager = new NPCManager(this);
 
@@ -49,9 +56,9 @@ export class VirtualOfficeScene extends Phaser.Scene {
       this.roomManager.handleClick(pointer.x, pointer.y);
     });
 
-    // Mouse over for tooltips
+    // Mouse over for hover effects
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      // Could add tooltip logic here
+      this.roomManager.handleHover(pointer.x, pointer.y);
     });
 
     // Initial render

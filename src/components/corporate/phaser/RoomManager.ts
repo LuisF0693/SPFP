@@ -60,11 +60,14 @@ export class RoomManager {
   private graphics: Phaser.GameObjects.Graphics;
   private roomClickZones: Map<string, Phaser.Geom.Rectangle> = new Map();
   private selectedRoomId: string | null = null;
+  private hoveredRoomId: string | null = null;
   private onRoomSelect?: (roomId: string) => void;
+  private onRoomHover?: (roomId: string | null) => void;
 
-  constructor(scene: Phaser.Scene, onRoomSelect?: (roomId: string) => void) {
+  constructor(scene: Phaser.Scene, onRoomSelect?: (roomId: string) => void, onRoomHover?: (roomId: string | null) => void) {
     this.scene = scene;
     this.onRoomSelect = onRoomSelect;
+    this.onRoomHover = onRoomHover;
     this.graphics = scene.add.graphics();
     this.initializeRooms();
   }
@@ -109,10 +112,17 @@ export class RoomManager {
     this.graphics.fillRect(x, y, width, height);
 
     // Room border
-    const borderColor = room.isActive
-      ? Phaser.Display.Color.HexStringToColor(room.departmentColor).color
-      : 0x334155;
-    const borderWidth = room.isActive ? 3 : 1;
+    let borderColor = 0x334155;
+    let borderWidth = 1;
+
+    if (room.isActive) {
+      borderColor = Phaser.Display.Color.HexStringToColor(room.departmentColor).color;
+      borderWidth = 3;
+    } else if (room.id === this.hoveredRoomId) {
+      borderColor = Phaser.Display.Color.HexStringToColor(room.departmentColor).color;
+      borderWidth = 2;
+    }
+
     this.graphics.lineStyle(borderWidth, borderColor, 1);
     this.graphics.strokeRect(x, y, width, height);
 
@@ -181,6 +191,23 @@ export class RoomManager {
         this.selectRoom(roomId);
         return;
       }
+    }
+  }
+
+  public handleHover(x: number, y: number): void {
+    let hoveredId: string | null = null;
+
+    for (const [roomId, zone] of this.roomClickZones) {
+      if (Phaser.Geom.Rectangle.Contains(zone, x, y)) {
+        hoveredId = roomId;
+        break;
+      }
+    }
+
+    if (hoveredId !== this.hoveredRoomId) {
+      this.hoveredRoomId = hoveredId;
+      this.onRoomHover?.(hoveredId);
+      this.render();
     }
   }
 
