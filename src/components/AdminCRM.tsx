@@ -163,8 +163,19 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
     }
 
     const handleClientCardClick = (client: ClientEntry) => {
+        console.log('[AdminCRM] handleClientCardClick called with client:', client);
         setSelectedClient(client);
         setShowUnifiedModal(true);
+    };
+
+    const handleAccessClick = async (userId: string) => {
+        console.log('[AdminCRM] handleAccessClick called with userId:', userId);
+        try {
+            await loadClientData(userId);
+            console.log('[AdminCRM] loadClientData completed successfully');
+        } catch (error) {
+            console.error('[AdminCRM] loadClientData failed:', error);
+        }
     };
 
     return (
@@ -360,11 +371,11 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                                     CRM <ArrowRight size={12} className="ml-1" />
                                 </button>
                                 <button
-                                    onClick={() => loadClientData(client.user_id)}
+                                    onClick={() => handleAccessClick(client.user_id)}
                                     disabled={isSyncing}
                                     className="py-2 bg-white/10 rounded-lg text-gray-300 font-semibold text-xs hover:bg-white/20 transition-all flex items-center justify-center disabled:opacity-50"
                                 >
-                                    Acessar
+                                    {isSyncing ? 'Carregando...' : 'Acessar'}
                                 </button>
                             </div>
                         </div>
