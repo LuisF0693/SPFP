@@ -237,11 +237,11 @@ const AppContent: React.FC = () => {
           </AdminRoute>
         } />
         <Route path="/corporate" element={
-          <PrivateRoute>
-            <Layout mode="personal">
+          <AdminRoute>
+            <Layout mode="crm">
               <CorporateHQ />
             </Layout>
-          </PrivateRoute>
+          </AdminRoute>
         } />
         <Route path="/automation" element={
           <PrivateRoute>
