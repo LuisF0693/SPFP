@@ -17,6 +17,8 @@ interface CorporateState {
   activities: CorporateActivity[];
   isRealtimeConnected: boolean;
   selectedDepartmentFilter: Department | 'all';
+  selectedDepartment: string | null;
+  isModalOpen: boolean;
   pendingApprovals: Set<string>;
   error: string | null;
   isLoading: boolean;
@@ -31,8 +33,10 @@ interface CorporateState {
   // Real-time status
   setRealtimeConnected: (connected: boolean) => void;
 
-  // Filters
+  // Filters & Modal
   setDepartmentFilter: (dept: Department | 'all') => void;
+  setSelectedDepartment: (dept: string | null) => void;
+  setIsModalOpen: (open: boolean) => void;
 
   // Approvals
   addPendingApproval: (activityId: string) => void;
@@ -49,6 +53,8 @@ export const useCorporateStore = create<CorporateState>((set, get) => ({
   activities: [],
   isRealtimeConnected: false,
   selectedDepartmentFilter: 'all',
+  selectedDepartment: null,
+  isModalOpen: false,
   pendingApprovals: new Set<string>(),
   error: null,
   isLoading: false,
@@ -89,9 +95,17 @@ export const useCorporateStore = create<CorporateState>((set, get) => ({
     set({ isRealtimeConnected: connected });
   },
 
-  // Filters
+  // Filters & Modal
   setDepartmentFilter: (dept: Department | 'all') => {
     set({ selectedDepartmentFilter: dept });
+  },
+
+  setSelectedDepartment: (dept: string | null) => {
+    set({ selectedDepartment: dept });
+  },
+
+  setIsModalOpen: (open: boolean) => {
+    set({ isModalOpen: open });
   },
 
   // Approvals
