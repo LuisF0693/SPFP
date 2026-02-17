@@ -6,12 +6,13 @@ import {
     Users, Search, Eye, Clock, User, Mail, Database,
     ArrowRight, ShieldCheck, AlertCircle, TrendingUp,
     Activity, Zap, Shield, UserCheck, Inbox, Sparkles,
-    Loader2
+    Loader2, ChevronDown
 } from 'lucide-react';
 import { chatWithAI } from '../services/aiService';
 import { getInteractionLogs, InteractionLog } from '../services/logService';
 import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
 import { Modal } from './ui/Modal';
+import { CRMDashboard } from './crm';
 
 /**
  * Admin CRM component.
@@ -21,6 +22,7 @@ import { Modal } from './ui/Modal';
 export const AdminCRM: React.FC = () => {
     const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useSafeFinance();
     const { user } = useAuth();
+    const [adminTab, setAdminTab] = useState<'usuarios' | 'crm'>('usuarios');
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -161,6 +163,35 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
 
     return (
         <div className="animate-fade-in max-w-7xl mx-auto pb-20 p-4 space-y-8">
+            {/* Tab Switch */}
+            <div className="flex items-center gap-4 mb-8">
+                <button
+                    onClick={() => setAdminTab('usuarios')}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                        adminTab === 'usuarios'
+                            ? 'bg-accent text-white shadow-lg shadow-accent/20'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                    }`}
+                >
+                    <Users size={18} />
+                    Usuários da Plataforma
+                </button>
+                <button
+                    onClick={() => setAdminTab('crm')}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                        adminTab === 'crm'
+                            ? 'bg-accent text-white shadow-lg shadow-accent/20'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                    }`}
+                >
+                    <Database size={18} />
+                    CRM de Clientes
+                </button>
+            </div>
+
+            {/* ABA: Usuários da Plataforma */}
+            {adminTab === 'usuarios' && (
+            <div className="space-y-8">
             {/* Admin Header & Vision */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-4">
                 <div className="relative">
@@ -365,6 +396,13 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                     </div>
                 )}
             </div>
+            </div>
+            )}
+
+            {/* ABA: CRM de Clientes */}
+            {adminTab === 'crm' && (
+                <CRMDashboard />
+            )}
 
             <Modal
                 isOpen={!!showTimeline}
