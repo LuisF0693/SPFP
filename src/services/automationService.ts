@@ -39,6 +39,58 @@ export interface NavigationResult {
   loadTime?: number;
 }
 
+export interface AutomationPermissions {
+  // Controle global
+  enabled: boolean;
+
+  // Confirmação
+  requireConfirmation: boolean;
+
+  // Domínios
+  allowedDomains: string[]; // vazio = todos permitidos
+  blockedDomains: string[]; // sempre bloqueados
+  blockBankingSites: boolean; // padrão: true
+
+  // Rate limiting
+  maxActionsPerSession: number; // padrão: 100
+  maxActionsPerHour: number; // padrão: 50
+
+  // Funcionalidades
+  allowNavigation: boolean;
+  allowClick: boolean;
+  allowTyping: boolean;
+  allowSelect: boolean;
+
+  // Auditoria
+  logSecurityEvents: boolean;
+}
+
+export interface SecurityLog {
+  id: string;
+  timestamp: string;
+  userId?: string;
+  action: string;
+  actionId: string;
+  allowed: boolean;
+  reason?: string;
+  details?: Record<string, any>;
+}
+
+export const DEFAULT_PERMISSIONS: AutomationPermissions = {
+  enabled: false,
+  requireConfirmation: true,
+  allowedDomains: [],
+  blockedDomains: ['*.bank.com', '*.banking.com', 'paypal.com'],
+  blockBankingSites: true,
+  maxActionsPerSession: 100,
+  maxActionsPerHour: 50,
+  allowNavigation: true,
+  allowClick: false,
+  allowTyping: false,
+  allowSelect: false,
+  logSecurityEvents: true,
+};
+
 // ============================================================================
 // Service Implementation
 // ============================================================================
@@ -49,8 +101,20 @@ class AutomationService {
   private readonly MAX_HISTORY = 100;
   private readonly MCP_TIMEOUT = 30000; // 30 segundos
 
-  constructor() {
+  // Permissions
+  private permissions: AutomationPermissions = { ...DEFAULT_PERMISSIONS };
+  private securityLogs: SecurityLog[] = [];
+  private actionsThisSession = 0;
+  private actionsThisHour: { timestamp: number; count: number } = {
+    timestamp: Date.now(),
+    count: 0,
+  };
+  private userId?: string;
+
+  constructor(userId?: string) {
+    this.userId = userId;
     this.loadHistoryFromStorage();
+    this.loadPermissionsFromStorage();
   }
 
   /**
@@ -249,6 +313,76 @@ class AutomationService {
     }
 
     throw new Error('MCP Playwright não configurado. Contacte DevOps (@devops).');
+  }
+
+  /**
+   * Retorna permissões atuais
+   */
+  getPermissions(): AutomationPermissions {
+    return { ...this.permissions };
+  }
+
+  /**
+   * Atualiza permissões
+   */
+  setPermissions(perms: Partial<AutomationPermissions>): void {
+    this.permissions = { ...this.permissions, ...perms };
+    this.savePermissionsToStorage();
+  }
+
+  /**
+   * Retorna logs de segurança
+   */
+  getSecurityLogs(): SecurityLog[] {
+    return [...this.securityLogs];
+  }
+
+  /**
+   * Retorna estatísticas de uso
+   */
+  getSessionStats() {
+    return {
+      actionsThisSession: this.actionsThisSession,
+      maxActionsPerSession: this.permissions.maxActionsPerSession,
+      actionsThisHour: this.actionsThisHour.count,
+      maxActionsPerHour: this.permissions.maxActionsPerHour,
+    };
+  }
+
+  /**
+   * Reseta estatísticas de sessão
+   */
+  resetSessionStats(): void {
+    this.actionsThisSession = 0;
+    this.actionsThisHour = { timestamp: Date.now(), count: 0 };
+  }
+
+  /**
+   * Salva permissões no localStorage
+   */
+  private savePermissionsToStorage(): void {
+    try {
+      const key = `spfp_automation_permissions_${this.userId || 'default'}`;
+      localStorage.setItem(key, JSON.stringify(this.permissions));
+    } catch (err) {
+      console.warn('Erro ao salvar permissões de automação:', err);
+    }
+  }
+
+  /**
+   * Carrega permissões do localStorage
+   */
+  private loadPermissionsFromStorage(): void {
+    try {
+      const key = `spfp_automation_permissions_${this.userId || 'default'}`;
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        this.permissions = { ...DEFAULT_PERMISSIONS, ...JSON.parse(stored) };
+      }
+    } catch (err) {
+      console.warn('Erro ao carregar permissões de automação:', err);
+      this.permissions = { ...DEFAULT_PERMISSIONS };
+    }
   }
 
   /**

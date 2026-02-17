@@ -7,6 +7,7 @@ import { useAutomationState } from './useAutomationState';
 import { BrowserPreview } from './BrowserPreview';
 import { NavigationInput } from './NavigationInput';
 import { ActionLog } from './ActionLog';
+import { PermissionsPanel } from './PermissionsPanel';
 
 export function AutomationDashboard() {
   const {
@@ -15,9 +16,13 @@ export function AutomationDashboard() {
     error,
     history,
     navigationInProgress,
+    permissions,
+    sessionStats,
     captureScreenshot,
     navigate,
     clearError,
+    clearHistory,
+    updatePermissions,
   } = useAutomationState();
 
   return (
@@ -162,16 +167,16 @@ export function AutomationDashboard() {
                   <span>Screenshots em base64</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-slate-400">◯</span>
-                  <span>Navegação para URLs (em breve)</span>
+                  <span className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">✓</span>
+                  <span>Navegação para URLs</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">✓</span>
+                  <span>Log de ações com filtros</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">◯</span>
                   <span>Cliques automatizados (em breve)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-400">◯</span>
-                  <span>Preenchimento de formulários (em breve)</span>
                 </li>
               </ul>
             </div>
@@ -180,6 +185,13 @@ export function AutomationDashboard() {
 
         {/* Action Log */}
         <ActionLog actions={history} onClearHistory={clearHistory} />
+
+        {/* Permissions Panel */}
+        <PermissionsPanel
+          permissions={permissions}
+          onPermissionsChange={updatePermissions}
+          stats={sessionStats}
+        />
 
         {/* Coming Soon - Other Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

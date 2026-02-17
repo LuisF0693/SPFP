@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { automationService, ScreenshotResult, AutomationAction, NavigationResult } from '@/services/automationService';
+import { automationService, ScreenshotResult, AutomationAction, NavigationResult, AutomationPermissions } from '@/services/automationService';
 
 export interface AutomationState {
   latestScreenshot?: ScreenshotResult;
@@ -20,6 +20,14 @@ export interface UseAutomationReturn extends AutomationState {
   clearError: () => void;
   clearHistory: () => void;
   getHistory: () => AutomationAction[];
+  permissions: AutomationPermissions;
+  sessionStats: {
+    actionsThisSession: number;
+    maxActionsPerSession: number;
+    actionsThisHour: number;
+    maxActionsPerHour: number;
+  };
+  updatePermissions: (perms: Partial<AutomationPermissions>) => void;
 }
 
 /**
@@ -31,6 +39,10 @@ export function useAutomationState(): UseAutomationReturn {
   const [error, setError] = useState<string>();
   const [history, setHistory] = useState<AutomationAction[]>([]);
   const [navigationInProgress, setNavigationInProgress] = useState(false);
+  const [permissions, setPermissions] = useState<AutomationPermissions>(
+    automationService.getPermissions()
+  );
+  const [sessionStats, setSessionStats] = useState(automationService.getSessionStats());
 
   /**
    * Captura screenshot
@@ -109,16 +121,28 @@ export function useAutomationState(): UseAutomationReturn {
     return automationService.getActionHistory();
   }, []);
 
+  /**
+   * Atualiza permissões
+   */
+  const updatePermissions = useCallback((perms: Partial<AutomationPermissions>) => {
+    automationService.setPermissions(perms);
+    setPermissions(automationService.getPermissions());
+    setSessionStats(automationService.getSessionStats());
+  }, []);
+
   return {
     latestScreenshot,
     loading,
     error,
     history,
     navigationInProgress,
+    permissions,
+    sessionStats,
     captureScreenshot,
     navigate,
     clearError,
     clearHistory,
     getHistory,
+    updatePermissions,
   };
 }
