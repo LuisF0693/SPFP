@@ -4,7 +4,18 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { TrendingUp, DollarSign } from 'lucide-react';
 import { SalesLead } from '@/types/virtual-office';
 import { salesMockData, formatCurrency, calculateTotalByStage, getRealized, getPipelineTotal } from '@/data/salesData';
@@ -17,9 +28,70 @@ const STAGES = [
   { id: 'closed_won', label: 'Fechado', color: '#10B981' },
 ];
 
+// Draggable card component
+function DraggableLeadCard({
+  lead,
+  stage,
+  isSelected,
+  onSelect,
+}: {
+  lead: SalesLead;
+  stage: (typeof STAGES)[0];
+  isSelected: boolean;
+  onSelect: (lead: SalesLead) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: lead.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => onSelect(lead)}
+      className={`p-3 rounded border cursor-move transition-all ${
+        isDragging
+          ? 'bg-slate-600 shadow-lg'
+          : 'bg-slate-800 border-slate-600 hover:border-slate-500'
+      }`}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-white truncate">{lead.name}</p>
+          <p className="text-xs text-slate-400 truncate">{lead.company}</p>
+        </div>
+        <span
+          className="text-xs font-bold px-2 py-1 rounded ml-2 whitespace-nowrap"
+          style={{ backgroundColor: `${stage.color}20`, color: stage.color }}
+        >
+          {lead.probability}%
+        </span>
+      </div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-emerald-400">{formatCurrency(lead.value)}</p>
+      </div>
+    </div>
+  );
+}
+
 export function SalesDashboard() {
   const [leads, setLeads] = useState<SalesLead[]>(salesMockData.leads);
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      distance: 8,
+    }),
+    useSensor(KeyboardSensor)
+  );
 
   // Calculate metrics
   const realized = useMemo(() => getRealized(leads), [leads]);
@@ -37,18 +109,20 @@ export function SalesDashboard() {
   }, [leads]);
 
   // Handle drag end
-  const handleDragEnd = (result: DropResult) => {
-    const { source, destination, draggableId } = result;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    if (!over) return;
 
-    const leadId = draggableId;
-    const newStage = destination.droppableId as SalesLead['stage'];
+    const draggedLead = leads.find((l) => l.id === active.id);
+    if (!draggedLead) return;
+
+    const newStage = over.id as SalesLead['stage'];
+    if (draggedLead.stage === newStage) return;
 
     setLeads((prev) =>
       prev.map((lead) =>
-        lead.id === leadId
+        lead.id === draggedLead.id
           ? { ...lead, stage: newStage }
           : lead
       )
@@ -117,74 +191,44 @@ export function SalesDashboard() {
       </div>
 
       {/* Pipeline */}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto pb-4">
           {STAGES.map((stage) => (
-            <Droppable key={stage.id} droppableId={stage.id}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`flex-1 min-w-max md:min-w-0 bg-slate-700/50 rounded-lg p-4 transition-all ${
-                    snapshot.isDraggingOver ? 'bg-slate-600' : ''
-                  }`}
-                >
-                  {/* Header */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-white mb-1">{stage.label}</h4>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400">
-                        {leadsByStage[stage.id].length} lead(s)
-                      </span>
-                      <span className="text-xs font-bold" style={{ color: stage.color }}>
-                        {formatCurrency(calculateTotalByStage(leads, stage.id))}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Lead Cards */}
-                  <div className="space-y-2 min-h-20">
-                    {leadsByStage[stage.id].map((lead, index) => (
-                      <Draggable key={lead.id} draggableId={lead.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            onClick={() => setSelectedLead(lead)}
-                            className={`p-3 rounded border cursor-move transition-all ${
-                              snapshot.isDragging
-                                ? 'bg-slate-600 shadow-lg'
-                                : 'bg-slate-800 border-slate-600 hover:border-slate-500'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-white truncate">{lead.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{lead.company}</p>
-                              </div>
-                              <span
-                                className="text-xs font-bold px-2 py-1 rounded ml-2 whitespace-nowrap"
-                                style={{ backgroundColor: `${stage.color}20`, color: stage.color }}
-                              >
-                                {lead.probability}%
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-bold text-emerald-400">{formatCurrency(lead.value)}</p>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
+            <div
+              key={stage.id}
+              className="flex-1 min-w-max md:min-w-0 bg-slate-700/50 rounded-lg p-4 transition-all"
+            >
+              {/* Header */}
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-white mb-1">{stage.label}</h4>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    {leadsByStage[stage.id].length} lead(s)
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: stage.color }}>
+                    {formatCurrency(calculateTotalByStage(leads, stage.id))}
+                  </span>
                 </div>
-              )}
-            </Droppable>
+              </div>
+
+              {/* Lead Cards */}
+              <SortableContext items={leadsByStage[stage.id].map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2 min-h-20">
+                  {leadsByStage[stage.id].map((lead) => (
+                    <DraggableLeadCard
+                      key={lead.id}
+                      lead={lead}
+                      stage={stage}
+                      isSelected={selectedLead?.id === lead.id}
+                      onSelect={setSelectedLead}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </div>
           ))}
         </div>
-      </DragDropContext>
+      </DndContext>
 
       {/* Lead Details Modal */}
       {selectedLead && (
