@@ -5,10 +5,19 @@
 
 import { useAutomationState } from './useAutomationState';
 import { BrowserPreview } from './BrowserPreview';
+import { NavigationInput } from './NavigationInput';
 
 export function AutomationDashboard() {
-  const { latestScreenshot, loading, error, history, captureScreenshot, clearError } =
-    useAutomationState();
+  const {
+    latestScreenshot,
+    loading,
+    error,
+    history,
+    navigationInProgress,
+    captureScreenshot,
+    navigate,
+    clearError,
+  } = useAutomationState();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -49,16 +58,29 @@ export function AutomationDashboard() {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Preview - Takes 2 columns on desktop */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4">
+            {/* Browser Preview */}
             <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
                 Visualização do Browser
               </h2>
               <BrowserPreview
                 screenshotData={latestScreenshot}
-                loading={loading}
+                loading={loading || navigationInProgress}
                 onCapture={captureScreenshot}
                 error={error}
+              />
+            </div>
+
+            {/* Navigation Input */}
+            <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-4">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                Navegação
+              </h2>
+              <NavigationInput
+                loading={navigationInProgress}
+                onNavigate={navigate}
+                error={navigationInProgress ? undefined : error}
               />
             </div>
           </div>

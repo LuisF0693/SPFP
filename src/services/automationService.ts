@@ -29,6 +29,16 @@ export interface AutomationAction {
   details?: string;
 }
 
+export interface NavigationResult {
+  id: string;
+  url: string;
+  success: boolean;
+  timestamp: string;
+  screenshotId?: string;
+  error?: string;
+  loadTime?: number;
+}
+
 // ============================================================================
 // Service Implementation
 // ============================================================================
@@ -95,6 +105,90 @@ class AutomationService {
       this.updateAction(action);
 
       throw new Error(`Falha ao capturar screenshot: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Navega para uma URL e captura screenshot automaticamente após carregamento
+   * @param url URL para navegar (com ou sem protocolo)
+   * @returns Promise<NavigationResult>
+   */
+  async navigate(url: string): Promise<NavigationResult> {
+    const actionId = crypto.randomUUID();
+    const startTime = Date.now();
+
+    const action: AutomationAction = {
+      id: actionId,
+      type: 'navigate',
+      status: 'running',
+      timestamp: new Date().toISOString(),
+      params: { url },
+    };
+
+    this.recordAction(action);
+
+    try {
+      // Validar URL
+      try {
+        new URL(url);
+      } catch {
+        throw new Error('URL inválida');
+      }
+
+      // Chamar MCP Playwright para navegar
+      await this.callMCPPlaywright('mcp__playwright__browser_navigate', {
+        url,
+        timeout: this.MCP_TIMEOUT,
+      });
+
+      const loadTime = Date.now() - startTime;
+
+      // Capturar screenshot automaticamente após navegação bem-sucedida
+      let screenshotId: string | undefined;
+      try {
+        const screenshot = await this.captureScreenshot();
+        screenshotId = screenshot.id;
+      } catch (err) {
+        console.warn('Screenshot pós-navegação falhou:', err);
+      }
+
+      const result: NavigationResult = {
+        id: actionId,
+        url,
+        success: true,
+        timestamp: action.timestamp,
+        screenshotId,
+        loadTime,
+      };
+
+      action.status = 'success';
+      action.result = result;
+      action.details = `Navegou para ${url}`;
+      action.duration = loadTime;
+
+      this.updateAction(action);
+
+      return result;
+    } catch (error: any) {
+      const loadTime = Date.now() - startTime;
+      const errorMsg = error.message || 'Falha ao navegar';
+
+      action.status = 'error';
+      action.error = errorMsg;
+      action.duration = loadTime;
+
+      this.updateAction(action);
+
+      const result: NavigationResult = {
+        id: actionId,
+        url,
+        success: false,
+        timestamp: action.timestamp,
+        error: errorMsg,
+        loadTime,
+      };
+
+      throw result;
     }
   }
 
