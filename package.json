@@ -26,6 +26,7 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@google/generative-ai": "^0.24.1",
+    "date-fns": "^3.6.0",
     "phaser": "^3.80.1",
     "pixi.js": "^8.6.6",
     "@supabase/supabase-js": "^2.89.0",
