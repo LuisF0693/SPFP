@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useVirtualOffice } from '@/context/VirtualOfficeContext';
+import { FinancialDashboard } from './FinancialDashboard';
 
 export function DashboardDrawer() {
   const { selectedRoom, isModalOpen, closeModal } = useVirtualOffice();
@@ -50,38 +51,42 @@ export function DashboardDrawer() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-700/50 rounded-lg">
-              <h3 className="text-sm font-semibold text-slate-300 mb-2">Informações da Sala</h3>
-              <dl className="space-y-2 text-sm">
-                <div>
-                  <dt className="text-slate-400">Departamento:</dt>
-                  <dd className="text-white font-medium">{selectedRoom.department}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-400">Posição:</dt>
-                  <dd className="text-white font-medium">
-                    X: {selectedRoom.x}, Y: {selectedRoom.y}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-slate-400">Tamanho:</dt>
-                  <dd className="text-white font-medium">
-                    {selectedRoom.width} x {selectedRoom.height} tiles
-                  </dd>
-                </div>
-              </dl>
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          {selectedRoom.department === 'financeiro' && <FinancialDashboard />}
 
-            {/* Placeholder for dashboard content */}
-            <div className="p-4 bg-slate-700/50 rounded-lg">
-              <h3 className="text-sm font-semibold text-slate-300 mb-2">Dashboard</h3>
-              <p className="text-slate-400 text-sm">
-                Dashboard de {selectedRoom.name} será carregado aqui em breve...
-              </p>
+          {selectedRoom.department !== 'financeiro' && (
+            <div className="p-6 space-y-4">
+              <div className="p-4 bg-slate-700/50 rounded-lg">
+                <h3 className="text-sm font-semibold text-slate-300 mb-2">Informações da Sala</h3>
+                <dl className="space-y-2 text-sm">
+                  <div>
+                    <dt className="text-slate-400">Departamento:</dt>
+                    <dd className="text-white font-medium">{selectedRoom.department}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-slate-400">Posição:</dt>
+                    <dd className="text-white font-medium">
+                      X: {selectedRoom.x}, Y: {selectedRoom.y}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-slate-400">Tamanho:</dt>
+                    <dd className="text-white font-medium">
+                      {selectedRoom.width} x {selectedRoom.height} tiles
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Placeholder for other dashboards */}
+              <div className="p-4 bg-slate-700/50 rounded-lg">
+                <h3 className="text-sm font-semibold text-slate-300 mb-2">Dashboard</h3>
+                <p className="text-slate-400 text-sm">
+                  Dashboard de {selectedRoom.name} será carregado aqui em breve...
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Footer */}
