@@ -50,16 +50,16 @@ export const SalesPage: React.FC = () => {
 
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-900/20 border border-blue-500/20 mb-10 animate-fade-in relative z-10">
                         <span className="w-2 h-2 rounded-full bg-blue-400 mr-3 animate-pulse"></span>
-                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Planejador Financeiro Premium</span>
+                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Inteligência Patrimonial Premium</span>
                     </div>
 
                     <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto animate-slide-up relative z-10">
-                        Consultor IA totalmente dedicado <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600">às suas finanças 24/7</span>
+                        Sua liberdade financeira <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600">começa no controle</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light mb-14 animate-fade-in delay-300 relative z-10">
-                        Planejamento financeiro inteligente para empreendedores que querem crescer sem perder o controle do dinheiro.
+                        Domine cada centavo com a tecnologia mais avançada em gestão de patrimônio. Simples o suficiente para o dia a dia, potente o suficiente para investidores.
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in delay-500 relative z-10">
