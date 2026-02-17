@@ -6,13 +6,13 @@ import {
     Users, Search, Eye, Clock, User, Mail, Database,
     ArrowRight, ShieldCheck, AlertCircle, TrendingUp,
     Activity, Zap, Shield, UserCheck, Inbox, Sparkles,
-    Loader2, ChevronDown
+    Loader2
 } from 'lucide-react';
 import { chatWithAI } from '../services/aiService';
 import { getInteractionLogs, InteractionLog } from '../services/logService';
 import { calculateHealthScore, ClientEntry } from '../utils/crmUtils';
 import { Modal } from './ui/Modal';
-import { CRMDashboard } from './crm';
+import { UnifiedClientModal } from './crm/UnifiedClientModal';
 
 /**
  * Admin CRM component.
@@ -22,11 +22,12 @@ import { CRMDashboard } from './crm';
 export const AdminCRM: React.FC = () => {
     const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useSafeFinance();
     const { user } = useAuth();
-    const [adminTab, setAdminTab] = useState<'usuarios' | 'crm'>('usuarios');
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [selectedClient, setSelectedClient] = useState<ClientEntry | null>(null);
+    const [showUnifiedModal, setShowUnifiedModal] = useState(false);
 
     // Briefing state
     const [briefings, setBriefings] = useState<Record<string, string>>({});
@@ -161,37 +162,13 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
         );
     }
 
+    const handleClientCardClick = (client: ClientEntry) => {
+        setSelectedClient(client);
+        setShowUnifiedModal(true);
+    };
+
     return (
         <div className="animate-fade-in max-w-7xl mx-auto pb-20 p-4 space-y-8">
-            {/* Tab Switch */}
-            <div className="flex items-center gap-4 mb-8">
-                <button
-                    onClick={() => setAdminTab('usuarios')}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                        adminTab === 'usuarios'
-                            ? 'bg-accent text-white shadow-lg shadow-accent/20'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
-                    }`}
-                >
-                    <Users size={18} />
-                    Usuários da Plataforma
-                </button>
-                <button
-                    onClick={() => setAdminTab('crm')}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                        adminTab === 'crm'
-                            ? 'bg-accent text-white shadow-lg shadow-accent/20'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
-                    }`}
-                >
-                    <Database size={18} />
-                    CRM de Clientes
-                </button>
-            </div>
-
-            {/* ABA: Usuários da Plataforma */}
-            {adminTab === 'usuarios' && (
-            <div className="space-y-8">
             {/* Admin Header & Vision */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-4">
                 <div className="relative">
@@ -375,14 +352,21 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                             </div>
 
                             {/* Card Footer Actions */}
-                            <button
-                                onClick={() => loadClientData(client.user_id)}
-                                disabled={isSyncing}
-                                className="mt-auto w-full py-3 bg-white/5 hover:bg-accent hover:text-white border-t border-white/5 text-xs font-bold text-gray-400 uppercase tracking-widest transition-all flex items-center justify-center group/btn"
-                            >
-                                Acessar Conta
-                                <ArrowRight size={14} className="ml-2 transform group-hover/btn:translate-x-1 transition-transform" />
-                            </button>
+                            <div className="mt-auto grid grid-cols-2 gap-2 p-4 border-t border-white/5 bg-white/5">
+                                <button
+                                    onClick={() => handleClientCardClick(client)}
+                                    className="py-2 bg-accent rounded-lg text-white font-semibold text-xs hover:bg-accent/80 transition-all flex items-center justify-center"
+                                >
+                                    CRM <ArrowRight size={12} className="ml-1" />
+                                </button>
+                                <button
+                                    onClick={() => loadClientData(client.user_id)}
+                                    disabled={isSyncing}
+                                    className="py-2 bg-white/10 rounded-lg text-gray-300 font-semibold text-xs hover:bg-white/20 transition-all flex items-center justify-center disabled:opacity-50"
+                                >
+                                    Acessar
+                                </button>
+                            </div>
                         </div>
                     );
                 })}
@@ -396,13 +380,16 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                     </div>
                 )}
             </div>
-            </div>
-            )}
 
-            {/* ABA: CRM de Clientes */}
-            {adminTab === 'crm' && (
-                <CRMDashboard />
-            )}
+            {/* Unified Client Modal */}
+            <UnifiedClientModal
+                isOpen={showUnifiedModal}
+                clientEntry={selectedClient}
+                onClose={() => {
+                    setShowUnifiedModal(false);
+                    setSelectedClient(null);
+                }}
+            />
 
             <Modal
                 isOpen={!!showTimeline}
