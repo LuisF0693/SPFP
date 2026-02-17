@@ -90,6 +90,7 @@ body {
   mask-composite: exclude;
   opacity: 0;
   transition: var(--transition);
+  pointer-events: none; /* FIX: Allow clicks to pass through to buttons */
 }
 
 .card-hover-premium:hover::before {
