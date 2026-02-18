@@ -62,8 +62,10 @@ export const useStripeCheckout = (): UseStripeCheckoutResult => {
         }
       );
 
-      if (response.url) {
-        window.location.href = response.url;
+      // Backend returns { data: { url } } or { url } depending on structure
+      const checkoutUrl = response.data?.url || response.url;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       } else {
         throw new Error('URL de checkout não retornada do servidor');
       }
