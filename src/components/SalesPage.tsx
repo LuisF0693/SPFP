@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
-import { Check, X, ArrowRight, MessageCircle, Bot, Users, Calendar } from 'lucide-react';
+import { PricingCard } from './PricingCard';
+import { ArrowRight, MessageCircle, Bot, Users, Calendar } from 'lucide-react';
 
 export const SalesPage: React.FC = () => {
     const navigate = useNavigate();
@@ -131,45 +132,39 @@ export const SalesPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                        {/* Plan 1: 99,90 */}
+                    <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                        {/* Plan 1: Essencial (99) */}
                         <PricingCard
                             title="Essencial"
-                            price="99,90"
+                            price={99}
                             description="Ideal para quem busca organização e simplicidade."
+                            isPopular={true}
+                            priceIds={{
+                                parcelado: process.env.VITE_STRIPE_PRICE_99_PARCELADO || '',
+                                mensal: process.env.VITE_STRIPE_PRICE_99_MENSAL || '',
+                            }}
                             features={[
                                 { text: "Acesso completo ao App", included: true },
                                 { text: "Whatsapp Limitado", included: true, highlight: "Suporte" },
                                 { text: "Controle de Gastos", included: true },
                                 { text: "Gerenciamento Manual", included: true },
                                 { text: "Relatórios Básicos", included: true },
-                                { text: "Consultor IA", included: false },
+                                { text: "Consultor IA", included: true },
                             ]}
                         />
 
-                        {/* Plan 2: 149,90 - Featured */}
-                        <PricingCard
-                            title="Estratégico"
-                            price="149,90"
-                            description="Para quem quer crescer patrimônio com ajuda da IA."
-                            featured={true}
-                            features={[
-                                { text: "Tudo do plano Essencial", included: true },
-                                { text: "Consultor IA 24/7", included: true, icon: <Bot size={16} /> },
-                                { text: "Suporte via WhatsApp", included: true, highlight: "Premium" },
-                                { text: "Análise de Portfólio", included: true },
-                                { text: "Indicação de Otimização", included: true },
-                                { text: "Consultoria Individual", included: false },
-                            ]}
-                        />
-
-                        {/* Plan 3: 349,90 */}
+                        {/* Plan 2: Wealth Mentor (349) - Featured */}
                         <PricingCard
                             title="Wealth Mentor"
-                            price="349,90"
+                            price={349}
                             description="Gestão de elite com acompanhamento personalizado."
+                            featured={true}
+                            priceIds={{
+                                parcelado: process.env.VITE_STRIPE_PRICE_349_PARCELADO || '',
+                                mensal: process.env.VITE_STRIPE_PRICE_349_MENSAL || '',
+                            }}
                             features={[
-                                { text: "Tudo do plano Estratégico", included: true },
+                                { text: "Tudo do plano Essencial", included: true },
                                 { text: "Whatsapp Ilimitado", included: true, icon: <MessageCircle size={16} /> },
                                 { text: "Consultoria Individual", included: true, icon: <Users size={16} /> },
                                 { text: "Mentoria de Aulas", included: true },
@@ -237,75 +232,3 @@ const BenefitCard: React.FC<{ icon: React.ReactNode, title: string, text: string
         <p className="text-gray-400 leading-relaxed font-light">{text}</p>
     </div>
 );
-
-interface PricingCardProps {
-    title: string;
-    price: string;
-    description: string;
-    features: {
-        text: string;
-        included: boolean;
-        highlight?: string;
-        icon?: React.ReactNode;
-    }[];
-    featured?: boolean;
-    checkoutUrl?: string;
-}
-
-const PricingCard: React.FC<PricingCardProps> = ({ title, price, description, features, featured = false, checkoutUrl = "https://infinitypay.io/checkout/spfp" }) => {
-    return (
-        <div className={`relative p-10 rounded-[2.5rem] border flex flex-col transition-all duration-500 hover:-translate-y-3 group
-      ${featured
-                ? 'bg-gradient-to-b from-blue-900/20 to-black border-blue-500/50 shadow-[0_40px_100px_rgba(37,99,235,0.15)] ring-1 ring-blue-500/30'
-                : 'bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.05]'
-            }`}
-        >
-            {featured && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg">
-                    Mais Popular
-                </div>
-            )}
-
-            <div className="mb-10 text-center">
-                <h3 className={`text-3xl font-serif font-bold mb-3 ${featured ? 'text-white' : 'text-gray-200'}`}>{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed min-h-[48px] px-4">{description}</p>
-            </div>
-
-            <div className="mb-12 text-center">
-                <div className="flex items-center justify-center gap-1">
-                    <span className="text-gray-400 text-sm font-medium mt-2">R$</span>
-                    <span className="text-6xl font-bold text-white tracking-tighter drop-shadow-2xl">{price.split(',')[0]}</span>
-                    <span className="text-2xl font-bold text-blue-400/80">,{price.split(',')[1]}</span>
-                </div>
-                <span className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-2 block">Por mês</span>
-            </div>
-
-            <ul className="space-y-5 mb-12 flex-1">
-                {features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-4 text-sm group/item">
-                        <div className={`mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${feature.included ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-600'}`}>
-                            {feature.included ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
-                        </div>
-                        <span className={`transition-colors duration-300 ${feature.included ? 'text-gray-300 group-hover/item:text-white' : 'text-gray-600 line-through'}`}>
-                            {feature.text} {feature.highlight && <span className="text-[9px] font-bold uppercase bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-lg ml-2 border border-blue-500/20 tracking-tighter">{feature.highlight}</span>}
-                        </span>
-                        {feature.icon && <div className="ml-auto text-blue-400/50 group-hover/item:text-blue-400 transition-colors">{feature.icon}</div>}
-                    </li>
-                ))}
-            </ul>
-
-            <a
-                href={checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-5 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 block text-center
-        ${featured
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/25 border border-white/10'
-                    : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30'
-                }`}
-            >
-                Assine Agora!
-            </a>
-        </div>
-    );
-};

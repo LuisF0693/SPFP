@@ -38,6 +38,8 @@ const RetirementAdvanced = React.lazy(() => import('./components/retirement').th
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
 const CorporateHQ = React.lazy(() => import('./components/corporate').then(m => ({ default: m.CorporateHQ })));
 const AutomationDashboard = React.lazy(() => import('./components/automation').then(m => ({ default: m.AutomationDashboard })));
+const CheckoutSuccess = React.lazy(() => import('./components/pages/CheckoutSuccess').then(m => ({ default: m.CheckoutSuccess })));
+const CheckoutCancel = React.lazy(() => import('./components/pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
 // FutureCashFlow component removed - replaced by RetirementAdvanced (Projeções descontinuado)
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -103,6 +105,9 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={!user ? <Suspense fallback={<RouteLoadingBoundary />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
 
         <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <Suspense fallback={<RouteLoadingBoundary />}><SalesPage /></Suspense>} />
+
+        <Route path="/checkout-success" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutSuccess /></Suspense>} />
+        <Route path="/checkout-cancel" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutCancel /></Suspense>} />
 
         <Route path="/dashboard" element={
           <PrivateRoute>
