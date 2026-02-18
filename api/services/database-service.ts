@@ -321,10 +321,10 @@ export async function getUserActiveSubscription(userId: string): Promise<StripeS
  */
 export function getPlanAmountFromPriceId(priceId: string): number {
   const priceMap: Record<string, number> = {
-    'price_1T1yllIZBkfjgy2X30qaXxQo': 9900, // $99 parcelado
-    'price_1T1ym7IZBkfjgy2XXytc5SOt': 34900, // $349 parcelado
-    'price_1T1ymVIZBkfjgy2XABCDEfGh': 9900, // $99 mensal
-    'price_1T1ymkIZBkfjgy2XIJKLMNOp': 34900, // $349 mensal
+    'price_1T1yllIZBkfjgy2X30qaXxQo': 9900, // R$99 parcelado
+    'price_1T1ym7IZBkfjgy2XXytc5SOt': 9900, // R$99 mensal
+    'price_1T1ymOIZBkfjgy2XPWFYJSGi': 34900, // R$349 parcelado
+    'price_1T1ymeIZBkfjgy2XtLyCqyBE': 34900, // R$349 mensal
   };
 
   return priceMap[priceId] || 0;
@@ -335,8 +335,8 @@ export function getPlanAmountFromPriceId(priceId: string): number {
  */
 export function getPlanTypeFromPriceId(priceId: string): 'parcelado' | 'mensal' {
   const parceladoPrices = [
-    'price_1T1yllIZBkfjgy2X30qaXxQo',
-    'price_1T1ym7IZBkfjgy2XXytc5SOt',
+    'price_1T1yllIZBkfjgy2X30qaXxQo', // R$99 parcelado
+    'price_1T1ymOIZBkfjgy2XPWFYJSGi', // R$349 parcelado
   ];
 
   return parceladoPrices.includes(priceId) ? 'parcelado' : 'mensal';

@@ -38,14 +38,11 @@ async function handler(req: VercelRequest, res: VercelResponse<ApiResponse>) {
   }
 
   try {
-    // Authenticate user
+    // Try to authenticate user (optional - allows guest checkout)
     const auth = await authMiddleware(req);
-    if (!auth) {
-      return sendAuthError(res, 'Missing or invalid authentication token');
-    }
 
     // Validate request body
-    const { priceId, metadata } = req.body as Partial<StripeCheckoutSessionRequest>;
+    const { priceId, metadata, email: requestEmail } = req.body as Partial<StripeCheckoutSessionRequest & { email?: string }>;
 
     if (!priceId) {
       return sendValidationError(res, 'Missing required field: priceId');
@@ -59,11 +56,15 @@ async function handler(req: VercelRequest, res: VercelResponse<ApiResponse>) {
       return sendValidationError(res, 'Invalid price ID');
     }
 
+    // Use authenticated user info or guest checkout
+    const userEmail = auth?.email || requestEmail || undefined;
+    const userId = auth?.userId || 'guest_' + Date.now();
+
     // Create checkout session with Stripe
     const sessionResult = await createCheckoutSession({
       priceId,
-      email: auth.email,
-      userId: auth.userId,
+      email: userEmail || '',
+      userId,
       planType,
       metadata,
     });

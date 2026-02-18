@@ -45,7 +45,7 @@ export async function createCheckoutSession(
   try {
     const session = await withErrorRecovery(
       async () => {
-        return await stripe.checkout.sessions.create({
+        const sessionConfig: any = {
           payment_method_types: ['card'],
           mode: 'payment',
           line_items: [
@@ -54,10 +54,9 @@ export async function createCheckoutSession(
               quantity: 1,
             },
           ],
-          customer_email: email,
           client_reference_id: userId,
-          success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/cancel`,
+          success_url: `${process.env.FRONTEND_URL || 'https://spfp.vercel.app'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.FRONTEND_URL || 'https://spfp.vercel.app'}/checkout/cancel`,
           payment_intent_data: {
             metadata: {
               user_id: userId,
@@ -70,7 +69,14 @@ export async function createCheckoutSession(
             plan_type: planType,
             ...metadata,
           },
-        });
+        };
+
+        // Only add customer_email if provided (allows Stripe to collect it)
+        if (email) {
+          sessionConfig.customer_email = email;
+        }
+
+        return await stripe.checkout.sessions.create(sessionConfig);
       },
       'Create Stripe checkout session',
       {
