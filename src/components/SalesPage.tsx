@@ -140,8 +140,8 @@ export const SalesPage: React.FC = () => {
                             description="Ideal para quem busca organização e simplicidade."
                             isPopular={true}
                             priceIds={{
-                                parcelado: process.env.VITE_STRIPE_PRICE_99_PARCELADO || '',
-                                mensal: process.env.VITE_STRIPE_PRICE_99_MENSAL || '',
+                                parcelado: import.meta.env.VITE_STRIPE_PRICE_99_PARCELADO || '',
+                                mensal: import.meta.env.VITE_STRIPE_PRICE_99_MENSAL || '',
                             }}
                             features={[
                                 { text: "Acesso completo ao App", included: true },
@@ -160,8 +160,8 @@ export const SalesPage: React.FC = () => {
                             description="Gestão de elite com acompanhamento personalizado."
                             featured={true}
                             priceIds={{
-                                parcelado: process.env.VITE_STRIPE_PRICE_349_PARCELADO || '',
-                                mensal: process.env.VITE_STRIPE_PRICE_349_MENSAL || '',
+                                parcelado: import.meta.env.VITE_STRIPE_PRICE_349_PARCELADO || '',
+                                mensal: import.meta.env.VITE_STRIPE_PRICE_349_MENSAL || '',
                             }}
                             features={[
                                 { text: "Tudo do plano Essencial", included: true },
