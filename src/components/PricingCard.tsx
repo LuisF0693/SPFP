@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { useStripeSubscription } from '../hooks/useStripeSubscription';
@@ -40,6 +41,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   featured = false,
   isPopular = false,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { loading: checkoutLoading, error: checkoutError, initiateCheckout } = useStripeCheckout();
   const { loading: subscriptionLoading, error: subscriptionError, createSubscription } = useStripeSubscription();
@@ -65,7 +67,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
     }
 
     if (!user) {
-      setActiveError('É necessário estar conectado para assinar um plano mensal.');
+      // Salvar priceId para completar após login
+      localStorage.setItem('pendingSubscriptionPriceId', priceIds.mensal);
+      localStorage.setItem('pendingSubscriptionPlanTitle', title);
+      // Redirecionar para login
+      navigate('/login?redirect=subscription');
       return;
     }
 

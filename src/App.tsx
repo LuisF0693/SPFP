@@ -1,5 +1,6 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useStripeSubscription } from './hooks/useStripeSubscription';
 import { I18nextProvider } from 'react-i18next';
 import i18next from './i18n/config';
 import { FinanceProvider } from './context/FinanceContext';
@@ -64,7 +65,9 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const AppContent: React.FC = () => {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useSafeFinance();
+  const { createSubscription } = useStripeSubscription();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  const [processingPendingSubscription, setProcessingPendingSubscription] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,6 +81,34 @@ const AppContent: React.FC = () => {
       });
     }
   }, [user, isInitialLoadComplete, isImpersonating, userProfile.email, updateUserProfile]);
+
+  // Processa assinatura pendente após login (quando usuário veio da landing page)
+  useEffect(() => {
+    const processPendingSubscription = async () => {
+      if (!user || processingPendingSubscription) return;
+
+      const pendingPriceId = localStorage.getItem('pendingSubscriptionPriceId');
+      if (!pendingPriceId) return;
+
+      setProcessingPendingSubscription(true);
+
+      try {
+        // Limpa o localStorage antes de processar
+        localStorage.removeItem('pendingSubscriptionPriceId');
+        localStorage.removeItem('pendingSubscriptionPlanTitle');
+
+        // Processa a assinatura
+        await createSubscription(pendingPriceId);
+      } catch (error) {
+        console.error('Erro ao processar assinatura pendente:', error);
+        // Se falhar, o usuário pode tentar novamente na página de preços
+      } finally {
+        setProcessingPendingSubscription(false);
+      }
+    };
+
+    processPendingSubscription();
+  }, [user, createSubscription, processingPendingSubscription]);
 
   // Show loading while auth is initializing
   if (authLoading) {

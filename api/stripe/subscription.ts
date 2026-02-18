@@ -1,127 +1,99 @@
 /**
  * POST /api/stripe/subscription
- * Creates or retrieves a Stripe subscription
- *
- * Request:
- * {
- *   "priceId": "price_...",
- *   "metadata": { ... }
- * }
- *
- * Response:
- * {
- *   "status": "success",
- *   "data": {
- *     "subscriptionId": "sub_...",
- *     "customerId": "cus_...",
- *     "status": "active"
- *   }
- * }
+ * Creates a Stripe checkout session for subscription (recurring payment)
+ * Simplified version without complex relative imports
  */
 
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import { authMiddleware, sendAuthError, sendValidationError } from '../middleware/auth';
-import { createSubscription } from '../services/stripe-service';
-import {
-  saveSubscription,
-  getUserActiveSubscription,
-  getPlanAmountFromPriceId,
-} from '../services/database-service';
-import { ApiResponse, StripeSubscriptionRequest } from '../types';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import Stripe from 'stripe';
 
-async function handler(req: VercelRequest, res: VercelResponse<ApiResponse>) {
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2024-06-20',
+});
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only accept POST
   if (req.method !== 'POST') {
     return res.status(405).json({
       status: 'error',
-      error: {
-        code: 'METHOD_NOT_ALLOWED',
-        message: 'Only POST requests are allowed',
-      },
+      error: { code: 'METHOD_NOT_ALLOWED', message: 'Only POST requests allowed' },
     });
   }
 
   try {
-    // Authenticate user
-    const auth = await authMiddleware(req);
-    if (!auth) {
-      return sendAuthError(res, 'Missing or invalid authentication token');
-    }
+    const { priceId, email, userId } = req.body || {};
 
-    // Validate request body
-    const { priceId, metadata } = req.body as Partial<StripeSubscriptionRequest>;
-
+    // Validate required fields
     if (!priceId) {
-      return sendValidationError(res, 'Missing required field: priceId');
-    }
-
-    // Check if user already has an active subscription
-    const activeSubscription = await getUserActiveSubscription(auth.userId);
-    if (activeSubscription) {
       return res.status(400).json({
         status: 'error',
-        error: {
-          code: 'SUBSCRIPTION_ALREADY_EXISTS',
-          message: 'User already has an active subscription',
-          details: {
-            subscriptionId: activeSubscription.subscription_id,
-          },
-        },
+        error: { code: 'VALIDATION_ERROR', message: 'Missing priceId' },
       });
     }
 
-    // Create subscription with Stripe
-    const subscriptionResult = await createSubscription({
-      priceId,
-      email: auth.email,
-      userId: auth.userId,
-      metadata,
-    });
-
-    if (!subscriptionResult.subscriptionId) {
-      return res.status(500).json({
+    if (!email) {
+      return res.status(400).json({
         status: 'error',
-        error: {
-          code: 'SUBSCRIPTION_CREATION_FAILED',
-          message: 'Failed to create subscription',
-        },
+        error: { code: 'VALIDATION_ERROR', message: 'Missing email - login required for subscriptions' },
       });
     }
 
-    // Save subscription to database
-    const saved = await saveSubscription(
-      auth.userId,
-      subscriptionResult.subscriptionId,
-      subscriptionResult.customerId,
-      priceId,
-      subscriptionResult.status as 'active' | 'past_due' | 'cancelled'
-    );
+    // Create Stripe checkout session for subscription
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      customer_email: email,
+      client_reference_id: userId || email,
+      success_url: `${process.env.FRONTEND_URL || 'https://spfp.vercel.app'}/checkout/success?session_id={CHECKOUT_SESSION_ID}&type=subscription`,
+      cancel_url: `${process.env.FRONTEND_URL || 'https://spfp.vercel.app'}/checkout/cancel`,
+      metadata: {
+        user_id: userId || '',
+        source: 'landing_page',
+        plan_type: 'mensal',
+        timestamp: new Date().toISOString(),
+      },
+      subscription_data: {
+        metadata: {
+          user_id: userId || '',
+        },
+      },
+    };
 
-    if (!saved) {
-      console.warn('Failed to save subscription to database, but Stripe subscription was created');
-    }
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
-    // Return success response
     return res.status(200).json({
       status: 'success',
       data: {
-        subscriptionId: subscriptionResult.subscriptionId,
-        customerId: subscriptionResult.customerId,
-        status: subscriptionResult.status,
+        sessionId: session.id,
+        url: session.url,
       },
-      message: 'Subscription created successfully',
     });
-  } catch (error) {
-    console.error('Error creating subscription:', error);
+  } catch (error: any) {
+    console.error('Subscription error:', error);
 
     return res.status(500).json({
       status: 'error',
       error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create subscription. Please try again.',
+        code: 'INTERNAL_ERROR',
+        message: error.message || 'Failed to create subscription session',
       },
     });
   }
 }
-
-export default handler;

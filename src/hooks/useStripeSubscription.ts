@@ -34,7 +34,7 @@ export const useStripeSubscription = (): UseStripeSubscriptionResult => {
     setError(null);
 
     try {
-      await withErrorRecovery(
+      const response = await withErrorRecovery(
         async () => {
           const res = await fetch('/api/stripe/subscription', {
             method: 'POST',
@@ -70,9 +70,13 @@ export const useStripeSubscription = (): UseStripeSubscriptionResult => {
         }
       );
 
-      // Assinatura criada com sucesso
-      // Redirecionar para dashboard ou página de sucesso
-      window.location.href = '/checkout-success?type=subscription';
+      // Redirecionar para Stripe Checkout
+      const checkoutUrl = response.data?.url || response.url;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error('URL de checkout não retornada do servidor');
+      }
     } catch (err: any) {
       const message = err.userMessage || err.message || 'Erro ao criar assinatura. Tente novamente.';
       setError(message);
