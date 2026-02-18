@@ -26,10 +26,11 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.89.0",
+    "@vercel/node": "^3.1.1",
     "date-fns": "^3.6.0",
     "phaser": "^3.80.1",
     "pixi.js": "^8.6.6",
-    "@supabase/supabase-js": "^2.89.0",
     "i18next": "^24.2.1",
     "i18next-browser-languagedetector": "^8.0.0",
     "jspdf": "^3.0.4",
@@ -43,6 +44,7 @@
     "react-router-dom": "^7.11.0",
     "recharts": "^3.5.1",
     "remark-gfm": "^4.0.1",
+    "stripe": "^14.0.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
