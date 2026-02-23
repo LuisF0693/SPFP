@@ -28,6 +28,7 @@ const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
+const TransformePage = React.lazy(() => import('./components/TransformePage').then(m => ({ default: m.TransformePage })));
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
 const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
@@ -136,6 +137,8 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={!user ? <Suspense fallback={<RouteLoadingBoundary />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
 
         <Route path="/" element={user ? (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />) : <Suspense fallback={<RouteLoadingBoundary />}><SalesPage /></Suspense>} />
+
+        <Route path="/transforme" element={<Suspense fallback={<RouteLoadingBoundary />}><TransformePage /></Suspense>} />
 
         <Route path="/checkout-success" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutSuccess /></Suspense>} />
         <Route path="/checkout-cancel" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutCancel /></Suspense>} />
