@@ -14,7 +14,7 @@ export const Hero: React.FC = () => {
 
   return (
     <>
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-blue-50 to-white">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent" />
 
@@ -24,7 +24,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900"
+            className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-950"
           >
             Planeje suas finanças em minutos, não horas.
           </motion.h1>
@@ -33,7 +33,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl mb-8 text-gray-600 leading-relaxed"
+            className="text-xl md:text-2xl mb-8 text-gray-700 leading-relaxed"
           >
             Com inteligência artificial que entende VOCÊ
           </motion.p>
@@ -65,7 +65,7 @@ export const Hero: React.FC = () => {
             transition={{ repeat: Infinity, duration: 2 }}
             className="mt-16"
           >
-            <ChevronDown className="w-8 h-8 mx-auto text-gray-400" />
+            <ChevronDown className="w-8 h-8 mx-auto text-blue-600" />
           </motion.div>
         </div>
       </section>
