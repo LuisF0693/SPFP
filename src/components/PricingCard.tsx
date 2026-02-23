@@ -171,11 +171,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
 
       {/* Action Buttons */}
       <div className="space-y-3">
-        {/* 12x Parcelado Button */}
+        {/* Cartão de Crédito Button */}
         <button
           onClick={handleParcelado}
           disabled={loading}
-          className={`w-full py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
+          className={`w-full py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 flex flex-col items-center justify-center gap-2
           ${featured || isPopular
             ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/25 border border-white/10'
             : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30'
@@ -189,33 +189,42 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             </>
           ) : (
             <>
-              💳 12x de R$ {(price / 12).toFixed(2).replace('.', ',')}
+              <span>💳 Cartão de Crédito</span>
+              <span className="text-[11px] font-medium opacity-90">12x de R$ {(price / 12).toFixed(2).replace('.', ',')}</span>
             </>
           )}
         </button>
 
-        {/* R$ XX/mês Button */}
-        <button
-          onClick={handleMensal}
-          disabled={loading}
-          className={`w-full py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
-          ${featured || isPopular
-            ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30'
-          }
-          ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Processando...
-            </>
-          ) : (
-            <>
-              📅 R$ {price.toFixed(2).replace('.', ',')} / mês
-            </>
-          )}
-        </button>
+        {/* Assinatura Button */}
+        <div className="space-y-2">
+          <button
+            onClick={handleMensal}
+            disabled={loading}
+            className={`w-full py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 flex flex-col items-center justify-center gap-2
+            ${featured || isPopular
+              ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30'
+            }
+            ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <span>📅 Assinatura</span>
+                <span className="text-[11px] font-medium opacity-90">R$ {price.toFixed(2).replace('.', ',')} / mês</span>
+              </>
+            )}
+          </button>
+
+          {/* PS - Small Text */}
+          <p className="text-[10px] text-gray-500 text-center font-light leading-tight px-2">
+            Modelo recorrente sem consumir o limite do cartão
+          </p>
+        </div>
       </div>
     </div>
   );

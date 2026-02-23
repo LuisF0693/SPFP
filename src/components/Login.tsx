@@ -10,6 +10,8 @@ export const Login: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successEmail, setSuccessEmail] = useState('');
 
   // Form State
   const [email, setEmail] = useState('');
@@ -36,6 +38,16 @@ export const Login: React.FC = () => {
     try {
       if (isRegistering) {
         await registerWithEmail(email, password, name);
+        // Mostrar modal de sucesso
+        setSuccessEmail(email);
+        setShowSuccessModal(true);
+        setIsLoading(false);
+        // Limpar formulário
+        setTimeout(() => {
+          setEmail('');
+          setPassword('');
+          setName('');
+        }, 1000);
       } else {
         await signInWithEmail(email, password);
       }
@@ -60,6 +72,7 @@ export const Login: React.FC = () => {
     setName('');
     setEmail('');
     setPassword('');
+    setShowSuccessModal(false);
   };
 
   return (
@@ -191,6 +204,51 @@ export const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Modal - Cadastro Efetuado */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-[9999] bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-black/80 border border-green-500/30 rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl animate-slide-up relative overflow-hidden">
+            {/* Brilho na borda superior */}
+            <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
+
+            <div className="text-center">
+              {/* Checkmark Animation */}
+              <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6 border-2 border-green-500/50">
+                <div className="text-4xl">✅</div>
+              </div>
+
+              <h3 className="text-2xl font-serif font-bold text-white mb-3">Cadastro Efetuado!</h3>
+
+              <p className="text-gray-400 text-sm leading-relaxed mb-6 font-light">
+                Sua conta foi criada com sucesso. Um e-mail de confirmação foi enviado para:
+              </p>
+
+              <p className="text-green-400 font-bold text-sm mb-8 break-all">
+                {successEmail}
+              </p>
+
+              <p className="text-gray-400 text-xs leading-relaxed mb-8 font-light">
+                Por favor, verifique sua caixa de entrada (ou pasta de spam) e clique no link de confirmação para ativar sua conta.
+              </p>
+
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setIsRegistering(false);
+                }}
+                className="w-full py-3 px-6 rounded-2xl bg-green-600 hover:bg-green-500 text-white font-bold text-sm uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98]"
+              >
+                Entendi!
+              </button>
+
+              <p className="text-gray-600 text-[10px] mt-6 font-light">
+                Depois de confirmar seu e-mail, faça login para acessar sua conta.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
