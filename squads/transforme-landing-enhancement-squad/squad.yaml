@@ -1,0 +1,172 @@
+name: transforme-landing-enhancement-squad
+displayName: "Transforme Landing Enhancement Squad"
+version: 1.0.0
+icon: "🚀"
+
+description: |
+  Squad especializado em elevar a landing page /transforme para conversão máxima.
+  Combina estratégia de conversão, design system SPFP, copywriting persuasivo e
+  testes A/B para transformar visitantes em clientes.
+
+author: SPFP Team
+license: MIT
+slashPrefix: transforme
+
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+target_user:
+  profile: Empreendedor solo (SPFP)
+  budget: Integrado ao projeto existente
+  need: Elevar conversão landing /transforme com narrativa persuasiva e design otimizado
+
+tags:
+  - landing-page
+  - conversion
+  - copywriting
+  - design-system
+  - a-b-testing
+  - financial-products
+  - narrative
+
+# Design System Integration
+design_system:
+  name: SPFP + STITCH
+  primary_color: "#3b82f6" # Blue-600
+  primary_dark: "#0f172a"
+  accent: "#135bec" # STITCH Primary
+  fonts:
+    heading: "Playfair Display, serif"
+    body: "Inter, sans-serif"
+    code: "Courier New, monospace"
+  components:
+    - Button (primary, secondary, outline)
+    - Card (with glassmorphism)
+    - Modal
+    - FormInput
+    - StatCard
+  animations:
+    - fade-in (0.8s)
+    - slide-up (0.8s)
+    - glow (2s)
+
+# Team Composition
+components:
+  agents:
+    - aurora-website-architect.md
+    - kai-copywriter.md
+    - luna-ux-designer.md
+    - atlas-data-analyst.md
+    - quinn-qa-specialist.md
+    - dex-frontend-developer.md
+
+  tasks:
+    # Phase 1: Discovery & Strategy
+    - architect-landing-strategy.md
+    - architect-segmentation-analysis.md
+    - analyst-competitive-research.md
+
+    # Phase 2: Creative Direction
+    - copywriter-hero-narrative.md
+    - copywriter-value-messaging.md
+    - designer-visual-system.md
+
+    # Phase 3: Implementation
+    - designer-component-designs.md
+    - dev-implement-hero.md
+    - dev-implement-features.md
+    - dev-implement-pricing.md
+
+    # Phase 4: Validation
+    - qa-test-conversion-flow.md
+    - qa-setup-ab-testing.md
+    - analyst-performance-metrics.md
+
+  workflows:
+    - landing-enhancement-cycle
+    - validation-loop
+
+  templates:
+    - hero-blueprint.md
+    - feature-card-blueprint.md
+    - pricing-comparison-blueprint.md
+    - testimonial-blueprint.md
+
+  config:
+    extends: extend
+    design-system: config/design-system.md
+    tech-stack: config/tech-stack.md
+    coding-standards: config/coding-standards.md
+
+# Tech Stack
+stack:
+  frontend:
+    framework: React 19
+    language: TypeScript
+    styling: TailwindCSS
+    animations: Framer Motion
+    icons: Lucide React
+    components: Custom SPFP components
+  build:
+    bundler: Vite
+    testing: Vitest + React Testing Library
+
+# Dependencies
+dependencies:
+  node: []
+  python: []
+  squads:
+    - website-landing-page-squad
+    - time-de-marketing
+
+# Metrics & Success Criteria
+success_metrics:
+  conversion_rate:
+    current: "~2-3%"
+    target: "8-12%"
+  engagement:
+    scroll_depth: ">70% of users reach pricing"
+    demo_requests: "50% increase"
+  quality:
+    lighthouse: ">90 performance score"
+    mobile_friendly: "100%"
+
+# Project Phases
+phases:
+  phase_1:
+    name: "Discovery & Strategy (Week 1)"
+    owner: Aurora
+    tasks:
+      - architect-landing-strategy
+      - architect-segmentation-analysis
+      - analyst-competitive-research
+    output: "Strategy document + Segmentation framework"
+
+  phase_2:
+    name: "Creative Direction (Week 2)"
+    owner: Kai
+    tasks:
+      - copywriter-hero-narrative
+      - copywriter-value-messaging
+      - designer-visual-system
+    output: "Copy frameworks + Visual guidelines"
+
+  phase_3:
+    name: "Implementation (Week 3-4)"
+    owner: Dex
+    tasks:
+      - designer-component-designs
+      - dev-implement-hero
+      - dev-implement-features
+      - dev-implement-pricing
+    output: "Implemented landing page v2"
+
+  phase_4:
+    name: "Validation & Launch (Week 5)"
+    owner: Quinn
+    tasks:
+      - qa-test-conversion-flow
+      - qa-setup-ab-testing
+      - analyst-performance-metrics
+    output: "Test results + Launch plan"
