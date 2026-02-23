@@ -139,6 +139,8 @@ export const SalesPage: React.FC = () => {
                             price={99}
                             description="Ideal para quem busca organização e simplicidade."
                             isPopular={true}
+                            installmentValue={99.90}
+                            monthlyValue={99.90}
                             priceIds={{
                                 parcelado: import.meta.env.VITE_STRIPE_PRICE_99_PARCELADO || '',
                                 mensal: import.meta.env.VITE_STRIPE_PRICE_99_MENSAL || '',
@@ -159,6 +161,8 @@ export const SalesPage: React.FC = () => {
                             price={349}
                             description="Gestão de elite com acompanhamento personalizado."
                             featured={true}
+                            installmentValue={349.90}
+                            monthlyValue={349.90}
                             priceIds={{
                                 parcelado: import.meta.env.VITE_STRIPE_PRICE_349_PARCELADO || '',
                                 mensal: import.meta.env.VITE_STRIPE_PRICE_349_MENSAL || '',

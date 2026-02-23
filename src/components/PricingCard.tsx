@@ -30,6 +30,8 @@ export interface PricingCardProps {
   };
   featured?: boolean;
   isPopular?: boolean;
+  installmentValue?: number;
+  monthlyValue?: number;
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({
@@ -40,6 +42,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   priceIds,
   featured = false,
   isPopular = false,
+  installmentValue,
+  monthlyValue,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -190,7 +194,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
           ) : (
             <>
               <span>💳 Cartão de Crédito</span>
-              <span className="text-[11px] font-medium opacity-90">12x de R$ {(price / 12).toFixed(2).replace('.', ',')}</span>
+              <span className="text-[11px] font-medium opacity-90">12x de R$ {(installmentValue ?? price / 12).toFixed(2).replace('.', ',')}</span>
             </>
           )}
         </button>
@@ -215,7 +219,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             ) : (
               <>
                 <span>📅 Assinatura</span>
-                <span className="text-[11px] font-medium opacity-90">R$ {price.toFixed(2).replace('.', ',')} / mês</span>
+                <span className="text-[11px] font-medium opacity-90">R$ {(monthlyValue ?? price).toFixed(2).replace('.', ',')} / mês</span>
               </>
             )}
           </button>
