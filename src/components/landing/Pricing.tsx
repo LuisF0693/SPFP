@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 const plans = [
   {
@@ -30,6 +30,17 @@ const plans = [
     ],
     cta: { text: 'Agendar Demo', variant: 'primary' as const },
   },
+];
+
+const comparisonFeatures = [
+  { feature: 'Dashboard completo', platform: true, consultoria: true },
+  { feature: 'Consultor IA 24/7', platform: true, consultoria: true },
+  { feature: 'Relatórios mensais', platform: true, consultoria: true },
+  { feature: 'Integração de contas', platform: true, consultoria: true },
+  { feature: 'Consultor especialista humano', platform: false, consultoria: true },
+  { feature: 'Acompanhamento 1x/mês', platform: false, consultoria: true },
+  { feature: 'Planejamento personalizado', platform: false, consultoria: true },
+  { feature: 'Análise fiscal', platform: false, consultoria: true },
 ];
 
 export const Pricing: React.FC = () => {
@@ -108,15 +119,76 @@ export const Pricing: React.FC = () => {
           ))}
         </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="text-center text-gray-600 text-sm"
+          className="mb-8"
         >
-          ⚡ Sem contrato | Cancelamento fácil | Garantia 7 dias
-        </motion.p>
+          <p className="text-center text-gray-600 text-sm mb-4">
+            ✨ Primeiros 7 dias grátis | Garantia de 30 dias ou devolução total
+          </p>
+          <p className="text-center text-gray-600 text-sm">
+            ⚡ Sem contrato | Cancelamento fácil | Suporte 24/7
+          </p>
+        </motion.div>
+
+        {/* Comparison Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          viewport={{ once: true }}
+          className="mt-16 bg-white border border-gray-200 rounded-lg overflow-hidden"
+        >
+          <div className="p-8">
+            <h3 className="text-2xl font-bold mb-8 text-gray-900 text-center">
+              Comparação Detalhada de Recursos
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900">
+                      Recurso
+                    </th>
+                    <th className="text-center py-4 px-6 font-semibold text-gray-900">
+                      Plataforma + IA
+                    </th>
+                    <th className="text-center py-4 px-6 font-semibold text-gray-900">
+                      Consultoria
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonFeatures.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-100 hover:bg-blue-50 transition-colors"
+                    >
+                      <td className="py-4 px-6 text-gray-700">{item.feature}</td>
+                      <td className="py-4 px-6 text-center">
+                        {item.platform ? (
+                          <Check className="w-5 h-5 text-green-600 mx-auto" />
+                        ) : (
+                          <X className="w-5 h-5 text-gray-300 mx-auto" />
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        {item.consultoria ? (
+                          <Check className="w-5 h-5 text-green-600 mx-auto" />
+                        ) : (
+                          <X className="w-5 h-5 text-gray-300 mx-auto" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
