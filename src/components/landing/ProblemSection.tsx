@@ -49,10 +49,14 @@ const painPoints = [
 ];
 
 export const ProblemSection: React.FC = () => {
+  console.log('ProblemSection renderizado!');
   return (
     <section className="py-20 px-4 bg-white">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
+          <div style={{ background: '#ef4444', color: 'white', padding: '10px', marginBottom: '20px', borderRadius: '5px', fontSize: '12px' }}>
+            ✅ PROBLEMA SEÇÃO CARREGADA - Vercel atualizou!
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#111418' }}>
             Você se identifica com alguma dessas situações?
           </h2>
