@@ -10,7 +10,7 @@ import { Footer } from './landing/Footer';
 
 export const TransformePage: React.FC = () => {
   return (
-    <main className="w-full overflow-hidden">
+    <main className="w-full">
       <Hero />
       <ProblemSection />
       <Features />
