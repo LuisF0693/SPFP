@@ -13,6 +13,7 @@ import { Layout } from './components/Layout';
 import Loading from './components/ui/Loading';
 import { RouteLoadingBoundary } from './components/ui/RouteLoadingBoundary';
 import { Transaction } from './types';
+import { TransformePage } from './components/TransformePage';
 
 // Lazy load page components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -28,8 +29,6 @@ const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
-// IMPORTANTE: TransformePage NÃO é lazy - evita travamento do Suspense
-import TransformePage from './components/TransformePage';
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
 const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
