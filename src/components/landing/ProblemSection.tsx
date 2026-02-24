@@ -50,7 +50,7 @@ const painPoints = [
 
 export const ProblemSection: React.FC = () => {
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 px-4" style={{ background: '#f6f6f8' }}>
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <motion.h2
@@ -58,7 +58,8 @@ export const ProblemSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold mb-4 text-gray-900"
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ color: '#111418' }}
           >
             Você se identifica com alguma dessas situações?
           </motion.h2>
@@ -67,7 +68,8 @@ export const ProblemSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="text-lg text-gray-600"
+            className="text-lg"
+            style={{ color: '#637588' }}
           >
             Se sua resposta foi sim para qualquer uma, você não está sozinho
           </motion.p>
@@ -83,15 +85,20 @@ export const ProblemSection: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white border-l-4 border-red-500 rounded-lg p-6 hover:shadow-md transition-all duration-300 group"
+                className="rounded-lg p-6 hover:shadow-lg transition-all duration-300 group border-l-4"
+                style={{
+                  background: '#ffffff',
+                  borderLeftColor: '#ef4444',
+                  borderLeftWidth: '4px',
+                }}
               >
-                <div className="mb-3 text-red-500 group-hover:scale-110 transition-transform duration-300">
-                  <Icon className="w-8 h-8" />
+                <div className="mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <Icon className="w-8 h-8" style={{ color: '#ef4444' }} />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                <h3 className="text-lg font-semibold mb-2" style={{ color: '#111418' }}>
                   {point.title}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed" style={{ color: '#637588' }}>
                   {point.description}
                 </p>
               </motion.div>
@@ -106,10 +113,13 @@ export const ProblemSection: React.FC = () => {
           viewport={{ once: true }}
           className="text-center"
         >
-          <p className="text-lg font-semibold text-gray-900 mb-2">
+          <p className="text-lg font-semibold mb-2" style={{ color: '#111418' }}>
             É exatamente pra isso que o SPFP existe
           </p>
-          <p className="text-blue-600 font-semibold inline-flex items-center gap-2">
+          <p
+            className="font-semibold inline-flex items-center gap-2 hover:gap-3 transition-all"
+            style={{ color: '#135bec' }}
+          >
             Descubra como →
           </p>
         </motion.div>
