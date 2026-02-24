@@ -53,38 +53,20 @@ export const ProblemSection: React.FC = () => {
     <section className="py-20 px-4 bg-white">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ color: '#111418' }}
-          >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#111418' }}>
             Você se identifica com alguma dessas situações?
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="text-lg"
-            style={{ color: '#637588' }}
-          >
+          </h2>
+          <p className="text-lg" style={{ color: '#637588' }}>
             Se sua resposta foi sim para qualquer uma, você não está sozinho
-          </motion.p>
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {painPoints.map((point, index) => {
+          {painPoints.map((point) => {
             const Icon = point.icon;
             return (
-              <motion.div
+              <div
                 key={point.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
                 className="rounded-lg p-6 hover:shadow-lg transition-all duration-300 group border-l-4"
                 style={{
                   background: '#ffffff',
@@ -101,28 +83,19 @@ export const ProblemSection: React.FC = () => {
                 <p className="text-sm leading-relaxed" style={{ color: '#637588' }}>
                   {point.description}
                 </p>
-              </motion.div>
+              </div>
             );
           })}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
+        <div className="text-center">
           <p className="text-lg font-semibold mb-2" style={{ color: '#111418' }}>
             É exatamente pra isso que o SPFP existe
           </p>
-          <p
-            className="font-semibold inline-flex items-center gap-2 hover:gap-3 transition-all"
-            style={{ color: '#135bec' }}
-          >
+          <p className="font-semibold inline-flex items-center gap-2 hover:gap-3 transition-all" style={{ color: '#135bec' }}>
             Descubra como →
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
