@@ -9,6 +9,9 @@ import { TrustIndicators } from './landing/TrustIndicators';
 import { Footer } from './landing/Footer';
 
 export const TransformePage: React.FC = () => {
+  if (typeof window !== 'undefined') {
+    console.log('✅ TransformePage RENDERIZADO!');
+  }
   return (
     <main className="w-full">
       <Hero />
