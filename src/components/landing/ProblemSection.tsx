@@ -50,7 +50,7 @@ const painPoints = [
 
 export const ProblemSection: React.FC = () => {
   return (
-    <section className="py-20 px-4" style={{ background: '#f6f6f8' }}>
+    <section className="py-20 px-4 bg-white">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <motion.h2
