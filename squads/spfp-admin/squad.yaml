@@ -1,0 +1,28 @@
+id: spfp-admin
+name: Squad de Administração SPFP
+description: Squad de Administração com foco em backoffice, financeiro, pessoas, jurídico, facilities e compliance
+chief: admin-chief
+agents:
+  - admin-chief
+  - financeiro
+  - rh-people
+  - juridico
+  - facilities
+  - compliance
+tools:
+  - ClickUp
+  - Notion
+  - Google Drive
+  - Sheets
+  - Conta Azul
+  - Omie
+  - Stripe
+  - Gupy
+  - LinkedIn
+  - DocuSign
+  - 1Password
+  - Google Admin
+  - Slack Admin
+  - Typeform
+version: 1.0.0
+created: 2026-02-25

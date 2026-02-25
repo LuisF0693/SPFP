@@ -35,6 +35,13 @@ CEO (usuário)
 │   ├── Content Creator
 │   └── QA Experience
 │
+├── 📋 spfp-admin          — Sheryl Sandberg (AI Head)
+│   ├── Financeiro
+│   ├── RH/People
+│   ├── Jurídico
+│   ├── Facilities
+│   └── Compliance
+│
 └── ⚙️ spfp-ops            — Pedro Valerio (AI Head)
     ├── Process Mapper
     ├── Architect
@@ -77,6 +84,13 @@ Squad de Vendas consultivo. Pipeline MQL→SQL→Fechamento com Grand Slam Offer
 - **Workflow:** Sales Pipeline (3 Quality Gates)
 - **Agentes:** SDR, Closer, Analista de Vendas
 
+### 📋 spfp-admin
+Squad de Administração. Backoffice completo: Financeiro, RH, Jurídico, Facilities, Compliance.
+- **Skill:** `/spfp-admin`
+- **AI Head:** Sheryl Sandberg (clone MMOS 92/100 — COO Meta/Google)
+- **Workflow:** Admin Operations (Triage → Executa → QG Aprovação → Entrega)
+- **Agentes:** Financeiro, RH/People, Jurídico, Facilities, Compliance
+
 ### ⚙️ spfp-ops
 Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 - **Skill:** `/spfp-ops`
@@ -94,6 +108,7 @@ Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 /spfp-vendas
 /spfp-cs
 /spfp-products
+/spfp-admin
 /spfp-ops
 /spfp-conselheiros
 
@@ -104,6 +119,11 @@ Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 /spfp-vendas:agents:analista-vendas
 /spfp-cs:agents:onboarding-specialist
 /spfp-products:agents:product-manager
+/spfp-admin:agents:financeiro
+/spfp-admin:agents:rh-people
+/spfp-admin:agents:juridico
+/spfp-admin:agents:facilities
+/spfp-admin:agents:compliance
 /spfp-ops:agents:process-mapper
 ```
 
@@ -119,6 +139,7 @@ Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 | `lincoln-murphy/` | CS | — |
 | `marty-cagan/` | Products | — |
 | `pedro-valerio/` | OPS | 90/100 |
+| `sheryl-sandberg/` | Admin | 92/100 |
 
 ---
 
