@@ -20,6 +20,11 @@ CEO (usuário)
 │   ├── Content Manager (SEO)
 │   └── Research Analyst
 │
+├── 💰 spfp-vendas         — Alex Hormozi (AI Head)
+│   ├── SDR
+│   ├── Closer
+│   └── Analista de Vendas
+│
 ├── 💚 spfp-cs             — Lincoln Murphy (AI Head)
 │   ├── Onboarding Specialist
 │   ├── Suporte N1/N2/N3
@@ -65,6 +70,13 @@ Produto digital e infoprodutos. Discovery, criação e qualidade.
 - **AI Head:** Marty Cagan
 - **Workflow:** Product Creation (3 Quality Gates)
 
+### 💰 spfp-vendas
+Squad de Vendas consultivo. Pipeline MQL→SQL→Fechamento com Grand Slam Offer.
+- **Skill:** `/spfp-vendas`
+- **AI Head:** Alex Hormozi (clone 94/100)
+- **Workflow:** Sales Pipeline (3 Quality Gates)
+- **Agentes:** SDR, Closer, Analista de Vendas
+
 ### ⚙️ spfp-ops
 Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 - **Skill:** `/spfp-ops`
@@ -79,6 +91,7 @@ Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 ```bash
 # Ativar squad completo (fala com o AI Head)
 /spfp-marketing
+/spfp-vendas
 /spfp-cs
 /spfp-products
 /spfp-ops
@@ -86,6 +99,9 @@ Arquitetos de processos. Mapeamento, arquitetura ClickUp, automações e QA.
 
 # Ativar agente específico
 /spfp-marketing:agents:media-buyer
+/spfp-vendas:agents:sdr
+/spfp-vendas:agents:closer
+/spfp-vendas:agents:analista-vendas
 /spfp-cs:agents:onboarding-specialist
 /spfp-products:agents:product-manager
 /spfp-ops:agents:process-mapper
