@@ -1,0 +1,21 @@
+id: spfp-cs
+name: Squad Customer Success SPFP
+description: Squad de CS com foco em onboarding, suporte e retenção de clientes
+chief: cs-chief
+agents:
+  - cs-chief
+  - onboarding-specialist
+  - suporte
+  - cs-retencao
+tools:
+  - Intercom
+  - Zendesk
+  - CRM
+  - ClickUp
+  - Notion
+  - Zoom
+  - Loom
+  - WhatsApp
+  - Email
+version: 1.0.0
+created: 2026-02-24

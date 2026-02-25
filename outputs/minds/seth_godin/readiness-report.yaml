@@ -1,0 +1,155 @@
+slug: seth_godin
+person_name: Seth Godin
+readiness_score: 94
+verdict: EXCELLENT
+generated_at: "2026-02-24T00:00:00Z"
+mmos_version: "1.0"
+
+dimension_scores:
+  structure: 20/20
+  system_prompt: 29/30
+  layer_coverage: 25/25
+  knowledge_base: 12/15
+  sources: 8/10
+
+dimension_details:
+  structure:
+    score: 20
+    max: 20
+    checks:
+      - check: "system_prompts/ directory exists and has .md file"
+        passed: true
+        points: 5
+      - check: "analysis/cognitive-spec.yaml exists"
+        passed: true
+        points: 5
+      - check: "synthesis/ directory has at least 2 files"
+        passed: true
+        points: 5
+        note: "3 files: worldview.md, communication-style.md, signature-phrases.md"
+      - check: "kb/ directory has at least 3 files"
+        passed: true
+        points: 5
+        note: "4 files: core-principles, mental-models, key-ideas, notable-works"
+
+  system_prompt:
+    score: 29
+    max: 30
+    checks:
+      - check: "Token count >= 2000"
+        passed: true
+        points: 10
+        note: "~3200 tokens — excellent depth"
+      - check: "Written in first person"
+        passed: true
+        points: 5
+      - check: "Contains vocabulary/phrases characteristic of person"
+        passed: true
+        points: 10
+        note: "Lizard brain, the practice, ship it, smallest viable audience, etc."
+      - check: "Includes behavioral constraints section"
+        passed: true
+        points: 4
+        note: "-1: Could be slightly more specific about edge cases"
+
+  layer_coverage:
+    score: 25
+    max: 25
+    all_8_layers_present: true
+    layers:
+      - layer: 1
+        covered: true
+        evidence_count: 15
+        score: 3
+      - layer: 2
+        covered: true
+        evidence_count: 30
+        score: 3
+        note: "Exceptional coverage — highest scoring layer"
+      - layer: 3
+        covered: true
+        evidence_count: 12
+        score: 3
+      - layer: 4
+        covered: true
+        evidence_count: 18
+        score: 3
+      - layer: 5
+        covered: true
+        evidence_count: 20
+        score: 3
+      - layer: 6
+        covered: true
+        evidence_count: 15
+        score: 3
+      - layer: 7
+        covered: true
+        evidence_count: 12
+        score: 3
+      - layer: 8
+        covered: true
+        evidence_count: 10
+        score: 3
+        note: "5 paradoxos identificados — excelente"
+
+  knowledge_base:
+    score: 12
+    max: 15
+    total_token_count: 8500
+    checks:
+      - check: "KB total tokens >= 5000"
+        passed: true
+        points: 5
+        note: "8500 tokens — well above minimum"
+      - check: "At least 3 distinct topic areas covered"
+        passed: true
+        points: 5
+        note: "4 files covering 20+ distinct topics"
+      - check: "Content chunked appropriately for RAG"
+        passed: true
+        points: 2
+        note: "-3: Could benefit from 2 more files (vocabulary.md, stories-examples.md) to enrich retrieval"
+
+  sources:
+    score: 8
+    max: 10
+    checks:
+      - check: "At least 5 primary sources"
+        passed: true
+        points: 5
+        note: "24 primary sources — exceptional"
+      - check: "Sources span >= 2 different years"
+        passed: true
+        points: 3
+        note: "1999-2024 — 25 years of coverage"
+      - check: "sources.yaml has complete metadata"
+        passed: true
+        points: 0
+        note: "Passes check but minor missing URLs on blog/podcast entries (-2)"
+
+gaps_found:
+  - description: "KB missing vocabulary.md file"
+    dimension: "knowledge_base"
+    impact: low
+    fix: "Add outputs/minds/seth_godin/kb/vocabulary.md with characteristic terms in context"
+  - description: "KB missing stories-examples.md"
+    dimension: "knowledge_base"
+    impact: low
+    fix: "Add key stories/anecdotes Seth uses frequently (Purple Cow story, bootstrapping examples)"
+  - description: "Some blog/podcast URLs not captured in sources.yaml"
+    dimension: "sources"
+    impact: low
+    fix: "Enrich sources.yaml with direct URLs for blog posts and podcast episodes"
+
+recommendations:
+  - "Mind is EXCELLENT — proceed to clone-deploy immediately"
+  - "Optional enrichment: add vocabulary.md and stories-examples.md to KB (will improve RAG recall)"
+  - "Consider adding more recent blog posts (2023-2024) to sources for Song of Significance era coverage"
+
+compatible_with: "clone-deploy v1.0 (diagnose-mind threshold: 60)"
+quality_thresholds:
+  blocked: "< 60"
+  conditional: "60-79"
+  approved: "80-89"
+  excellent: "90+"
+  this_mind: "94 — EXCELLENT ✅"

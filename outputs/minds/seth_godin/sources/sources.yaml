@@ -1,0 +1,378 @@
+slug: seth_godin
+person_name: Seth Godin
+collected_at: "2026-02-24"
+mmos_version: "1.0"
+
+summary:
+  total_sources: 28
+  primary_sources: 24
+  secondary_sources: 4
+  date_range:
+    earliest: "1999"
+    latest: "2024"
+  domains_covered:
+    - Marketing & Branding
+    - Leadership & Tribes
+    - Creativity & The Practice
+    - Work & Career
+    - Education & Learning
+    - Culture & Change
+
+sources:
+
+  # ── BOOKS (primary) ──────────────────────────────────────────
+
+  - id: src-001
+    type: book
+    title: "Permission Marketing: Turning Strangers into Friends and Friends into Customers"
+    year: "1999"
+    language: en
+    reliability: primary
+    key_themes:
+      - Permission vs. interruption
+      - Trust-building over time
+      - Anticipated, personal, relevant marketing
+    notes: "Foundational book — coined 'permission marketing'. Established his entire worldview on honest marketing."
+
+  - id: src-002
+    type: book
+    title: "Purple Cow: Transform Your Business by Being Remarkable"
+    year: "2003"
+    language: en
+    reliability: primary
+    key_themes:
+      - Remarkability
+      - The death of TV-industrial complex
+      - Being worth talking about
+    notes: "Defines 'remarkable' as worthy of a remark. One of his most quoted books."
+
+  - id: src-003
+    type: book
+    title: "The Dip: A Little Book That Teaches You When to Quit (and When to Stick)"
+    year: "2007"
+    language: en
+    reliability: primary
+    key_themes:
+      - Strategic quitting
+      - The Dip vs. the Cul-de-Sac
+      - Being best in the world (your world)
+    notes: "Critical for Layer 3 (behavioral patterns) and Layer 4 (values — knowing when to stop)."
+
+  - id: src-004
+    type: book
+    title: "Tribes: We Need You to Lead Us"
+    year: "2008"
+    language: en
+    reliability: primary
+    key_themes:
+      - Leadership without authority
+      - Tribes and connection
+      - The internet enabling tribes
+      - Movement-making
+    notes: "Defines his theory of change: tribes > mass marketing."
+
+  - id: src-005
+    type: book
+    title: "Linchpin: Are You Indispensable?"
+    year: "2010"
+    language: en
+    reliability: primary
+    key_themes:
+      - The lizard brain / Resistance
+      - Emotional labor
+      - Art as gift-giving
+      - Being indispensable
+    notes: "Most personal of his books. Key for Layers 7+8 (identity and paradoxes)."
+
+  - id: src-006
+    type: book
+    title: "Poke the Box"
+    year: "2011"
+    language: en
+    reliability: primary
+    key_themes:
+      - Shipping / starting
+      - Initiative
+      - The cost of not starting
+    notes: "Short manifesto on initiative and shipping. Distills his action philosophy."
+
+  - id: src-007
+    type: book
+    title: "All Marketers Are Liars (Tell Stories)"
+    year: "2005"
+    language: en
+    reliability: primary
+    key_themes:
+      - Worldviews and frames
+      - Authentic storytelling
+      - Stories people tell themselves
+    notes: "Later retitled 'All Marketers Tell Stories'. Key for his view on narrative and authenticity."
+
+  - id: src-008
+    type: book
+    title: "This Is Marketing: You Can't Be Seen Until You Learn to See"
+    year: "2018"
+    language: en
+    reliability: primary
+    key_themes:
+      - Marketing as service
+      - Smallest viable audience
+      - People like us do things like this
+      - Status roles
+      - Tension and enrollment
+    notes: "His most comprehensive recent statement on marketing philosophy. Rich source for all layers."
+
+  - id: src-009
+    type: book
+    title: "The Practice: Shipping Creative Work"
+    year: "2020"
+    language: en
+    reliability: primary
+    key_themes:
+      - Trust the process, not the outcome
+      - Professional vs. amateur
+      - The practice as identity
+      - Creativity without attachment to results
+    notes: "One of his most philosophical books. Critical for Layer 7 (identity) and Layer 8 (paradoxes)."
+
+  - id: src-010
+    type: book
+    title: "The Song of Significance: A New Manifesto for Teams"
+    year: "2023"
+    language: en
+    reliability: primary
+    key_themes:
+      - Work as enrollment and significance
+      - Post-industrial organization
+      - Dignity at work
+    notes: "Most recent major work. Reflects evolution of his thinking on leadership and work culture."
+
+  - id: src-011
+    type: book
+    title: "What to Do When It's Your Turn (and It's Always Your Turn)"
+    year: "2014"
+    language: en
+    reliability: primary
+    key_themes:
+      - Fear and the turn
+      - Shipping
+      - The industrial model breaking down
+    notes: "Visual book. Good source for Layer 3 and his stance on fear."
+
+  - id: src-012
+    type: book
+    title: "The Icarus Deception: How High Will You Fly?"
+    year: "2012"
+    language: en
+    reliability: primary
+    key_themes:
+      - The connected economy
+      - Art and vulnerability
+      - Flying too low vs. too high
+    notes: "Reframes the Icarus myth. Key for Layer 6 (belief system) and Layer 8 (paradoxes)."
+
+  # ── BLOG (primary) ────────────────────────────────────────────
+
+  - id: src-013
+    type: blog
+    title: "Seth's Blog — seths.blog"
+    url: "https://seths.blog"
+    date_range: "2002-2024"
+    language: en
+    reliability: primary
+    key_themes:
+      - Daily short-form insights
+      - Marketing, leadership, creativity, culture
+      - His most consistent 'voice' in writing
+    notes: "Daily posts since 2002. Over 9,000 posts. The best single source for his authentic voice and style. Crucial for Layer 2."
+    selected_posts:
+      - title: "First, ten"
+        theme: "Smallest viable audience"
+      - title: "Quieting the Lizard Brain"
+        theme: "Resistance / shipping"
+      - title: "The forever recession"
+        theme: "Industrial age ending"
+      - title: "Talker's block"
+        theme: "Writer's block is a myth"
+      - title: "The circles of marketing"
+        theme: "Trust and permission"
+      - title: "Define: Brand"
+        theme: "What a brand actually is"
+      - title: "In search of the minimum viable audience"
+        theme: "Niche over mass"
+
+  # ── TED TALKS (primary) ───────────────────────────────────────
+
+  - id: src-014
+    type: talk
+    title: "How to get your ideas to spread"
+    year: "2003"
+    language: en
+    reliability: primary
+    key_themes:
+      - Remarkable = worth spreading
+      - Safe is risky
+      - The TV-industrial complex is dead
+    notes: "One of the most-watched TED talks on marketing. Distills Purple Cow in 17 minutes."
+
+  - id: src-015
+    type: talk
+    title: "The tribes we lead"
+    year: "2009"
+    language: en
+    reliability: primary
+    key_themes:
+      - Leadership through connection
+      - Internet enabling tribes
+      - Heretics and leaders
+    notes: "Companion to the Tribes book. Good source for Layer 4 (values) and Layer 7 (identity)."
+
+  - id: src-016
+    type: talk
+    title: "This is broken"
+    year: "2006"
+    language: en
+    reliability: primary
+    key_themes:
+      - Systems designed to fail users
+      - The cost of bad design
+    notes: "Shows his critical thinking style and worldview on institutions."
+
+  # ── PODCAST: AKIMBO (primary) ─────────────────────────────────
+
+  - id: src-017
+    type: podcast
+    title: "Akimbo: A Podcast from Seth Godin"
+    url: "https://www.akimbo.link"
+    date_range: "2018-2022"
+    language: en
+    reliability: primary
+    key_themes:
+      - Culture and systems
+      - Long-form exploration of his ideas
+      - Q&A format reveals how he reasons live
+    notes: "Best source for Layer 2 (communication style in spoken form) and Layer 3 (behavioral patterns — how he reasons aloud)."
+    notable_episodes:
+      - "The resistance"
+      - "Talker's block"
+      - "Organizing your world"
+
+  # ── INTERVIEWS (primary) ──────────────────────────────────────
+
+  - id: src-018
+    type: interview
+    title: "Tim Ferriss Show — Seth Godin on How to Think Small to Go Big"
+    year: "2016"
+    language: en
+    reliability: primary
+    key_themes:
+      - His daily practices
+      - How he chooses projects
+      - Fear and shipping
+    notes: "One of the most personal interviews. Reveals Layer 3 (behavioral) and Layer 7 (identity)."
+
+  - id: src-019
+    type: interview
+    title: "On Being with Krista Tippett — The Art of Noticing, Then Creating"
+    year: "2017"
+    language: en
+    reliability: primary
+    key_themes:
+      - Creativity as practice
+      - His relationship with fear
+      - The connected economy and meaning
+    notes: "Unusually philosophical. Key for Layer 6 (belief system) and Layer 8 (paradoxes)."
+
+  - id: src-020
+    type: interview
+    title: "Masters of Scale with Reid Hoffman — The Smallest Possible Audience"
+    year: "2019"
+    language: en
+    reliability: primary
+    key_themes:
+      - Minimum viable audience
+      - Scale vs. intimacy paradox
+      - Trust as foundation
+    notes: "Good source for Layer 5 (meta axioms) and Layer 4 (values)."
+
+  - id: src-021
+    type: interview
+    title: "The Knowledge Project with Shane Parrish"
+    year: "2020"
+    language: en
+    reliability: primary
+    key_themes:
+      - Mental models he uses
+      - How he thinks about decisions
+      - Fear and the practice
+    notes: "Excellent for Layer 4 (decision framework) and Layer 3 (behavioral patterns)."
+
+  - id: src-022
+    type: interview
+    title: "GQ — Seth Godin Has Been Blogging Every Day for 20 Years"
+    year: "2022"
+    language: en
+    reliability: primary
+    key_themes:
+      - Why he blogs daily
+      - His creative process
+      - Consistency as practice
+    notes: "Good for Layer 3 (behavioral) — the discipline behind the practice."
+
+  # ── ONLINE COURSES / PLATFORMS (primary) ─────────────────────
+
+  - id: src-023
+    type: course
+    title: "altMBA — Seth Godin's intensive online workshop"
+    url: "https://altmba.com"
+    date_range: "2015-present"
+    language: en
+    reliability: primary
+    key_themes:
+      - Leadership through doing
+      - Cohort-based learning
+      - Shipping real work
+    notes: "The existence of altMBA reveals his theory of education and learning. Layer 6."
+
+  - id: src-024
+    type: social
+    title: "Seth Godin — LinkedIn and Twitter/X posts"
+    date_range: "2010-2024"
+    language: en
+    reliability: primary
+    key_themes:
+      - Condensed versions of his ideas
+      - His reaction to current events
+    notes: "Lower volume than blog but shows how he frames current issues."
+
+  # ── SECONDARY SOURCES ─────────────────────────────────────────
+
+  - id: src-025
+    type: biography
+    title: "Wikipedia — Seth Godin"
+    language: en
+    reliability: secondary
+    notes: "Used for biographical facts only (dates, career timeline). Not used for voice/worldview."
+
+  - id: src-026
+    type: profile
+    title: "Fast Company — Seth Godin Profile"
+    year: "2019"
+    language: en
+    reliability: secondary
+    notes: "External perspective. Used to cross-validate primary sources."
+
+  - id: src-027
+    type: profile
+    title: "Forbes — The Most Influential Marketer of Our Time"
+    year: "2021"
+    language: en
+    reliability: secondary
+    notes: "Useful for understanding his cultural impact and how others perceive his work."
+
+  - id: src-028
+    type: summary
+    title: "Blinkist / Shortform summaries of major books"
+    language: en
+    reliability: secondary
+    notes: "Used only to verify key concepts, never as primary voice source."

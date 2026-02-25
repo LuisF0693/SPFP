@@ -1,0 +1,19 @@
+id: spfp-conselheiros
+name: Conselheiros Estratégicos SPFP
+description: Mentores externos que aconselham o CEO em decisões estratégicas. Agente único com personas alternáveis.
+chief: conselheiro
+agents:
+  - conselheiro
+conselheiros:
+  - id: alex-hormozi
+    nome: Alex Hormozi
+    especialidade: Ofertas irresistíveis, aquisição de clientes, monetização, crescimento acelerado
+    persona_file: outputs/minds/alex-hormozi/system_prompts/alex-hormozi-clone.md
+    score: 94/100
+  - id: steve-jobs
+    nome: Steve Jobs
+    especialidade: Visão de produto, design, simplicidade extrema, storytelling, estratégia
+    persona_file: outputs/minds/steve-jobs/system_prompts/steve-jobs-clone.md
+    score: 96/100
+version: 1.0.0
+created: 2026-02-25

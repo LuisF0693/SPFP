@@ -1,0 +1,22 @@
+id: spfp-marketing
+name: Squad Marketing SPFP
+description: Squad de marketing digital com foco em performance, conteúdo e crescimento
+chief: marketing-chief
+agents:
+  - marketing-chief
+  - social-media-manager
+  - media-buyer
+  - email-strategist
+  - content-manager
+  - research-analyst
+tools:
+  - TikTok
+  - Meta Ads
+  - Google Ads
+  - Google Trends
+  - Notion
+  - Twitter/X
+  - YouTube
+  - Email Marketing
+version: 1.0.0
+created: 2026-02-24
