@@ -32,8 +32,7 @@ const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
 const Retirement = React.lazy(() => import('./components/Retirement').then(m => ({ default: m.Retirement })));
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
-const VirtualOffice = React.lazy(() => import('./virtual-office').then(m => ({ default: m.VirtualOffice })));
-const PixelArtOffice = React.lazy(() => import('./virtual-office-v2').then(m => ({ default: m.PixelArtOffice })));
+
 const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({ default: m.Portfolio })));
 const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
 const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
@@ -280,16 +279,6 @@ const AppContent: React.FC = () => {
               <AutomationDashboard />
             </Layout>
           </PrivateRoute>
-        } />
-        <Route path="/virtual-office" element={
-          <AdminRoute>
-            <VirtualOffice />
-          </AdminRoute>
-        } />
-        <Route path="/virtual-office-v2" element={
-          <AdminRoute>
-            <PixelArtOffice />
-          </AdminRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

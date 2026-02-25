@@ -3,7 +3,7 @@ import { Trash2, Edit2, Search, X } from 'lucide-react';
 import { Category, CategoryGroup } from '../../types';
 import { CategoryModal } from './CategoryModal';
 import { DeleteCategoryModal } from './DeleteCategoryModal';
-import { useToast } from '../../virtual-office/components/Toast';
+import { useToast } from '../ui/Toast';
 
 interface CategoryManagementProps {
   categories: Category[];

@@ -10,7 +10,7 @@ import { ClientForm } from './ClientForm';
 import { usePartnerships } from '../../hooks/usePartnerships';
 import { Partner, PartnershipClient } from '../../types/investments';
 import { formatCurrency } from '../../utils';
-import { ToastContainer, useToast } from '../../virtual-office/components/Toast';
+import { ToastContainer, useToast } from '../ui/Toast';
 import {
   BarChart,
   Bar,
