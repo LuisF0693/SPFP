@@ -1,0 +1,74 @@
+squad:
+  id: spfp-ops
+  name: Squad OPS
+  description: >
+    Arquitetos de processos da empresa SPFP. O Squad OPS desenha a planta da casa
+    — os outros squads constroem seguindo ela. Sem OPS, cada squad inventa suas
+    próprias regras e vira bagunça.
+  icon: ⚙️
+  analogy: "Ops = arquiteto da casa. Outros squads = pedreiros, encanadores, eletricistas."
+
+ai_head:
+  agent: ops-chief
+  clone: outputs/minds/pedro-valerio/system_prompts/pedro-valerio-clone.md
+
+agents:
+  - id: ops-chief
+    role: AI Head de OPS
+    clone: pedro-valerio
+
+  - id: process-mapper
+    role: Process Mapper
+    clone: pedro-valerio
+    tasks:
+      - discovery-process
+      - create-process
+
+  - id: architect
+    role: Architect
+    clone: pedro-valerio
+    tasks:
+      - design-architecture
+      - design-executors
+      - create-task-defs
+
+  - id: automation-architect
+    role: Automation Architect
+    clone: pedro-valerio
+    tasks:
+      - design-workflow
+
+  - id: qa
+    role: QA
+    clone: pedro-valerio
+    tasks:
+      - design-qa-gates
+      - execute-checklist
+
+workflow:
+  main: build-process
+  quality_gates:
+    - id: QG1
+      threshold: 70
+      on_fail: volta Discovery
+    - id: QG2
+      threshold: 70
+      on_fail: volta Architecture
+    - id: QG3
+      threshold: 70
+      on_fail: volta Task Definitions
+    - id: QG4
+      threshold: 70
+      on_fail: volta ponto falho
+      label: FINAL
+
+ferramentas_squad:
+  - ClickUp
+  - Notion
+  - Slack
+  - Loom
+  - Figma
+  - Miro
+  - N8N
+  - Google Drive
+  - Sheets
