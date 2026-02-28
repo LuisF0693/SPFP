@@ -1,0 +1,137 @@
+name: mmos-mind-mapper
+version: 1.0.0
+short-title: MMOS Mind Mapper - Cognitive Architecture Mapping Pipeline
+description: >-
+  Pipeline completo de mapeamento cognitivo de uma pessoa real.
+  Coleta fontes, extrai os 8 layers do DNA Mental, sintetiza a persona,
+  constrói a knowledge base e produz outputs prontos para o clone-deploy.
+author: José Carlos Amorim / Synkra AIOS
+slash_prefix: "MmosMindMapper"
+
+# Downstream consumers
+consumed_by:
+  - name: clone-deploy
+    path: ../clone-deploy
+    description: "Consome os outputs/minds/{slug}/ produzidos por este squad"
+
+# Minimum AIOS version required
+requires:
+  aios-version: "4.0.0"
+
+# Pack metadata
+domain: Cognitive Architecture / AI Mind Cloning / Persona Engineering
+target_users:
+  - Criadores de conteúdo que querem clonar sua voz como assistente
+  - Empresas mapeando expertise de colaboradores-chave
+  - Infoprodutores construindo assistentes baseados em figuras públicas
+  - Pesquisadores de personalidade e cognição
+
+key_capabilities:
+  - Pesquisa e coleta de fontes (livros, artigos, entrevistas, palestras)
+  - Análise dos 8 layers do DNA Mental
+  - Síntese de system prompt fiel à persona
+  - Construção de knowledge base estruturada
+  - Geração de cognitive-spec.yaml completo
+  - Validação de completude e qualidade da mind
+  - Output compatível com clone-deploy pipeline
+
+# Output structure (consumed by clone-deploy)
+output_structure:
+  base_path: "outputs/minds/{slug}/"
+  required_files:
+    - "system_prompts/{slug}-system-prompt.md"
+    - "analysis/cognitive-spec.yaml"
+  expected_dirs:
+    - "synthesis/"
+    - "kb/"
+    - "sources/"
+
+# DNA Mental Cognitive Layers (framework base)
+cognitive_layers:
+  layer_1: "Knowledge Base — Áreas de expertise e domínio"
+  layer_2: "Communication Style — Padrões linguísticos, tom, metáforas"
+  layer_3: "Behavioral Patterns — Padrões recorrentes de decisão e ação"
+  layer_4: "Values & Decision Framework — Hierarquia de valores + modelos mentais"
+  layer_5: "Meta Axioms — Obsessões centrais e crenças-raiz"
+  layer_6: "Belief System — Sistema de crenças e visão de mundo"
+  layer_7: "Identity Core — Singularidade cognitiva"
+  layer_8: "Productive Paradoxes — Tensões criativas que definem a persona"
+
+# Components
+agents:
+  - id: mmos-chief
+    file: agents/mmos-chief.md
+    role: Squad Orchestrator - Routes mapping pipeline and manages quality gates
+  - id: source-collector
+    file: agents/source-collector.md
+    role: Research Specialist - Gathers and organizes all source material
+  - id: cognitive-analyst
+    file: agents/cognitive-analyst.md
+    role: DNA Mental Analyst - Maps the 8 cognitive layers from sources
+  - id: persona-synthesizer
+    file: agents/persona-synthesizer.md
+    role: Persona Engineer - Creates system prompt and cognitive-spec.yaml
+  - id: knowledge-curator
+    file: agents/knowledge-curator.md
+    role: Knowledge Architect - Builds and organizes the knowledge base
+  - id: mind-validator
+    file: agents/mind-validator.md
+    role: Quality Gate - Validates mind completeness and readiness score
+
+tasks:
+  - id: collect-sources
+    file: tasks/collect-sources.md
+    purpose: Research and collect all available source material about the person
+  - id: analyze-layers
+    file: tasks/analyze-layers.md
+    purpose: Analyze and map the 8 DNA Mental cognitive layers
+  - id: synthesize-persona
+    file: tasks/synthesize-persona.md
+    purpose: Create system prompt and persona synthesis documents
+  - id: build-cognitive-spec
+    file: tasks/build-cognitive-spec.md
+    purpose: Generate cognitive-spec.yaml with full structured profile
+  - id: build-knowledge-base
+    file: tasks/build-knowledge-base.md
+    purpose: Organize and write knowledge base files
+  - id: validate-mind
+    file: tasks/validate-mind.md
+    purpose: Validate mind completeness and generate readiness report
+
+workflows:
+  - id: full-mapping
+    file: workflows/full-mapping.md
+    purpose: Complete pipeline from person name to deployment-ready mind
+  - id: quick-profile
+    file: workflows/quick-profile.md
+    purpose: Fast mapping with publicly available sources (1-2 hours)
+  - id: enrich-mind
+    file: workflows/enrich-mind.md
+    purpose: Add depth to existing mind with additional sources
+
+templates:
+  - system-prompt-template.md
+  - cognitive-spec-template.yaml
+  - kb-file-template.md
+
+checklists:
+  - mind-completeness-checklist.md
+  - layer-coverage-checklist.md
+
+# Installation
+installation:
+  post_install_message: |
+    🧠 MMOS Mind Mapper v1.0 instalado com sucesso!
+
+    Quick start:
+    1. Ative o orquestrador: /mmos-mind-mapper
+    2. Rode o pipeline completo: *map "Seth Godin"
+    3. Ou passo a passo: *collect seth_godin
+
+    Pré-requisitos:
+    - Acesso à internet (pesquisa de fontes)
+    - Claude API (análise cognitiva)
+    - Opcional: Apify/EXA para coleta automatizada
+
+    Output:
+    - outputs/minds/{slug}/ (compatível com clone-deploy)

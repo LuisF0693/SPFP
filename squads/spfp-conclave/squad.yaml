@@ -1,0 +1,71 @@
+name: spfp-conclave
+version: 1.0.0
+short-title: Conclave SPFP - Sistema de Deliberação Multi-Agente
+description: >-
+  Sistema de deliberação estratégica com 3 agentes especializados que analisam
+  qualquer decisão de ângulos opostos antes de emitir recomendação com nível
+  de confiança calibrado. Diferente dos conselheiros (que dão opiniões via
+  personas), o Conclave emite veredictos estruturados com score, riscos e
+  critérios de reversão.
+author: Synkra AIOS / SPFP
+slash_prefix: "spfp-conclave"
+
+# Fluxo do Conclave
+workflow:
+  phases:
+    - id: fase-0
+      name: Fundamento Constitucional
+      description: Invoca os 4 princípios que governam a deliberação
+      agent: conclave-chief
+    - id: fase-1
+      name: Crítico Metodológico
+      description: Avalia o PROCESSO de raciocínio, score 0-100 em 5 dimensões
+      agent: critico
+    - id: fase-2
+      name: Advogado do Diabo
+      description: Ataca premissas com 6 perguntas obrigatórias
+      agent: advogado-do-diabo
+    - id: fase-3
+      name: Síntese Final
+      description: Integra perspectivas, calibra confiança, emite veredicto
+      agent: sintetizador
+
+# Thresholds
+thresholds:
+  confianca_minima: 60
+  rastreabilidade_minima: 70
+  score_processo_minimo: 60
+
+# Components
+agents:
+  - id: conclave-chief
+    file: agents/conclave-chief.md
+    role: Orchestrator — Conduz o fluxo de 4 fases
+  - id: critico
+    file: agents/critico.md
+    role: Analytical Guardian — Avalia qualidade do processo (score 0-100)
+  - id: advogado-do-diabo
+    file: agents/advogado-do-diabo.md
+    role: Devil's Advocate — Ataca premissas e simula falhas
+  - id: sintetizador
+    file: agents/sintetizador.md
+    role: Integration Architect — Integra e emite veredicto com confiança%
+
+data:
+  - id: constituicao
+    file: data/constituicao.md
+    description: Os 4 princípios que governam todas as deliberações
+
+# Casos de uso
+use_cases:
+  - "Devo lançar um novo produto digital?"
+  - "Devo contratar um time interno ou terceirizar?"
+  - "Devo aumentar o preço do produto X?"
+  - "Devo fazer campanha de tráfego pago agora?"
+  - "Devo expandir para novo segmento de mercado?"
+
+# Output
+output:
+  formato: Veredicto estruturado com score, riscos e próximos passos
+  confianca: Percentual calibrado (0-100%)
+  decisao_inconclusiva: Se <60%, apresenta 3 opções para decisão humana
