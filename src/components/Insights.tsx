@@ -39,6 +39,29 @@ export const Insights: React.FC = () => {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [hasGeneratedInsight, setHasGeneratedInsight] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showContextInfo, setShowContextInfo] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyItems, setHistoryItems] = useState<Array<{id: string; prompt: string; response: string; timestamp: Date}>>([]);
+
+  // Chips de prompts rápidos — sorteia 6 de um pool maior (Story 8.1)
+  const PROMPT_POOL = [
+    { text: 'Como está meu orçamento este mês?', icon: '📊' },
+    { text: 'Onde posso economizar mais?', icon: '💡' },
+    { text: 'Qual minha maior despesa este mês?', icon: '🔍' },
+    { text: 'Estou no caminho certo com minhas metas?', icon: '🎯' },
+    { text: 'Compare meu gasto com o mês passado', icon: '📈' },
+    { text: 'Quais categorias estão acima do orçamento?', icon: '⚠️' },
+    { text: 'Dê um diagnóstico da minha saúde financeira', icon: '🏥' },
+    { text: 'Como está meu saldo em todas as contas?', icon: '💰' },
+    { text: 'Sugestões para aumentar minha reserva de emergência', icon: '🛡️' },
+    { text: 'Analise meu padrão de gastos este mês', icon: '🧠' },
+    { text: 'Qual investimento devo priorizar agora?', icon: '📦' },
+    { text: 'Quanto sobra para investir este mês?', icon: '✨' },
+  ];
+  const [quickChips] = useState(() =>
+    [...PROMPT_POOL].sort(() => 0.5 - Math.random()).slice(0, 6)
+  );
+  const userMessageCount = messages.filter(m => m.role === 'user').length;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -92,7 +115,26 @@ export const Insights: React.FC = () => {
     };
 
     fetchUserInsights();
-  }, [user?.id]); // Executar sempre que o user.id mudar
+  }, [user?.id]);
+
+  // Carregar histórico completo para a aba de histórico (Story 8.3)
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user?.id || !showHistory) return;
+      try {
+        const history = await getAIHistory(user.id);
+        setHistoryItems(history.map((h: any) => ({
+          id: h.id || String(h.timestamp?.getTime?.() || Date.now()),
+          prompt: h.prompt || 'Consulta',
+          response: h.response,
+          timestamp: h.timestamp instanceof Date ? h.timestamp : new Date(h.timestamp)
+        })));
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+      }
+    };
+    fetchHistory();
+  }, [user?.id, showHistory]);
 
   const testConnection = async () => {
     if (!hasToken) return;
@@ -331,15 +373,77 @@ export const Insights: React.FC = () => {
               Status IA
             </button>
           )}
+          {/* Context badge (Story 8.2) */}
+          <button
+            onClick={() => setShowContextInfo(v => !v)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+            title="Ver contexto financeiro injetado"
+          >
+            <BrainCircuit size={14} /> Contexto ativo
+          </button>
+
+          {/* History tab toggle (Story 8.3) */}
+          <button
+            onClick={() => setShowHistory(v => !v)}
+            className={`p-3 rounded-xl transition-all ${showHistory ? 'text-blue-400 bg-blue-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            title="Histórico de conversas"
+          >
+            <History size={20} />
+          </button>
+
           <button
             onClick={clearChat}
             className="p-3 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
             title="Resetar Agente"
           >
-            <History size={20} />
+            <Trash2 size={20} />
           </button>
         </div>
       </div>
+
+      {/* Context Info Panel (Story 8.2) */}
+      {showContextInfo && (() => {
+        const ctx = getFinancialContext();
+        return (
+          <div className="bg-emerald-950/40 border-x border-b border-emerald-500/20 px-6 py-4 text-xs space-y-1">
+            <p className="text-emerald-400 font-bold mb-2">📊 Contexto financeiro injetado automaticamente no Gemini:</p>
+            <p className="text-gray-300">Saldo: <span className="text-emerald-400 font-bold">{formatCurrency(ctx.summary.balance)}</span> · Renda mês: <span className="text-emerald-400">{formatCurrency(ctx.summary.monthlyIncome)}</span> · Gastos mês: <span className="text-rose-400">{formatCurrency(ctx.summary.monthlyExpense)}</span> · Poupança: <span className="text-blue-400">{ctx.summary.savingsRate.toFixed(1)}%</span></p>
+            {Object.keys(ctx.categories).length > 0 && (
+              <p className="text-gray-400">Top categorias: {Object.entries(ctx.categories).sort(([,a],[,b]) => b-a).slice(0,3).map(([k,v]) => `${k} (${formatCurrency(v)})`).join(' · ')}</p>
+            )}
+            {ctx.goals.length > 0 && (
+              <p className="text-gray-400">Metas: {ctx.goals.map(g => `${g.name} (${Math.round(g.current/g.target*100)}%)`).join(' · ')}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* History Panel (Story 8.3) */}
+      {showHistory && (
+        <div className="bg-black/60 border-x border-white/10 overflow-y-auto max-h-80 p-4 space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase mb-3">Histórico de conversas</p>
+          {historyItems.length === 0
+            ? <p className="text-xs text-gray-600 text-center py-4">Nenhuma conversa salva ainda</p>
+            : historyItems.map(item => (
+              <div key={item.id} className="bg-white/5 border border-white/10 rounded-xl p-3 cursor-pointer hover:border-blue-500/30 transition-all"
+                onClick={() => {
+                  setMessages([
+                    { id: 'h-q-'+item.id, role: 'user', content: item.prompt, timestamp: item.timestamp.getTime() },
+                    { id: 'h-a-'+item.id, role: 'assistant', content: item.response, timestamp: item.timestamp.getTime() + 1 }
+                  ]);
+                  setHasGeneratedInsight(true);
+                  setShowHistory(false);
+                }}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-blue-400 truncate max-w-[80%]">{item.prompt}</span>
+                  <span className="text-[10px] text-gray-600">{item.timestamp.toLocaleDateString('pt-BR')}</span>
+                </div>
+                <p className="text-xs text-gray-500 truncate">{item.response.substring(0, 100)}...</p>
+              </div>
+            ))}
+        </div>
+      )}
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col bg-black/40 border-x border-white/10 overflow-hidden relative">
@@ -455,6 +559,22 @@ export const Insights: React.FC = () => {
 
       {/* Input Area */}
       <div className="p-8 glass rounded-b-[2.5rem] shadow-2xl relative" data-testid="insights-input-area">
+        {/* Quick prompt chips (Story 8.1) */}
+        {hasGeneratedInsight && userMessageCount === 0 && (
+          <div className="flex flex-wrap gap-2 mb-4 max-w-4xl mx-auto">
+            {quickChips.map((chip, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(chip.text)}
+                disabled={loading || !hasToken}
+                className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300 hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all font-medium flex items-center gap-1.5 disabled:opacity-40"
+              >
+                <span>{chip.icon}</span>{chip.text}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-4 items-end max-w-4xl mx-auto">
           <div className="flex-1 relative">
             <textarea
