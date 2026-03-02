@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Bell, Plus, Menu, X, LayoutGrid, Users } from 'lucide-react';
+import { ArrowLeft, Search, Bell, Plus, Menu, X, LayoutGrid, Users, Activity } from 'lucide-react';
 import { CompanySidebar } from './CompanySidebar';
 import { SquadView } from './SquadView';
 import { MembersView } from './MembersView';
+import { ActivityFeed } from './ActivityFeed';
 import { SquadForm } from './forms/SquadForm';
 import { CompanyProvider, useCompany } from '../../context/CompanyContext';
 import { CompanySquad } from '../../types/company';
@@ -34,6 +35,7 @@ const CompanyCRMInner: React.FC = () => {
   const { squads, addSquad, updateSquad } = useCompany();
   const [activeSquadId, setActiveSquadId] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,7 +128,18 @@ const CompanyCRMInner: React.FC = () => {
 
           <div className="flex items-center gap-2 ml-auto">
             <button
-              onClick={() => { setShowMembers((v) => !v); setActiveSquadId(null); }}
+              onClick={() => { setShowActivity((v) => !v); setShowMembers(false); setActiveSquadId(null); }}
+              className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                showActivity
+                  ? 'bg-accent/10 border border-accent/20 text-accent'
+                  : 'border border-white/10 text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Activity size={15} />
+              Atividade
+            </button>
+            <button
+              onClick={() => { setShowMembers((v) => !v); setShowActivity(false); setActiveSquadId(null); }}
               className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 showMembers
                   ? 'bg-accent/10 border border-accent/20 text-accent'
@@ -151,7 +164,9 @@ const CompanyCRMInner: React.FC = () => {
 
         {/* Main scrollable area */}
         <main className="flex-1 overflow-y-auto">
-          {showMembers ? (
+          {showActivity ? (
+            <ActivityFeed />
+          ) : showMembers ? (
             <MembersView />
           ) : activeSquad ? (
             <SquadView squad={activeSquad} onEditSquad={handleEditSquad} />
