@@ -30,32 +30,35 @@ export const Goals: React.FC = () => {
     const totalProgress = totalTarget > 0 ? (totalAccumulated / totalTarget) * 100 : 0;
     const completedGoals = safeGoals.filter(g => g.status === 'COMPLETED' || g.currentAmount >= g.targetAmount).length;
 
-    // Monthly Savings Logic
+    // Story 5.3: Current month real income and expense data
+    const currentMonthData = (() => {
+        const now = new Date();
+        const safeTx = Array.isArray(transactions) ? transactions : [];
+        const currentMonthTx = safeTx.filter(tx => {
+            const d = new Date(tx.date);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        });
+        const income = currentMonthTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.value, 0);
+        const expense = currentMonthTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.value, 0);
+        return { income, expense, savings: income - expense };
+    })();
+
+    // Keep average calculation for reference (used in tooltip)
     const calculateAverageSavings = () => {
         const now = new Date();
-        const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`; // format YYYY-MM based on JS month index
-
-        // Group by month
+        const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
         const monthlyStats: Record<string, number> = {};
-
         const safeTx = Array.isArray(transactions) ? transactions : [];
         safeTx.forEach(tx => {
             const date = new Date(tx.date);
             const key = `${date.getFullYear()}-${date.getMonth()}`;
-
-            // Skip current incomplete month for average
             if (key === currentMonthKey) return;
-
             if (!monthlyStats[key]) monthlyStats[key] = 0;
-
             if (tx.type === 'INCOME') monthlyStats[key] += tx.value;
             else if (tx.type === 'EXPENSE') monthlyStats[key] -= tx.value;
         });
-
-        // Get last 3 months with data
         const sortedMonths = Object.keys(monthlyStats).sort().reverse().slice(0, 3);
         if (sortedMonths.length === 0) return 0;
-
         const sum = sortedMonths.reduce((acc, key) => acc + monthlyStats[key], 0);
         return sum / sortedMonths.length;
     };
@@ -162,7 +165,7 @@ export const Goals: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Economia Mensal / Meta de Economia - Premium Card */}
+                        {/* Economia Mensal — dados REAIS do mês atual (Story 5.3) */}
                         <div
                             onClick={() => {
                                 setNewSavingsTarget(userProfile.monthlySavingsTarget || 0);
@@ -170,26 +173,40 @@ export const Goals: React.FC = () => {
                             }}
                             className="relative overflow-hidden bg-slate-900/60 p-6 rounded-2xl border border-white/10 backdrop-blur-sm group cursor-pointer hover:border-emerald-500/30 transition-all"
                         >
-                            {/* Glow effect */}
                             <div className="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                            <div className="flex justify-between items-start mb-3 relative z-10">
-                                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Economia Ideal/Mês</span>
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Mês Atual</span>
                                 <div className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-xl text-emerald-400 shadow-lg shadow-emerald-500/10">
                                     <TrendingUp size={18} />
                                 </div>
                             </div>
-                            <h3 className="text-3xl font-bold text-white mb-2 relative z-10">
-                                {userProfile.monthlySavingsTarget ? formatCurrency(userProfile.monthlySavingsTarget) : 'Definir'}
-                            </h3>
-                            <div className="flex items-center gap-2 relative z-10">
-                                <span className="text-slate-400 text-xs">Média real:</span>
-                                <span className={`text-sm font-bold ${averageSavings >= (userProfile.monthlySavingsTarget || 0) ? "text-emerald-400" : "text-amber-400"}`}>
-                                    {formatCurrency(averageSavings)}
+                            {/* Renda real do mês */}
+                            <div className="flex justify-between items-center relative z-10 mb-1">
+                                <span className="text-slate-400 text-xs">Renda</span>
+                                <span className="text-emerald-400 font-bold text-sm">{formatCurrency(currentMonthData.income)}</span>
+                            </div>
+                            {/* Gasto real do mês */}
+                            <div className="flex justify-between items-center relative z-10 mb-2">
+                                <span className="text-slate-400 text-xs">Gastos</span>
+                                <span className="text-rose-400 font-bold text-sm">{formatCurrency(currentMonthData.expense)}</span>
+                            </div>
+                            {/* Sobra/déficit */}
+                            <div className="flex items-center gap-2 relative z-10 border-t border-white/10 pt-2">
+                                <span className="text-slate-400 text-xs">Sobra</span>
+                                <span className={`text-base font-bold ${currentMonthData.savings >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {formatCurrency(currentMonthData.savings)}
                                 </span>
+                                {userProfile.monthlySavingsTarget ? (
+                                    <span className={`text-xs ml-auto ${currentMonthData.savings >= userProfile.monthlySavingsTarget ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                        Meta: {formatCurrency(userProfile.monthlySavingsTarget)}
+                                    </span>
+                                ) : (
+                                    <span className="text-xs ml-auto text-slate-500">Definir meta</span>
+                                )}
                             </div>
                             <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-white/10 text-[10px] text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
-                                Editar
+                                Editar meta
                             </div>
                         </div>
 
