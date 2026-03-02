@@ -192,7 +192,28 @@ export const validateAccountData = (data: Partial<Account>): {
 };
 
 /**
- * Calculate card statistics summary
+ * Calculate shared group invoice for a physical card and all its virtual children.
+ * Virtual cards share the physical card's credit limit.
+ */
+export const calculateGroupInvoice = (
+  physicalCard: Account,
+  allCards: Account[],
+  transactions: Transaction[]
+): { totalUsed: number; available: number; percent: number } => {
+  const virtualCards = allCards.filter(
+    c => c.isVirtualCard && c.parentCardId === physicalCard.id
+  );
+  const groupIds = [physicalCard.id, ...virtualCards.map(c => c.id)];
+  const totalUsed = groupIds.reduce((acc, id) => acc + getInvoiceValue(id, transactions), 0);
+  const limit = physicalCard.creditLimit || 0;
+  const available = limit - totalUsed;
+  const percent = limit > 0 ? (totalUsed / limit) * 100 : 0;
+  return { totalUsed, available, percent };
+};
+
+/**
+ * Calculate card statistics summary.
+ * Virtual cards are excluded from totals (their spend is counted under the physical parent).
  */
 export const calculateCardStatistics = (
   creditCards: Account[],
@@ -203,8 +224,13 @@ export const calculateCardStatistics = (
   totalAvailable: number;
   limitUsage: number;
 } => {
-  const totalInvoices = creditCards.reduce((acc, card) => acc + getInvoiceValue(card.id, transactions), 0);
-  const totalLimit = creditCards.reduce((acc, card) => acc + (card.creditLimit || 0), 0);
+  // Only count physical cards to avoid double-counting virtual card spend
+  const physicalCards = creditCards.filter(c => !c.isVirtualCard);
+  const totalInvoices = physicalCards.reduce(
+    (acc, card) => acc + calculateGroupInvoice(card, creditCards, transactions).totalUsed,
+    0
+  );
+  const totalLimit = physicalCards.reduce((acc, card) => acc + (card.creditLimit || 0), 0);
   const totalAvailable = totalLimit - totalInvoices;
   const limitUsage = calculateLimitUsage(totalInvoices, totalLimit);
 

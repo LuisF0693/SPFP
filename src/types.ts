@@ -79,6 +79,9 @@ export interface Account {
   closingDay?: number;
   dueDay?: number;
   deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
+  // Virtual card support (Story 3.1)
+  isVirtualCard?: boolean; // true if this is a virtual card
+  parentCardId?: string;   // ID of the physical (parent) card this virtual card belongs to
 }
 
 /**

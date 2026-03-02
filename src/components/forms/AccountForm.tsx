@@ -6,6 +6,7 @@ interface AccountFormProps {
     onClose: () => void;
     initialData?: Account | null;
     onSubmit: (data: Omit<Account, 'id'>) => void;
+    existingCards?: Account[]; // Physical credit cards available as parent options
 }
 
 const CARD_COLORS = [
@@ -13,7 +14,7 @@ const CARD_COLORS = [
     '#10b981', '#ec4899', '#0f172a', '#f59e0b',
 ];
 
-export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, onSubmit }) => {
+export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, onSubmit, existingCards = [] }) => {
     const [name, setName] = useState('');
     const [type, setType] = useState<AccountType>('CHECKING');
     const [owner, setOwner] = useState<AccountOwner>('ME');
@@ -24,6 +25,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, 
     const [closingDay, setClosingDay] = useState('');
     const [dueDay, setDueDay] = useState('');
     const [color, setColor] = useState(CARD_COLORS[6]);
+    const [isVirtualCard, setIsVirtualCard] = useState(false);
+    const [parentCardId, setParentCardId] = useState('');
+
+    // Physical cards that can be selected as parent (not virtual themselves)
+    const parentOptions = existingCards.filter(
+        c => !c.isVirtualCard && c.id !== initialData?.id
+    );
 
     useEffect(() => {
         if (initialData) {
@@ -31,12 +39,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, 
             setType(initialData.type);
             setOwner(initialData.owner);
             setBalance(initialData.balance.toString());
-            setLimit((initialData.limit || 0).toString());
-            setLastFour(initialData.lastFour || '');
+            setLimit(((initialData as any).limit || initialData.creditLimit || 0).toString());
+            setLastFour((initialData as any).lastFour || initialData.lastFourDigits || '');
             setNetwork((initialData.network as CardNetwork) || 'MASTERCARD');
             setClosingDay((initialData.closingDay || '').toString());
             setDueDay((initialData.dueDay || '').toString());
             setColor(initialData.color || CARD_COLORS[6]);
+            setIsVirtualCard(!!initialData.isVirtualCard);
+            setParentCardId(initialData.parentCardId || '');
         }
     }, [initialData]);
 
@@ -47,13 +57,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, 
             type,
             owner,
             balance: parseFloat(balance) || 0,
-            limit: type === 'CREDIT_CARD' ? parseFloat(limit) || 0 : undefined,
+            limit: type === 'CREDIT_CARD' && !isVirtualCard ? parseFloat(limit) || 0 : undefined,
             lastFour: type === 'CREDIT_CARD' ? lastFour : undefined,
             network: type === 'CREDIT_CARD' ? network : undefined,
             closingDay: type === 'CREDIT_CARD' ? parseInt(closingDay) || undefined : undefined,
             dueDay: type === 'CREDIT_CARD' ? parseInt(dueDay) || undefined : undefined,
             color,
-        });
+            isVirtualCard: type === 'CREDIT_CARD' ? isVirtualCard : undefined,
+            parentCardId: type === 'CREDIT_CARD' && isVirtualCard ? parentCardId || undefined : undefined,
+        } as any);
     };
 
     return (
@@ -92,6 +104,46 @@ export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, 
 
             {type === 'CREDIT_CARD' && (
                 <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800 space-y-4">
+                    {/* Virtual Card Toggle */}
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                        <div
+                            onClick={() => { setIsVirtualCard(v => !v); if (!isVirtualCard) setParentCardId(''); }}
+                            className={`relative w-10 h-5 rounded-full transition-colors ${isVirtualCard ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                        >
+                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isVirtualCard ? 'translate-x-5' : ''}`} />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Cartão Virtual</span>
+                        {isVirtualCard && (
+                            <span className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-bold">
+                                Compartilha limite do cartão físico
+                            </span>
+                        )}
+                    </label>
+
+                    {/* Parent Card Selector */}
+                    {isVirtualCard && (
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cartão Físico Pai</label>
+                            {parentOptions.length === 0 ? (
+                                <p className="text-xs text-amber-400 italic">Crie um cartão físico primeiro antes de adicionar virtuais.</p>
+                            ) : (
+                                <select
+                                    value={parentCardId}
+                                    onChange={e => setParentCardId(e.target.value)}
+                                    required
+                                    className="w-full p-3 bg-white dark:bg-black/30 border border-gray-200 dark:border-blue-500/50 rounded-xl text-sm outline-none text-gray-900 dark:text-white"
+                                >
+                                    <option value="">Selecione o cartão físico...</option>
+                                    {parentOptions.map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}{c.lastFourDigits ? ` ••••${c.lastFourDigits}` : ''} — Limite: R$ {(c.creditLimit || 0).toLocaleString('pt-BR')}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Final (4 dígitos)</label>
@@ -134,7 +186,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ onClose, initialData, 
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{type === 'CREDIT_CARD' ? "Fatura Atual" : "Saldo Atual"}</label>
                     <input type="number" step="0.01" placeholder="0,00" value={balance} onChange={e => setBalance(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none font-bold text-gray-900 dark:text-white" required />
                 </div>
-                {type === 'CREDIT_CARD' && (
+                {type === 'CREDIT_CARD' && !isVirtualCard && (
                     <div className="flex-1">
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Limite Total</label>
                         <input type="number" step="0.01" placeholder="0,00" value={limit} onChange={e => setLimit(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none font-bold text-gray-900 dark:text-white" required />

@@ -13,6 +13,7 @@ import { Account, Transaction, Category, UserProfile } from '../types';
 import {
   getInvoiceValue,
   calculateCardBalance,
+  calculateGroupInvoice,
   getRecentCardTransactions,
   getCardCategoryData,
   calculateCardStatistics,
@@ -50,6 +51,22 @@ export const AccountsList: React.FC<AccountsListProps> = ({
   onViewInvoice,
 }) => {
   const safeCards = Array.isArray(creditCards) ? creditCards : [];
+
+  // Split into physical and virtual
+  const physicalCards = safeCards.filter(c => !c.isVirtualCard);
+  const virtualCards  = safeCards.filter(c => c.isVirtualCard);
+  // Ordered list: physical card first, then its virtual children, repeat
+  const orderedCards: Array<{ card: Account; isVirtual: boolean; parentName?: string }> = [];
+  physicalCards.forEach(physical => {
+    orderedCards.push({ card: physical, isVirtual: false });
+    virtualCards
+      .filter(v => v.parentCardId === physical.id)
+      .forEach(v => orderedCards.push({ card: v, isVirtual: true, parentName: physical.name }));
+  });
+  // Orphan virtual cards (parent not found) — show at end
+  virtualCards
+    .filter(v => !physicalCards.find(p => p.id === v.parentCardId))
+    .forEach(v => orderedCards.push({ card: v, isVirtual: true }));
   const cardIds = safeCards.map(c => c.id);
   const stats = calculateCardStatistics(safeCards, transactions);
   const nextDueCard = safeCards
@@ -162,30 +179,63 @@ export const AccountsList: React.FC<AccountsListProps> = ({
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Seus Cartões</h3>
           </div>
 
-          {creditCards.length === 0 ? (
+          {orderedCards.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 dark:bg-[#0f172a] rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
               <CreditCard size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 font-medium">
-                Você ainda não tem cartões cadastrados.
-              </p>
-              <button
-                onClick={onAddNew}
-                className="mt-4 text-accent font-bold text-sm hover:underline"
-              >
+              <p className="text-gray-500 font-medium">Você ainda não tem cartões cadastrados.</p>
+              <button onClick={onAddNew} className="mt-4 text-accent font-bold text-sm hover:underline">
                 Cadastrar Cartão
               </button>
             </div>
           ) : (
-            (Array.isArray(creditCards) ? creditCards : []).map(card => {
-              const calcInvoice = getInvoiceValue(card.id, transactions);
-              const { used, available, percent } = calculateCardBalance(card);
+            orderedCards.map(({ card, isVirtual, parentName }) => {
+              // For virtual cards: use parent's shared limit calc
+              // For physical cards: use group calc (includes virtual children's spending)
+              const physicalParent = isVirtual
+                ? physicalCards.find(p => p.id === card.parentCardId)
+                : null;
+
+              let invoiceDisplay: number;
+              let available: number;
+              let percent: number;
+              let limitDisplay: number;
+
+              if (isVirtual && physicalParent) {
+                // Virtual: show own invoice but limit from parent's group
+                const group = calculateGroupInvoice(physicalParent, safeCards, transactions);
+                invoiceDisplay = getInvoiceValue(card.id, transactions);
+                available      = group.available;
+                percent        = group.percent;
+                limitDisplay   = physicalParent.creditLimit || 0;
+              } else if (!isVirtual) {
+                // Physical: show group totals
+                const group = calculateGroupInvoice(card, safeCards, transactions);
+                invoiceDisplay = group.totalUsed;
+                available      = group.available;
+                percent        = group.percent;
+                limitDisplay   = card.creditLimit || 0;
+              } else {
+                // Orphan virtual (parent not found) — fallback
+                const bal = calculateCardBalance(card);
+                invoiceDisplay = getInvoiceValue(card.id, transactions);
+                available      = bal.available;
+                percent        = bal.percent;
+                limitDisplay   = card.creditLimit || 0;
+              }
+
+              const hasVirtualChildren = !isVirtual &&
+                virtualCards.some(v => v.parentCardId === card.id);
 
               return (
                 <div
                   key={card.id}
-                  className="bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row group/card"
+                  className={`bg-white dark:bg-[#0f172a] rounded-3xl p-1 shadow-sm overflow-hidden flex flex-col md:flex-row group/card transition-all ${
+                    isVirtual
+                      ? 'ml-6 border border-blue-500/20 border-dashed'
+                      : 'border border-gray-100 dark:border-gray-800'
+                  }`}
                 >
-                  {/* Card Visual - Using CreditCardDisplay component */}
+                  {/* Card Visual */}
                   <div
                     onClick={() => onViewInvoice(card)}
                     className="w-full md:w-[320px] cursor-pointer transition-transform group-hover/card:scale-[1.02] duration-300 shrink-0"
@@ -201,11 +251,21 @@ export const AccountsList: React.FC<AccountsListProps> = ({
                   <div className="flex-1 p-6 flex flex-col justify-center">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white text-lg">
-                          {card.name}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-gray-900 dark:text-white text-lg">{card.name}</h4>
+                          {isVirtual && (
+                            <span className="text-[10px] font-bold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 uppercase flex items-center gap-1">
+                              <Wifi size={9} /> Virtual
+                            </span>
+                          )}
+                          {hasVirtualChildren && (
+                            <span className="text-[10px] font-bold bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20 uppercase">
+                              + Virtuais
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-400">
-                          Conta Corrente Final 4022
+                          {isVirtual && parentName ? `Cartão virtual de ${parentName}` : 'Cartão físico'}
                         </p>
                       </div>
                       <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded border border-emerald-500/20 uppercase">
@@ -215,13 +275,17 @@ export const AccountsList: React.FC<AccountsListProps> = ({
 
                     <div className="grid grid-cols-2 gap-8 mb-4">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Fatura Atual</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {isVirtual ? 'Fatura (este cartão)' : hasVirtualChildren ? 'Fatura Total do Grupo' : 'Fatura Atual'}
+                        </p>
                         <p className="text-xl font-black text-gray-900 dark:text-white">
-                          {formatCurrency(calcInvoice)}
+                          {formatCurrency(invoiceDisplay)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Limite Disponível</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {(isVirtual || hasVirtualChildren) ? 'Disponível (Grupo)' : 'Limite Disponível'}
+                        </p>
                         <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {formatCurrency(available)}
                         </p>
@@ -232,14 +296,19 @@ export const AccountsList: React.FC<AccountsListProps> = ({
                       <div className="flex justify-between text-xs mb-1.5">
                         <span className="text-gray-500">Usado: {Math.round(percent)}%</span>
                         <span className="text-gray-400">
-                          Limite: {formatCurrency(card.creditLimit || 0)}
+                          Limite: {formatCurrency(limitDisplay)}
+                          {(isVirtual || hasVirtualChildren) && (
+                            <span className="text-purple-400 ml-1">(compartilhado)</span>
+                          )}
                         </span>
                       </div>
                       <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
                         <div
-                          className="bg-accent h-full rounded-full transition-all duration-1000"
+                          className={`h-full rounded-full transition-all duration-1000 ${
+                            percent > 80 ? 'bg-rose-500' : percent > 60 ? 'bg-amber-500' : 'bg-accent'
+                          }`}
                           style={{ width: `${Math.min(percent, 100)}%` }}
-                        ></div>
+                        />
                       </div>
                     </div>
 

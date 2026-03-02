@@ -73,12 +73,14 @@ export const Accounts: React.FC = () => {
     };
 
     if (accountData.type === 'CREDIT_CARD') {
-      data.creditLimit = accountData.limit;
-      data.lastFourDigits = accountData.lastFour;
+      data.creditLimit = (accountData as any).limit;
+      data.lastFourDigits = (accountData as any).lastFour;
       data.network = accountData.network;
       data.closingDay = accountData.closingDay;
       data.dueDay = accountData.dueDay;
       data.color = accountData.color;
+      data.isVirtualCard = (accountData as any).isVirtualCard || false;
+      data.parentCardId = (accountData as any).parentCardId || undefined;
     }
 
     if (editingId) {
@@ -156,6 +158,7 @@ export const Accounts: React.FC = () => {
           onClose={resetForm}
           initialData={editingId ? accounts.find(a => a.id === editingId) || null : null}
           onSubmit={handleAccountFormSubmit}
+          existingCards={creditCards.filter(c => !c.isVirtualCard && c.id !== editingId)}
         />
       </Modal>
 
