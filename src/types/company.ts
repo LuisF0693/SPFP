@@ -15,6 +15,8 @@ export interface CompanyBoard {
   squad_id: string;
   user_id: string;
   name: string;
+  icon?: string;
+  color?: string;
   description?: string;
   is_archived: boolean;
   sort_order: number;
@@ -33,9 +35,13 @@ export interface CompanyTask {
   status: TaskStatus;
   priority: TaskPriority;
   assignee_id?: string;
+  assignee_name?: string;
+  assignee_avatar?: string;
+  tags?: string[];
   due_date?: string;
   sort_order: number;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface CompanyMember {

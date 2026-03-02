@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from './AuthContext';
-import { CompanySquad, CompanyBoard } from '../types/company';
+import { CompanySquad, CompanyBoard, CompanyTask } from '../types/company';
 
 const DEFAULT_SQUADS: Omit<CompanySquad, 'id' | 'user_id' | 'created_at'>[] = [
   { name: 'Marketing',        icon: '🎯', color: '#ec4899', description: 'Squad de Marketing e Growth',        is_archived: false, sort_order: 0 },
@@ -26,6 +26,13 @@ interface CompanyContextValue {
   addBoard: (data: Omit<CompanyBoard, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
   updateBoard: (id: string, data: Partial<CompanyBoard>) => Promise<void>;
   archiveBoard: (id: string) => Promise<void>;
+  // Tasks
+  tasks: CompanyTask[];
+  tasksLoading: boolean;
+  loadTasks: (boardId: string) => Promise<void>;
+  addTask: (data: Omit<CompanyTask, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<CompanyTask>;
+  updateTask: (id: string, data: Partial<CompanyTask>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
 }
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
@@ -42,6 +49,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(false);
   const [boards, setBoards] = useState<CompanyBoard[]>([]);
   const [boardsLoading, setBoardsLoading] = useState(false);
+  const [tasks, setTasks] = useState<CompanyTask[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   // ---- Squads ----
   const seedDefaultSquads = useCallback(async (userId: string) => {
@@ -158,10 +167,58 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setBoards((prev) => prev.filter((b) => b.id !== id));
   }, [updateBoard]);
 
+  // ---- Tasks ----
+  const loadTasks = useCallback(async (boardId: string) => {
+    setTasksLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('company_tasks')
+        .select('*')
+        .eq('board_id', boardId)
+        .order('sort_order');
+      if (error) throw error;
+      setTasks(data || []);
+    } catch (err) {
+      console.error('[CompanyContext] Error loading tasks:', err);
+    } finally {
+      setTasksLoading(false);
+    }
+  }, []);
+
+  const addTask = useCallback(async (data: Omit<CompanyTask, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<CompanyTask> => {
+    if (!user) throw new Error('Not authenticated');
+    const { data: inserted, error } = await supabase
+      .from('company_tasks')
+      .insert({ ...data, user_id: user.id })
+      .select()
+      .single();
+    if (error) throw error;
+    setTasks((prev) => [...prev, inserted].sort((a, b) => a.sort_order - b.sort_order));
+    return inserted;
+  }, [user]);
+
+  const updateTask = useCallback(async (id: string, data: Partial<CompanyTask>) => {
+    const { data: updated, error } = await supabase
+      .from('company_tasks')
+      .update({ ...data, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  }, []);
+
+  const deleteTask = useCallback(async (id: string) => {
+    const { error } = await supabase.from('company_tasks').delete().eq('id', id);
+    if (error) throw error;
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   return (
     <CompanyContext.Provider value={{
       squads, isLoading, addSquad, updateSquad, archiveSquad,
       boards, boardsLoading, loadBoards, addBoard, updateBoard, archiveBoard,
+      tasks, tasksLoading, loadTasks, addTask, updateTask, deleteTask,
     }}>
       {children}
     </CompanyContext.Provider>
