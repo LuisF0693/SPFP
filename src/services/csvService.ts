@@ -1,6 +1,38 @@
-import { Transaction, TransactionType } from '../types';
+import { Transaction, Category, Account } from '../types';
 import { generateId } from '../utils';
 import { parseBankStatementWithAI } from './geminiService';
+
+export const exportTransactionsToCSVWithOptions = (
+    transactions: Transaction[],
+    categories: Category[],
+    accounts: Account[],
+    options: { columns: string[]; period: string }
+): void => {
+    const { columns, period } = options;
+    const BOM = '\uFEFF';
+
+    const colMap: Record<string, (t: Transaction) => string> = {
+        'Data': t => new Date(t.date).toLocaleDateString('pt-BR'),
+        'Descrição': t => t.description,
+        'Categoria': t => categories.find(c => c.id === t.categoryId)?.name || 'Outros',
+        'Conta': t => accounts.find(a => a.id === t.accountId)?.name || '',
+        'Valor': t => t.value.toFixed(2).replace('.', ','),
+        'Tipo': t => t.type === 'INCOME' ? 'Receita' : 'Despesa',
+    };
+
+    const headers = columns.filter(c => colMap[c]);
+    const rows = transactions.map(t => headers.map(col => `"${(colMap[col](t) || '').replace(/"/g, '""')}"`));
+
+    const csvContent = BOM + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', `SPFP_transacoes_${period}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 
 export const exportTransactionsToCSV = (transactions: Transaction[]): void => {
   const headers = ['Data', 'Descrição', 'Valor', 'Tipo', 'Categoria ID', 'Conta ID'];

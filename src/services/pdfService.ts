@@ -456,8 +456,53 @@ export const generatePDFReport = async (
         });
     }
 
+    // --- Category Spending Chart (bar chart using jsPDF drawing) ---
+    if (summary.categoryData && summary.categoryData.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont('inter', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('Gastos por Categoria', 14, currentY + 10);
+        currentY += 18;
+
+        const maxVal = Math.max(...summary.categoryData.map((c: any) => c.value));
+        const barMaxWidth = 100;
+        const barH = 7;
+        const topCats = summary.categoryData.slice(0, 5);
+
+        topCats.forEach((cat: any, idx: number) => {
+            const y = currentY + idx * (barH + 6);
+            const barW = maxVal > 0 ? (cat.value / maxVal) * barMaxWidth : 0;
+
+            // Category name
+            doc.setFontSize(8);
+            doc.setFont('inter', 'normal');
+            doc.setTextColor(71, 85, 105);
+            doc.text(cat.name.substring(0, 18), 14, y + barH - 1);
+
+            // Background bar
+            doc.setFillColor(226, 232, 240);
+            doc.rect(60, y, barMaxWidth, barH, 'F');
+
+            // Value bar (parse hex color)
+            const hex = (cat.color || '#3b82f6').replace('#', '');
+            const r = parseInt(hex.substring(0, 2), 16) || 59;
+            const g = parseInt(hex.substring(2, 4), 16) || 130;
+            const b = parseInt(hex.substring(4, 6), 16) || 246;
+            doc.setFillColor(r, g, b);
+            doc.rect(60, y, barW, barH, 'F');
+
+            // Value text
+            doc.setFontSize(8);
+            doc.setTextColor(30, 41, 59);
+            doc.text(formatCurrency(cat.value), 165, y + barH - 1);
+        });
+
+        currentY += topCats.length * (barH + 6) + 10;
+    }
+
     // --- Detailed Transactions Table ---
     doc.setFontSize(14);
+    doc.setFont('inter', 'bold');
     doc.setTextColor(30, 41, 59);
     doc.text('Detalhamento de Movimentações', 14, currentY + 10);
 

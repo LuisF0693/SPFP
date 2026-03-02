@@ -5,8 +5,9 @@ import { formatCurrency, getMonthName } from '../utils';
 import {
     TrendingUp, TrendingDown, DollarSign, LineChart as LineChartIcon,
     ChevronLeft, ChevronRight, Target, PieChart as PieChartIcon,
-    ShoppingBag, ArrowRight, Wallet
+    ShoppingBag, ArrowRight, Wallet, SlidersHorizontal, X as XIcon, Download
 } from 'lucide-react';
+import { exportTransactionsToCSVWithOptions } from '../services/csvService';
 import {
     XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
     AreaChart, Area, PieChart, Pie, Cell
@@ -21,17 +22,44 @@ import { ReportMetricCard, ReportExportButton } from './reports/index';
  * Supports PDF generation.
  */
 export const Reports: React.FC = () => {
-    const { transactions, categories, totalBalance, categoryBudgets, goals } = useSafeFinance();
+    const { transactions, categories, accounts, totalBalance, categoryBudgets, goals } = useSafeFinance();
 
     // Month Navigation
     const { selectedMonth, selectedYear, changeMonth } = useMonthNavigation();
     const [isExporting, setIsExporting] = useState(false);
 
+    // Advanced Filters state (Story 7.1)
+    const [showFilters, setShowFilters] = useState(false);
+    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+    const [filterCategoryIds, setFilterCategoryIds] = useState<string[]>([]);
+    const [filterAccountIds, setFilterAccountIds] = useState<string[]>([]);
+
+    // CSV Export modal state (Story 7.3)
+    const [showCSVModal, setShowCSVModal] = useState(false);
+    const [csvColumns, setCsvColumns] = useState<string[]>(['Data', 'Descrição', 'Categoria', 'Conta', 'Valor']);
+    const [csvPeriod, setCsvPeriod] = useState<'month' | 'all'>('month');
+
+    const activeFilterCount = (filterType !== 'ALL' ? 1 : 0) + filterCategoryIds.length + filterAccountIds.length;
+
+    const toggleCategory = (id: string) =>
+        setFilterCategoryIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    const toggleAccount = (id: string) =>
+        setFilterAccountIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    const clearFilters = () => { setFilterType('ALL'); setFilterCategoryIds([]); setFilterAccountIds([]); };
+
     // Filter data for the SELECTED month
-    const currentMonthTx = transactions.filter(t => {
+    const baseMonthTx = transactions.filter(t => {
         const d = new Date(t.date);
         return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
     });
+
+    // Apply advanced filters on top of month filter
+    const currentMonthTx = useMemo(() => baseMonthTx.filter(t => {
+        if (filterType !== 'ALL' && t.type !== filterType) return false;
+        if (filterCategoryIds.length > 0 && !filterCategoryIds.includes(t.categoryId)) return false;
+        if (filterAccountIds.length > 0 && !filterAccountIds.includes(t.accountId)) return false;
+        return true;
+    }), [baseMonthTx, filterType, filterCategoryIds, filterAccountIds]);
 
     const totalIncome = Number(currentMonthTx
         .filter(t => t.type === 'INCOME')
@@ -170,12 +198,137 @@ export const Reports: React.FC = () => {
                         </button>
                     </div>
 
+                    <button
+                        onClick={() => setShowFilters(v => !v)}
+                        className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${showFilters ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+                    >
+                        <SlidersHorizontal size={16} />
+                        Filtros
+                        {activeFilterCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">{activeFilterCount}</span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setShowCSVModal(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-all"
+                    >
+                        <Download size={16} />
+                        CSV
+                    </button>
                     <ReportExportButton
                         onExport={handleExportPDF}
                         isLoading={isExporting}
                     />
                 </div>
             </div>
+
+            {/* Advanced Filters Panel (Story 7.1) */}
+            {showFilters && (
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-white">Filtros Avançados</span>
+                        {activeFilterCount > 0 && (
+                            <button onClick={clearFilters} className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                                <XIcon size={12} /> Limpar ({activeFilterCount})
+                            </button>
+                        )}
+                    </div>
+                    {/* Type filter */}
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Tipo</p>
+                        <div className="flex gap-2">
+                            {(['ALL', 'INCOME', 'EXPENSE'] as const).map(t => (
+                                <button key={t} onClick={() => setFilterType(t)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === t ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                                    {t === 'ALL' ? 'Todos' : t === 'INCOME' ? 'Receitas' : 'Despesas'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Category filter */}
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Categorias</p>
+                        <div className="flex flex-wrap gap-2">
+                            {categories.map(cat => (
+                                <button key={cat.id} onClick={() => toggleCategory(cat.id)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filterCategoryIds.includes(cat.id) ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Account filter */}
+                    {(accounts || []).length > 0 && (
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Contas</p>
+                            <div className="flex flex-wrap gap-2">
+                                {(accounts || []).map(acc => (
+                                    <button key={acc.id} onClick={() => toggleAccount(acc.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filterAccountIds.includes(acc.id) ? 'bg-purple-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                                        {acc.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <p className="text-xs text-gray-500">{currentMonthTx.length} transações encontradas</p>
+                </div>
+            )}
+
+            {/* CSV Export Modal (Story 7.3) */}
+            {showCSVModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowCSVModal(false)}>
+                    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-5">
+                            <h3 className="text-lg font-bold text-white">Exportar CSV</h3>
+                            <button onClick={() => setShowCSVModal(false)} className="text-gray-400 hover:text-white"><XIcon size={20} /></button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Período</p>
+                                <div className="flex gap-2">
+                                    {(['month', 'all'] as const).map(p => (
+                                        <button key={p} onClick={() => setCsvPeriod(p)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${csvPeriod === p ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                                            {p === 'month' ? `${getMonthName(selectedMonth)} ${selectedYear}` : 'Todos os meses'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Colunas</p>
+                                <div className="space-y-2">
+                                    {['Data', 'Descrição', 'Categoria', 'Conta', 'Valor', 'Tipo'].map(col => (
+                                        <label key={col} className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={csvColumns.includes(col)}
+                                                onChange={() => setCsvColumns(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col])}
+                                                className="w-4 h-4 rounded accent-blue-600" />
+                                            <span className="text-sm text-gray-300">{col}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                                {csvPeriod === 'month' ? currentMonthTx.length : transactions.length} transações · {csvColumns.length} colunas
+                            </p>
+                            <button
+                                onClick={() => {
+                                    const txs = csvPeriod === 'month' ? currentMonthTx : transactions;
+                                    exportTransactionsToCSVWithOptions(txs, categories, accounts || [], {
+                                        columns: csvColumns,
+                                        period: csvPeriod === 'month' ? `${getMonthName(selectedMonth)}_${selectedYear}` : 'completo'
+                                    });
+                                    setShowCSVModal(false);
+                                }}
+                                disabled={csvColumns.length === 0}
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all disabled:opacity-50"
+                            >
+                                Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Top Summaries Section - Cards com Gradientes */}
             <section aria-label="Monthly Summary" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-4">
