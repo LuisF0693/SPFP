@@ -111,11 +111,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
     setValidationErrors([]);
 
     const rawValue = parseFloat(state.value);
-    const baseDate = getTargetDate(state.date, isCreditCardExpense ? state.invoiceOffset : 0);
+    // FIX 4.1: When editing, invoiceOffset is always 0 because the date field
+    // already represents the invoice date. Offset is only applied on creation.
+    const effectiveOffset = initialData ? 0 : (isCreditCardExpense ? state.invoiceOffset : 0);
+    const baseDate = getTargetDate(state.date, effectiveOffset);
     const baseDateStr = baseDate.toISOString().split('T')[0];
 
-    // Handle recurrence
-    if (state.recurrence !== 'NONE' && state.installments > 1) {
+    // Handle recurrence — only for NEW transactions (never for edits)
+    if (!initialData && state.recurrence !== 'NONE' && state.installments > 1) {
       const result = generateTransactions(
         {
           description: state.description,
@@ -130,27 +133,15 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           recurrence: state.recurrence,
           installments: state.installments,
         },
-        !!initialData,
-        initialData?.id
+        false,
+        undefined
       );
 
       if (result) {
-        if (initialData) {
-          // Update first transaction, add rest
-          const [firstTx, ...restTx] = result.newTransactions;
-          updateTransaction({
-            id: initialData.id,
-            ...firstTx,
-          });
-          if (restTx.length > 0) {
-            addManyTransactions(restTx);
-          }
-        } else {
-          addManyTransactions(result.newTransactions);
-        }
+        addManyTransactions(result.newTransactions);
       }
     } else {
-      // Single transaction
+      // Single transaction (or editing existing)
       const payload = generateSingleTransaction({
         description: state.description,
         value: rawValue,
@@ -166,7 +157,18 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
       });
 
       if (initialData) {
-        updateTransaction({ ...payload, id: initialData.id });
+        // FIX 4.1: Preserve group relationship fields from the original transaction
+        // so parcelado/fixo mensal transactions remain part of their group after editing.
+        updateTransaction({
+          ...payload,
+          id: initialData.id,
+          ...(initialData.groupId && {
+            groupId: initialData.groupId,
+            groupType: initialData.groupType,
+            groupIndex: initialData.groupIndex,
+            groupTotal: initialData.groupTotal,
+          }),
+        });
       } else {
         addTransaction(payload);
       }
@@ -248,20 +250,33 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           }}
         />
 
-        {/* Recurrence */}
-        <TransactionRecurrenceForm
-          recurrence={state.recurrence as RecurrenceType}
-          onRecurrenceChange={(type) => setRecurrence(type as RecurrenceType)}
-          installments={state.installments}
-          onInstallmentsChange={setInstallments}
-          value={parseFloat(state.value) || 0}
-          date={state.date}
-          accountType={selectedAccount?.type}
-          closingDay={selectedAccount?.closingDay}
-          invoiceOffset={state.invoiceOffset}
-          onInvoiceOffsetChange={setInvoiceOffset}
-          isCreditCardExpense={isCreditCardExpense}
-        />
+        {/* Recurrence — only shown for new transactions, not edits */}
+        {!initialData && (
+          <TransactionRecurrenceForm
+            recurrence={state.recurrence as RecurrenceType}
+            onRecurrenceChange={(type) => setRecurrence(type as RecurrenceType)}
+            installments={state.installments}
+            onInstallmentsChange={setInstallments}
+            value={parseFloat(state.value) || 0}
+            date={state.date}
+            accountType={selectedAccount?.type}
+            closingDay={selectedAccount?.closingDay}
+            invoiceOffset={state.invoiceOffset}
+            onInvoiceOffsetChange={setInvoiceOffset}
+            isCreditCardExpense={isCreditCardExpense}
+          />
+        )}
+
+        {/* FIX 4.1: Edit mode info banner for grouped transactions */}
+        {initialData?.groupId && (
+          <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-300 flex items-start gap-2">
+            <span className="mt-0.5">⚠️</span>
+            <span>
+              Esta é uma parcela de um grupo. As alterações serão aplicadas{' '}
+              <strong>apenas nesta parcela</strong>. As demais parcelas do grupo não serão afetadas.
+            </span>
+          </div>
+        )}
 
         {/* Submit Button */}
         <button

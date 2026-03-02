@@ -89,7 +89,13 @@ export const useTransactionForm = ({
   }, [state.date, initialData]);
 
   // Auto-detect invoice offset for credit card
+  // FIX 4.1: When editing (initialData exists), invoiceOffset must be 0 because
+  // the stored date is already the invoice date — no additional offset should be applied.
   useEffect(() => {
+    if (initialData) {
+      setState((prev) => ({ ...prev, invoiceOffset: 0 }));
+      return;
+    }
     const selectedAccount = accounts.find((a) => a.id === state.accountId);
     const isCreditCardExpense = selectedAccount?.type === 'CREDIT_CARD' && state.type === 'EXPENSE';
 
@@ -102,7 +108,7 @@ export const useTransactionForm = ({
     } else {
       setState((prev) => ({ ...prev, invoiceOffset: 0 }));
     }
-  }, [state.date, state.accountId, state.type, accounts]);
+  }, [state.date, state.accountId, state.type, accounts, initialData]);
 
   // Auto-detect category based on description
   useEffect(() => {
