@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { AIConfig } from '../types';
@@ -6,7 +7,7 @@ import {
     Users, Search, Eye, Clock, User, Mail, Database,
     ArrowRight, ShieldCheck, AlertCircle, TrendingUp,
     Activity, Zap, Shield, UserCheck, Inbox, Sparkles,
-    Loader2
+    Loader2, Building2
 } from 'lucide-react';
 import { chatWithAI } from '../services/aiService';
 import { getInteractionLogs, InteractionLog } from '../services/logService';
@@ -22,6 +23,7 @@ import { UnifiedClientModal } from './crm/UnifiedClientModal';
 export const AdminCRM: React.FC = () => {
     const { fetchAllUserData, loadClientData, isSyncing, userProfile, isImpersonating } = useSafeFinance();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [clients, setClients] = useState<ClientEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -248,6 +250,14 @@ Dados do Cliente: ${JSON.stringify(relevantData)}`;
                     </button>
                     <button className="px-4 py-3 glass hover:bg-white/5 rounded-2xl text-white font-bold transition-all shadow-lg border border-white/10">
                         <TrendingUp size={20} className="text-gray-400 hover:text-white" />
+                    </button>
+                    <button
+                        onClick={() => navigate('/empresa')}
+                        className="px-5 py-3 bg-accent/10 hover:bg-accent/20 border border-accent/30 rounded-2xl text-accent font-bold text-sm transition-all flex items-center gap-2 shadow-lg"
+                    >
+                        <Building2 size={17} />
+                        CRM Empresa
+                        <ArrowRight size={15} />
                     </button>
                 </div>
             </div>

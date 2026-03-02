@@ -27,6 +27,7 @@ const Login = React.lazy(() => import('./components/Login').then(m => ({ default
 const Goals = React.lazy(() => import('./components/Goals').then(m => ({ default: m.Goals })));
 const Patrimony = React.lazy(() => import('./components/Patrimony').then(m => ({ default: m.Patrimony })));
 const AdminCRM = React.lazy(() => import('./components/AdminCRM').then(m => ({ default: m.AdminCRM })));
+const CompanyCRM = React.lazy(() => import('./components/company/CompanyCRM').then(m => ({ default: m.CompanyCRM })));
 const Budget = React.lazy(() => import('./components/Budget').then(m => ({ default: m.Budget })));
 const SalesPage = React.lazy(() => import('./components/SalesPage').then(m => ({ default: m.SalesPage })));
 const Installments = React.lazy(() => import('./components/Installments').then(m => ({ default: m.Installments })));
@@ -279,6 +280,11 @@ const AppContent: React.FC = () => {
               <AutomationDashboard />
             </Layout>
           </PrivateRoute>
+        } />
+        <Route path="/empresa" element={
+          <AdminRoute>
+            <CompanyCRM />
+          </AdminRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
