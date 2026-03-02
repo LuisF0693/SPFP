@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import { CompanyTask, TaskStatus, TaskPriority } from '../../../types/company';
+import { SPFP_AGENTS } from '../../../data/companyAgents';
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: 'TODO',        label: 'A Fazer' },
@@ -130,13 +131,20 @@ export const TaskForm: React.FC<TaskFormProps> = ({ boardId, initial, defaultSta
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-widest block mb-1.5">Responsável</label>
-              <input
-                type="text"
+              <select
                 value={assigneeName}
                 onChange={(e) => setAssigneeName(e.target.value)}
-                placeholder="Nome ou agente..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:border-accent/50 transition-colors text-sm"
-              />
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white outline-none focus:border-accent/50 transition-colors text-sm"
+              >
+                <option value="" className="bg-gray-900">Sem responsável</option>
+                <optgroup label="Agentes IA">
+                  {SPFP_AGENTS.map((a) => (
+                    <option key={a.id} value={a.name} className="bg-gray-900">
+                      {a.avatar} {a.name} ({a.squad})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-widest block mb-1.5">Data de entrega</label>

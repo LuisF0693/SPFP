@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Calendar, GripVertical, User } from 'lucide-react';
 import { CompanyTask, TaskPriority } from '../../types/company';
+import { SPFP_AGENTS } from '../../data/companyAgents';
 
 export const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string; dot: string }> = {
   URGENT: { label: 'Urgente', color: 'text-red-400 bg-red-500/10',    dot: 'bg-red-400' },
@@ -77,13 +78,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
           )}
           {task.assignee_name && (
             <div className="ml-auto flex items-center gap-1">
-              {task.assignee_avatar ? (
-                <img src={task.assignee_avatar} alt={task.assignee_name} className="w-5 h-5 rounded-full object-cover" />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
-                  <User size={9} className="text-accent" />
-                </div>
-              )}
+              {(() => {
+                const agent = SPFP_AGENTS.find((a) => a.name === task.assignee_name);
+                if (agent) {
+                  return (
+                    <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs" title={agent.name}>
+                      {agent.avatar}
+                    </span>
+                  );
+                }
+                if (task.assignee_avatar) {
+                  return <img src={task.assignee_avatar} alt={task.assignee_name} className="w-5 h-5 rounded-full object-cover" />;
+                }
+                return (
+                  <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
+                    <User size={9} className="text-accent" />
+                  </div>
+                );
+              })()}
               <span className="text-[10px] text-gray-500 hidden sm:block">{task.assignee_name.split(' ')[0]}</span>
             </div>
           )}

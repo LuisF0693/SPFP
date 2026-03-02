@@ -18,6 +18,7 @@ import { CompanyBoard, CompanyTask, TaskStatus, TaskPriority } from '../../types
 import { TaskCard, PRIORITY_CONFIG } from './TaskCard';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskForm } from './forms/TaskForm';
+import { SPFP_AGENTS } from '../../data/companyAgents';
 
 interface Column {
   id: TaskStatus;
@@ -53,6 +54,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
   const [defaultFormStatus, setDefaultFormStatus] = useState<TaskStatus>('TODO');
   const [activeTask, setActiveTask] = useState<CompanyTask | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'ALL'>('ALL');
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('ALL');
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -60,9 +62,12 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
   }, [board.id, loadTasks]);
 
   const filteredTasks = useMemo(() => {
-    if (priorityFilter === 'ALL') return tasks;
-    return tasks.filter((t) => t.priority === priorityFilter);
-  }, [tasks, priorityFilter]);
+    return tasks.filter((t) => {
+      const matchesPriority = priorityFilter === 'ALL' || t.priority === priorityFilter;
+      const matchesAssignee = assigneeFilter === 'ALL' || t.assignee_name === assigneeFilter;
+      return matchesPriority && matchesAssignee;
+    });
+  }, [tasks, priorityFilter, assigneeFilter]);
 
   const tasksByColumn = useMemo(() => {
     const map: Record<TaskStatus, CompanyTask[]> = {
@@ -165,21 +170,45 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
 
       {/* Filters bar */}
       {showFilters && (
-        <div className="flex items-center gap-2 px-6 py-2 border-b border-white/5 bg-white/2 flex-shrink-0 flex-wrap">
-          <span className="text-xs text-gray-500 font-medium">Prioridade:</span>
-          {PRIORITY_FILTERS.map((f) => (
+        <div className="flex flex-col gap-2 px-6 py-3 border-b border-white/5 bg-white/2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-gray-500 font-medium">Prioridade:</span>
+            {PRIORITY_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setPriorityFilter(f.value)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  priorityFilter === f.value
+                    ? 'bg-accent/20 text-accent border border-accent/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-gray-500 font-medium">Agente:</span>
             <button
-              key={f.value}
-              onClick={() => setPriorityFilter(f.value)}
+              onClick={() => setAssigneeFilter('ALL')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                priorityFilter === f.value
-                  ? 'bg-accent/20 text-accent border border-accent/30'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                assigneeFilter === 'ALL' ? 'bg-accent/20 text-accent border border-accent/30' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              {f.label}
+              Todos
             </button>
-          ))}
+            {SPFP_AGENTS.map((agent) => (
+              <button
+                key={agent.id}
+                onClick={() => setAssigneeFilter(agent.name)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  assigneeFilter === agent.name ? 'bg-accent/20 text-accent border border-accent/30' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                {agent.avatar} {agent.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
