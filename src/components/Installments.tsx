@@ -1,19 +1,32 @@
 /**
- * Installments Component
- * STY-052: Dedicated page for viewing and managing installment payments
+ * Installments Component v2
+ * Stories 3.2 + 3.3 + 3.4
  *
  * Features:
- * - Lists all active installments from credit cards and transactions
- * - Monthly limit configuration for installment spending
- * - Visual alerts when approaching or exceeding limit
- * - Filters by card/account and status
- * - Sorting by due date, value
+ * - Status visual: verde (paga), vermelho (atrasada), amarelo (pendente)
+ * - Sub-abas por cartão com parcelas agrupadas (accordion)
+ * - Navegação mensal (< Mês >)
+ * - Visualização anual (totais por mês)
+ * - Barra de limite do cartão (usado vs total)
+ * - Contadores por status
  */
 
 import React, { useState, useMemo } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { formatCurrency, formatDate } from '../utils';
-import { Calendar, CreditCard, AlertTriangle, CheckCircle, Clock, Filter, ArrowUpDown, Edit2 } from 'lucide-react';
+import {
+  Calendar,
+  CreditCard,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  BarChart2,
+  List,
+} from 'lucide-react';
 import { getOwnerDisplayName } from '../utils/ownerUtils';
 
 interface InstallmentView {
@@ -24,33 +37,52 @@ interface InstallmentView {
   totalInstallments: number;
   dueDate: string;
   status: 'PENDING' | 'PAID' | 'OVERDUE';
-  cardId?: string;
-  cardName?: string;
-  cardOwner?: string;
+  cardId: string;
+  cardName: string;
+  cardOwner: string;
   transactionId: string;
   groupId: string;
 }
 
-type SortOption = 'dueDate' | 'amount' | 'card';
-type FilterStatus = 'ALL' | 'PENDING' | 'PAID' | 'OVERDUE';
+type ViewMode = 'monthly' | 'by_card' | 'annual';
+
+const MONTH_NAMES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
 
 export const Installments: React.FC = () => {
   const { transactions, accounts, userProfile } = useSafeFinance();
 
-  // State for monthly limit
-  const [monthlyLimit, setMonthlyLimit] = useState<number>(
-    () => {
-      const saved = localStorage.getItem('spfp_installment_limit');
-      return saved ? parseFloat(saved) : 3000;
-    }
-  );
-  const [isEditingLimit, setIsEditingLimit] = useState(false);
-  const [tempLimit, setTempLimit] = useState(monthlyLimit.toString());
+  const today = new Date();
 
-  // Filters
-  const [filterCard, setFilterCard] = useState<string>('ALL');
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>('ALL');
-  const [sortBy, setSortBy] = useState<SortOption>('dueDate');
+  // View mode
+  const [viewMode, setViewMode] = useState<ViewMode>('by_card');
+
+  // Monthly navigation
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+
+  // Expanded cards (for by_card mode)
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCard = (cardId: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      return next;
+    });
+  };
+
+  const navigateMonth = (dir: -1 | 1) => {
+    let m = selectedMonth + dir;
+    let y = selectedYear;
+    if (m < 0) { m = 11; y--; }
+    if (m > 11) { m = 0; y++; }
+    setSelectedMonth(m);
+    setSelectedYear(y);
+  };
 
   // Get credit cards
   const creditCards = useMemo(() =>
@@ -58,24 +90,20 @@ export const Installments: React.FC = () => {
     [accounts]
   );
 
-  // Aggregate installments from transactions
-  const installments = useMemo(() => {
+  // All installments (no date filter)
+  const allInstallments = useMemo(() => {
     const safeTransactions = Array.isArray(transactions) ? transactions : [];
 
-    // Group transactions by groupId for installments
     const installmentGroups = safeTransactions.filter(
       t => t.groupType === 'INSTALLMENT' && t.groupId
     );
 
-    // Create installment views
-    const views: InstallmentView[] = installmentGroups.map(t => {
+    return installmentGroups.map(t => {
       const card = creditCards.find(c => c.id === t.accountId);
       const ownerName = card ? getOwnerDisplayName(card.owner, userProfile) : '';
-
-      // Determine status based on date and paid flag
       const dueDate = new Date(t.date);
-      const today = new Date();
-      let status: 'PENDING' | 'PAID' | 'OVERDUE' = 'PENDING';
+
+      let status: InstallmentView['status'] = 'PENDING';
       if (t.paid) {
         status = 'PAID';
       } else if (dueDate < today) {
@@ -90,340 +118,451 @@ export const Installments: React.FC = () => {
         totalInstallments: t.groupTotal || 1,
         dueDate: t.date,
         status,
-        cardId: t.accountId,
+        cardId: t.accountId || '',
         cardName: card?.name || 'Conta',
         cardOwner: ownerName,
         transactionId: t.id,
         groupId: t.groupId || t.id,
       };
     });
-
-    return views;
   }, [transactions, creditCards, userProfile]);
 
-  // Filter and sort
-  const filteredInstallments = useMemo(() => {
-    let result = [...installments];
+  // Monthly view: installments for the selected month
+  const monthlyInstallments = useMemo(() =>
+    allInstallments.filter(i => {
+      const d = new Date(i.dueDate);
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+    }),
+    [allInstallments, selectedMonth, selectedYear]
+  );
 
-    // Filter by card
-    if (filterCard !== 'ALL') {
-      result = result.filter(i => i.cardId === filterCard);
-    }
+  // Annual view: sum by month for current year
+  const annualData = useMemo(() => {
+    return MONTH_NAMES.map((name, idx) => {
+      const monthItems = allInstallments.filter(i => {
+        const d = new Date(i.dueDate);
+        return d.getMonth() === idx && d.getFullYear() === selectedYear;
+      });
+      return {
+        month: name,
+        total: monthItems.reduce((s, i) => s + i.amount, 0),
+        paid: monthItems.filter(i => i.status === 'PAID').reduce((s, i) => s + i.amount, 0),
+        pending: monthItems.filter(i => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0),
+        count: monthItems.length,
+      };
+    });
+  }, [allInstallments, selectedYear]);
 
-    // Filter by status
-    if (filterStatus !== 'ALL') {
-      result = result.filter(i => i.status === filterStatus);
-    }
+  // By-card view: installments grouped by card (showing selected month)
+  const byCardData = useMemo(() => {
+    const activeInstallments = monthlyInstallments;
+    const cardMap: Record<string, { card: typeof creditCards[0]; items: InstallmentView[] }> = {};
 
-    // Sort
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'dueDate':
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-        case 'amount':
-          return b.amount - a.amount;
-        case 'card':
-          return (a.cardName || '').localeCompare(b.cardName || '');
-        default:
-          return 0;
+    activeInstallments.forEach(i => {
+      const card = creditCards.find(c => c.id === i.cardId);
+      if (!cardMap[i.cardId]) {
+        cardMap[i.cardId] = { card: card!, items: [] };
+      }
+      cardMap[i.cardId].items.push(i);
+    });
+
+    // Also include cards with no installments in selected month (to show empty state)
+    creditCards.forEach(card => {
+      if (!cardMap[card.id]) {
+        cardMap[card.id] = { card, items: [] };
       }
     });
 
-    return result;
-  }, [installments, filterCard, filterStatus, sortBy]);
+    return Object.values(cardMap).filter(g => g.card);
+  }, [monthlyInstallments, creditCards]);
 
-  // Calculate totals
-  const totalPendingAmount = useMemo(() =>
-    filteredInstallments
-      .filter(i => i.status === 'PENDING' || i.status === 'OVERDUE')
-      .reduce((sum, i) => sum + i.amount, 0),
-    [filteredInstallments]
-  );
-
-  const limitPercentage = monthlyLimit > 0 ? (totalPendingAmount / monthlyLimit) * 100 : 0;
-  const isNearLimit = limitPercentage >= 80 && limitPercentage < 100;
-  const isOverLimit = limitPercentage >= 100;
-
-  // Save limit
-  const handleSaveLimit = () => {
-    const value = parseFloat(tempLimit) || 0;
-    setMonthlyLimit(value);
-    localStorage.setItem('spfp_installment_limit', value.toString());
-    setIsEditingLimit(false);
+  // Status badge
+  const StatusBadge: React.FC<{ status: InstallmentView['status'] }> = ({ status }) => {
+    const configs = {
+      PAID: { label: 'Paga', bg: 'bg-emerald-500/15', text: 'text-emerald-400', icon: <CheckCircle size={12} /> },
+      OVERDUE: { label: 'Atrasada', bg: 'bg-red-500/15', text: 'text-red-400', icon: <AlertTriangle size={12} /> },
+      PENDING: { label: 'Pendente', bg: 'bg-amber-500/15', text: 'text-amber-400', icon: <Clock size={12} /> },
+    };
+    const c = configs[status];
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${c.bg} ${c.text}`}>
+        {c.icon} {c.label}
+      </span>
+    );
   };
 
-  // Get status icon
-  const getStatusIcon = (status: InstallmentView['status']) => {
-    switch (status) {
-      case 'PAID':
-        return <CheckCircle size={16} className="text-emerald-500" />;
-      case 'OVERDUE':
-        return <AlertTriangle size={16} className="text-red-500" />;
-      default:
-        return <Clock size={16} className="text-amber-500" />;
-    }
+  // Card limit bar
+  const CardLimitBar: React.FC<{ card: typeof creditCards[0] }> = ({ card }) => {
+    if (!card?.creditLimit) return null;
+    const cardTx = (Array.isArray(transactions) ? transactions : []).filter(
+      t => t.accountId === card.id && !t.deletedAt && t.type === 'EXPENSE'
+    );
+    const used = cardTx.reduce((s, t) => s + t.value, 0);
+    const pct = Math.min((used / card.creditLimit) * 100, 100);
+    const barColor = pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500';
+    return (
+      <div className="mt-2">
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Limite usado: {formatCurrency(used)}</span>
+          <span>Limite total: {formatCurrency(card.creditLimit)}</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+        </div>
+        <div className="text-right text-xs text-gray-500 mt-0.5">{Math.round(pct)}% utilizado</div>
+      </div>
+    );
   };
 
-  // Get days until due
-  const getDaysUntil = (dateStr: string) => {
-    const due = new Date(dateStr);
-    const today = new Date();
-    const diff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
+  // Installment row
+  const InstallmentRow: React.FC<{ item: InstallmentView }> = ({ item }) => {
+    const daysUntil = Math.ceil(
+      (new Date(item.dueDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return (
+      <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+        item.status === 'PAID'
+          ? 'bg-emerald-500/5 border-emerald-500/20 opacity-80'
+          : item.status === 'OVERDUE'
+          ? 'bg-red-500/5 border-red-500/20'
+          : 'bg-white dark:bg-gray-900/50 border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+      }`}>
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+            item.status === 'PAID' ? 'bg-emerald-500/20' :
+            item.status === 'OVERDUE' ? 'bg-red-500/20' : 'bg-blue-500/20'
+          }`}>
+            {item.status === 'PAID'
+              ? <CheckCircle size={16} className="text-emerald-500" />
+              : item.status === 'OVERDUE'
+              ? <AlertTriangle size={16} className="text-red-500" />
+              : <Clock size={16} className="text-blue-500" />
+            }
+          </div>
+          <div className="min-w-0">
+            <p className={`font-semibold text-sm truncate ${
+              item.status === 'PAID' ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'
+            }`}>
+              {item.description}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-xs text-gray-500">{formatDate(item.dueDate)}</span>
+              <span className="text-xs font-bold bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded">
+                {item.currentInstallment}/{item.totalInstallments}
+              </span>
+              {item.status === 'PENDING' && daysUntil <= 7 && daysUntil >= 0 && (
+                <span className="text-xs font-medium text-amber-500">
+                  {daysUntil === 0 ? 'Vence hoje!' : `${daysUntil}d`}
+                </span>
+              )}
+              {item.status === 'OVERDUE' && (
+                <span className="text-xs font-medium text-red-500">
+                  {Math.abs(daysUntil)}d atrasada
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+          <p className={`font-bold text-sm ${
+            item.status === 'PAID' ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'
+          }`}>
+            {formatCurrency(item.amount)}
+          </p>
+          <StatusBadge status={item.status} />
+        </div>
+      </div>
+    );
   };
+
+  const currentInstallments = viewMode === 'by_card' ? monthlyInstallments : monthlyInstallments;
+  const totalPaid = currentInstallments.filter(i => i.status === 'PAID').length;
+  const totalOverdue = currentInstallments.filter(i => i.status === 'OVERDUE').length;
+  const totalPending = currentInstallments.filter(i => i.status === 'PENDING').length;
+  const totalAmount = currentInstallments.reduce((s, i) => s + i.amount, 0);
 
   return (
-    <main className="p-4 md:p-6 min-h-full space-y-6 animate-fade-in pb-24">
+    <main className="p-4 md:p-6 min-h-full space-y-5 animate-fade-in pb-24">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <span>📅</span> Parcelamentos
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <CreditCard size={24} className="text-blue-500" /> Parcelamentos
           </h1>
-          <p className="text-gray-500 mt-1">
-            Gerencie suas parcelas e controle seus gastos
-          </p>
+          <p className="text-sm text-gray-500 mt-0.5">Gerencie suas parcelas e controle seus gastos</p>
+        </div>
+
+        {/* View mode tabs */}
+        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+          {[
+            { key: 'by_card', label: 'Por Cartão', icon: <CreditCard size={14} /> },
+            { key: 'monthly', label: 'Mensal', icon: <List size={14} /> },
+            { key: 'annual', label: 'Anual', icon: <BarChart2 size={14} /> },
+          ].map(v => (
+            <button
+              key={v.key}
+              onClick={() => setViewMode(v.key as ViewMode)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === v.key
+                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {v.icon} {v.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Limit Card */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Limite Mensal de Parcelas</p>
-            {isEditingLimit ? (
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-gray-500">R$</span>
-                <input
-                  type="number"
-                  value={tempLimit}
-                  onChange={(e) => setTempLimit(e.target.value)}
-                  className="w-32 p-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-xl font-bold text-gray-900 dark:text-white"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSaveLimit}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700"
-                >
-                  Salvar
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditingLimit(false);
-                    setTempLimit(monthlyLimit.toString());
-                  }}
-                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-bold"
-                >
-                  Cancelar
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(monthlyLimit)}
-                </span>
-                <button
-                  onClick={() => setIsEditingLimit(true)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <Edit2 size={16} />
-                </button>
-              </div>
+      {/* Month navigation (not shown in annual view) */}
+      {viewMode !== 'annual' && (
+        <div className="flex items-center justify-between bg-white dark:bg-gray-900/50 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
+          <button
+            onClick={() => navigateMonth(-1)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <ChevronLeft size={18} className="text-gray-600 dark:text-gray-400" />
+          </button>
+          <div className="text-center">
+            <p className="font-bold text-gray-900 dark:text-white">
+              {MONTH_NAMES[selectedMonth]} {selectedYear}
+            </p>
+            {selectedMonth === today.getMonth() && selectedYear === today.getFullYear() && (
+              <p className="text-xs text-blue-500 font-medium">Mês atual</p>
             )}
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500 font-medium">Total em Parcelas</p>
-            <p className={`text-2xl font-bold ${isOverLimit ? 'text-red-500' : isNearLimit ? 'text-amber-500' : 'text-gray-900 dark:text-white'}`}>
-              {formatCurrency(totalPendingAmount)}
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="relative">
-          <div className="w-full bg-gray-100 dark:bg-gray-800 h-3 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                isOverLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-blue-500'
-              }`}
-              style={{ width: `${Math.min(limitPercentage, 100)}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-2 text-xs text-gray-500">
-            <span>{Math.round(limitPercentage)}% utilizado</span>
-            <span>{formatCurrency(Math.max(monthlyLimit - totalPendingAmount, 0))} disponível</span>
-          </div>
-        </div>
-
-        {/* Alert */}
-        {(isNearLimit || isOverLimit) && (
-          <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
-            isOverLimit
-              ? 'bg-red-500/10 border border-red-500/20 text-red-500'
-              : 'bg-amber-500/10 border border-amber-500/20 text-amber-500'
-          }`}>
-            <AlertTriangle size={18} />
-            <span className="text-sm font-medium">
-              {isOverLimit
-                ? 'Limite ultrapassado! Considere renegociar suas parcelas.'
-                : 'Atenção: Você está próximo do seu limite mensal de parcelas.'}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <Filter size={16} className="text-gray-500" />
-          <select
-            value={filterCard}
-            onChange={(e) => setFilterCard(e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300"
+          <button
+            onClick={() => navigateMonth(1)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <option value="ALL">Todos os Cartões</option>
-            {creditCards.map(card => (
-              <option key={card.id} value={card.id}>
-                {card.name} - {getOwnerDisplayName(card.owner, userProfile)}
-              </option>
-            ))}
-          </select>
+            <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" />
+          </button>
         </div>
+      )}
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-          className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300"
-        >
-          <option value="ALL">Todos os Status</option>
-          <option value="PENDING">Pendentes</option>
-          <option value="PAID">Pagas</option>
-          <option value="OVERDUE">Atrasadas</option>
-        </select>
-
-        <div className="flex items-center gap-2">
-          <ArrowUpDown size={16} className="text-gray-500" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300"
-          >
-            <option value="dueDate">Ordenar por Vencimento</option>
-            <option value="amount">Ordenar por Valor</option>
-            <option value="card">Ordenar por Cartão</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Installments List */}
-      <div className="space-y-4">
-        {filteredInstallments.length === 0 ? (
-          <div className="text-center py-16 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
-            <Calendar size={48} className="mx-auto text-gray-300 dark:text-gray-700 mb-4" />
-            <p className="text-gray-500 font-medium">Nenhuma parcela encontrada</p>
-            <p className="text-sm text-gray-400 mt-1">
-              Suas compras parceladas aparecerão aqui
-            </p>
+      {/* Annual view */}
+      {viewMode === 'annual' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-bold text-gray-900 dark:text-white">Visão Anual — {selectedYear}</h2>
+            <div className="flex gap-2">
+              <button onClick={() => setSelectedYear(y => y - 1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                <ChevronLeft size={16} />
+              </button>
+              <button onClick={() => setSelectedYear(y => y + 1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
-        ) : (
-          filteredInstallments.map((installment) => {
-            const daysUntil = getDaysUntil(installment.dueDate);
-            const isLastInstallment = installment.currentInstallment === installment.totalInstallments;
-
+          {annualData.map((month, idx) => {
+            const maxTotal = Math.max(...annualData.map(m => m.total), 1);
+            const barWidth = (month.total / maxTotal) * 100;
+            const isCurrentMonth = idx === today.getMonth() && selectedYear === today.getFullYear();
             return (
               <div
-                key={installment.id}
-                className="bg-white dark:bg-[#0f172a] rounded-xl p-4 border border-gray-100 dark:border-gray-800 hover:shadow-md transition-shadow"
+                key={month.month}
+                className={`bg-white dark:bg-gray-900/50 rounded-xl p-3 border cursor-pointer transition-all hover:border-blue-300 dark:hover:border-blue-600 ${
+                  isCurrentMonth ? 'border-blue-300 dark:border-blue-700' : 'border-gray-100 dark:border-gray-800'
+                }`}
+                onClick={() => { setSelectedMonth(idx); setViewMode('by_card'); }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {/* Card indicator */}
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <CreditCard size={20} className="text-white" />
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-gray-900 dark:text-white">
-                        {installment.description}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {installment.cardName} - {installment.cardOwner}
-                      </p>
-                    </div>
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${isCurrentMonth ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {month.month}
+                    </span>
+                    {isCurrentMonth && <span className="text-xs bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded font-bold">Atual</span>}
+                    {month.count > 0 && (
+                      <span className="text-xs text-gray-400">{month.count} parcela{month.count > 1 ? 's' : ''}</span>
+                    )}
                   </div>
-
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(installment.amount)}
-                    </p>
-                    <div className="flex items-center gap-2 justify-end">
-                      <span className="text-xs font-bold bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded">
-                        {installment.currentInstallment}/{installment.totalInstallments}
-                      </span>
-                      {getStatusIcon(installment.status)}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    {month.paid > 0 && <span className="text-xs font-bold text-emerald-500">{formatCurrency(month.paid)} pago</span>}
+                    <span className={`text-sm font-bold ${month.total === 0 ? 'text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                      {formatCurrency(month.total)}
+                    </span>
                   </div>
                 </div>
-
-                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Calendar size={14} />
-                    <span>Vence: {formatDate(installment.dueDate)}</span>
+                {month.total > 0 && (
+                  <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden flex">
+                    <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(month.paid / month.total) * barWidth}%` }} />
+                    <div className="h-full bg-amber-500 transition-all" style={{ width: `${(month.pending / month.total) * barWidth}%` }} />
                   </div>
-
-                  {installment.status === 'PENDING' && (
-                    <span className={`text-xs font-medium ${
-                      daysUntil < 0 ? 'text-red-500' :
-                      daysUntil <= 7 ? 'text-amber-500' :
-                      'text-gray-500'
-                    }`}>
-                      {daysUntil < 0
-                        ? `Atrasada há ${Math.abs(daysUntil)} dias`
-                        : daysUntil === 0
-                        ? 'Vence hoje!'
-                        : `Em ${daysUntil} dias`}
-                    </span>
-                  )}
-
-                  {isLastInstallment && installment.status === 'PENDING' && (
-                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">
-                      Última parcela!
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
-      {/* Summary */}
-      {filteredInstallments.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {filteredInstallments.filter(i => i.status === 'PENDING').length}
-              </p>
-              <p className="text-xs text-gray-500">Pendentes</p>
+      {/* Monthly view */}
+      {viewMode === 'monthly' && (
+        <div className="space-y-3">
+          {/* Counters */}
+          {currentInstallments.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-amber-500/10 rounded-xl p-3 text-center border border-amber-500/20">
+                <p className="text-xl font-bold text-amber-500">{totalPending}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pendentes</p>
+              </div>
+              <div className="bg-emerald-500/10 rounded-xl p-3 text-center border border-emerald-500/20">
+                <p className="text-xl font-bold text-emerald-500">{totalPaid}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pagas</p>
+              </div>
+              <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/20">
+                <p className="text-xl font-bold text-red-500">{totalOverdue}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Atrasadas</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-500">
-                {filteredInstallments.filter(i => i.status === 'PAID').length}
-              </p>
-              <p className="text-xs text-gray-500">Pagas</p>
+          )}
+
+          {currentInstallments.length === 0 ? (
+            <div className="text-center py-14 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+              <Calendar size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
+              <p className="text-gray-500 font-medium">Nenhuma parcela em {MONTH_NAMES[selectedMonth]}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-red-500">
-                {filteredInstallments.filter(i => i.status === 'OVERDUE').length}
-              </p>
-              <p className="text-xs text-gray-500">Atrasadas</p>
+          ) : (
+            <div className="space-y-2">
+              {currentInstallments
+                .sort((a, b) => {
+                  const order = { OVERDUE: 0, PENDING: 1, PAID: 2 };
+                  return order[a.status] - order[b.status];
+                })
+                .map(item => <InstallmentRow key={item.id} item={item} />)
+              }
             </div>
-          </div>
+          )}
+
+          {currentInstallments.length > 0 && (
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 border border-gray-200 dark:border-gray-800 flex justify-between">
+              <span className="text-sm text-gray-500 font-medium">Total do mês</span>
+              <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(totalAmount)}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* By Card view */}
+      {viewMode === 'by_card' && (
+        <div className="space-y-3">
+          {/* Counters */}
+          {currentInstallments.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-amber-500/10 rounded-xl p-3 text-center border border-amber-500/20">
+                <p className="text-xl font-bold text-amber-500">{totalPending}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pendentes</p>
+              </div>
+              <div className="bg-emerald-500/10 rounded-xl p-3 text-center border border-emerald-500/20">
+                <p className="text-xl font-bold text-emerald-500">{totalPaid}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pagas</p>
+              </div>
+              <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/20">
+                <p className="text-xl font-bold text-red-500">{totalOverdue}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Atrasadas</p>
+              </div>
+            </div>
+          )}
+
+          {byCardData.length === 0 ? (
+            <div className="text-center py-14 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+              <CreditCard size={40} className="mx-auto text-gray-300 dark:text-gray-700 mb-3" />
+              <p className="text-gray-500 font-medium">Nenhum cartão de crédito cadastrado</p>
+              <p className="text-sm text-gray-400 mt-1">Adicione um cartão para gerenciar seus parcelamentos</p>
+            </div>
+          ) : (
+            byCardData.map(({ card, items }) => {
+              const isExpanded = expandedCards.has(card.id);
+              const cardPaid = items.filter(i => i.status === 'PAID').length;
+              const cardOverdue = items.filter(i => i.status === 'OVERDUE').length;
+              const cardPending = items.filter(i => i.status === 'PENDING').length;
+              const cardTotal = items.reduce((s, i) => s + i.amount, 0);
+
+              return (
+                <div
+                  key={card.id}
+                  className={`bg-white dark:bg-gray-900/50 rounded-2xl border overflow-hidden transition-all ${
+                    cardOverdue > 0
+                      ? 'border-red-200 dark:border-red-900/50'
+                      : 'border-gray-100 dark:border-gray-800'
+                  }`}
+                >
+                  {/* Card header */}
+                  <button
+                    onClick={() => toggleCard(card.id)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: card.color || '#3b82f6' + '33' }}
+                      >
+                        <CreditCard size={18} style={{ color: card.color || '#3b82f6' }} />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">{card.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {items.length === 0
+                            ? <span className="text-xs text-gray-400">Sem parcelas neste mês</span>
+                            : <>
+                                {cardPending > 0 && <span className="text-xs font-bold text-amber-500">{cardPending} pendente{cardPending > 1 ? 's' : ''}</span>}
+                                {cardPaid > 0 && <span className="text-xs font-bold text-emerald-500">{cardPaid} paga{cardPaid > 1 ? 's' : ''}</span>}
+                                {cardOverdue > 0 && <span className="text-xs font-bold text-red-500">{cardOverdue} atrasada{cardOverdue > 1 ? 's' : ''}</span>}
+                              </>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {items.length > 0 && (
+                        <div className="text-right">
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">{formatCurrency(cardTotal)}</p>
+                          <p className="text-xs text-gray-500">{items.length} parcela{items.length > 1 ? 's' : ''}</p>
+                        </div>
+                      )}
+                      {isExpanded
+                        ? <ChevronUp size={18} className="text-gray-400" />
+                        : <ChevronDown size={18} className="text-gray-400" />
+                      }
+                    </div>
+                  </button>
+
+                  {/* Card limit bar (always visible) */}
+                  {card.creditLimit && (
+                    <div className="px-4 pb-3">
+                      <CardLimitBar card={card} />
+                    </div>
+                  )}
+
+                  {/* Installments list (expanded) */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+                      {items.length === 0 ? (
+                        <p className="text-sm text-center text-gray-400 py-4">
+                          Sem parcelas em {MONTH_NAMES[selectedMonth]} neste cartão
+                        </p>
+                      ) : (
+                        items
+                          .sort((a, b) => {
+                            const order = { OVERDUE: 0, PENDING: 1, PAID: 2 };
+                            return order[a.status] - order[b.status];
+                          })
+                          .map(item => <InstallmentRow key={item.id} item={item} />)
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+
+          {currentInstallments.length > 0 && (
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 border border-gray-200 dark:border-gray-800 flex justify-between">
+              <span className="text-sm text-gray-500 font-medium">Total do mês</span>
+              <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(totalAmount)}</span>
+            </div>
+          )}
         </div>
       )}
     </main>
   );
 };
-
-export default Installments;
