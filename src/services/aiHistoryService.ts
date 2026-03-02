@@ -61,3 +61,20 @@ export const getAIHistory = async (userId: string): Promise<AIInteraction[]> => 
     return [];
   }
 };
+
+/**
+ * Deleta todo o histórico de interações de IA de um usuário.
+ */
+export const deleteAIHistory = async (userId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('ai_history')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  } catch (e) {
+    console.error("Erro ao deletar histórico de IA: ", e);
+    throw e;
+  }
+};

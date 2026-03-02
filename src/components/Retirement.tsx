@@ -21,13 +21,18 @@ import {
   ProjectionPoint,
 } from './retirement/index';
 
-const STORAGE_KEY = 'spfp_retirement_v2';
-
 const ANNUAL_RETURN = 0.08; // 8% a.a.
 const WITHDRAWAL_RATE = 0.04; // 4% rule
 
+const DEFAULT_RETIREMENT_CONFIG: RetirementConfig = {
+  targetAge: 65,
+  targetMonthlyIncome: 10000,
+  otherIncomeSources: 0,
+  monthlyInvestment: 0,
+};
+
 export const Retirement: React.FC = () => {
-  const { userProfile } = useSafeFinance();
+  const { userProfile, updateUserProfile } = useSafeFinance();
   const currentYear = new Date().getFullYear();
 
   // Get current age from profile or default to 30
@@ -35,18 +40,14 @@ export const Retirement: React.FC = () => {
     ? Math.floor((Date.now() - new Date(userProfile.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : 30;
 
-  // Load config from localStorage
+  // Load config from userProfile (Supabase-synced, per-user), fallback to localStorage for migration
   const [config, setConfig] = useState<RetirementConfig>(() => {
+    if (userProfile?.retirementConfig) return userProfile.retirementConfig;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem('spfp_retirement_v2');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return {
-      targetAge: 65,
-      targetMonthlyIncome: 10000,
-      otherIncomeSources: 0,
-      monthlyInvestment: 0
-    };
+    return DEFAULT_RETIREMENT_CONFIG;
   });
 
   // Get current patrimony from investments context
@@ -56,10 +57,11 @@ export const Retirement: React.FC = () => {
     return investments.reduce((sum, inv) => sum + (inv.currentValue || 0), 0);
   }, [investments]);
 
-  // Save config when it changes
+  // Sync config from userProfile when user changes (e.g., admin impersonation switch)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  }, [config]);
+    setConfig(userProfile?.retirementConfig ?? DEFAULT_RETIREMENT_CONFIG);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile?.retirementConfig]);
 
   // Calculate required patrimony for desired income (4% rule)
   const netMonthlyIncomeNeeded = Math.max(config.targetMonthlyIncome - config.otherIncomeSources, 0);
@@ -122,7 +124,7 @@ export const Retirement: React.FC = () => {
   };
 
   const handleSaveConfig = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    updateUserProfile({ ...userProfile, retirementConfig: config });
   };
 
   return (

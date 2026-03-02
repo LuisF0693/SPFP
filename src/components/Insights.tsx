@@ -9,7 +9,7 @@ import {
   ChevronDown, Info, ShieldCheck, Target, Wallet, BarChart3,
   MessageSquare, Zap, ArrowRight, History
 } from 'lucide-react';
-import { saveAIInteraction, getAIHistory } from '../services/aiHistoryService';
+import { saveAIInteraction, getAIHistory, deleteAIHistory } from '../services/aiHistoryService';
 import { formatCurrency } from '../utils';
 import { chatWithAI, ChatMessage } from '../services/aiService';
 
@@ -261,10 +261,16 @@ export const Insights: React.FC = () => {
     }
   };
 
-  const clearChat = () => {
-    if (window.confirm('Deseja limpar o histórico desta conversa?')) {
-      setMessages([]);
-      setHasGeneratedInsight(false);
+  const clearChat = async () => {
+    if (!window.confirm('Deseja limpar todo o histórico de insights? Esta ação não pode ser desfeita.')) return;
+    setMessages([]);
+    setHasGeneratedInsight(false);
+    if (user?.id) {
+      try {
+        await deleteAIHistory(user.id);
+      } catch (err) {
+        console.error("Falha ao limpar histórico no servidor:", err);
+      }
     }
   };
 

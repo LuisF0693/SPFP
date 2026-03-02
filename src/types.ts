@@ -34,6 +34,13 @@ export interface AIConfig {
  * User profile and settings configuration.
  * Includes personal details, family information, and application preferences.
  */
+export interface RetirementConfig {
+  targetAge: number;
+  targetMonthlyIncome: number;
+  otherIncomeSources: number;
+  monthlyInvestment: number;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
@@ -53,6 +60,7 @@ export interface UserProfile {
   apiToken?: string; // Brapi or other API token
   geminiToken?: string; // Legacy Google Gemini API token
   aiConfig?: AIConfig;
+  retirementConfig?: RetirementConfig;
 }
 
 /**
