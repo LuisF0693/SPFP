@@ -4,7 +4,7 @@ import { useMonthNavigation } from '../hooks';
 import { formatCurrency, formatDate, getMonthName } from '../utils';
 import {
     Trash2, Edit2, Upload, Download, Search, Filter, ChevronLeft, ChevronRight,
-    ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock, X
+    ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, CheckCircle, Clock
 } from 'lucide-react';
 import { TransactionForm } from './TransactionForm';
 import { Transaction, Category, CategoryGroup } from '../types';
@@ -15,6 +15,7 @@ import { DeleteTransactionModal } from './DeleteTransactionModal';
 import { CategoryModal } from './transaction/CategoryModal';
 import { Modal } from './ui/Modal';
 import { Skeleton } from './ui/Skeleton';
+import { BulkActionBar } from './ui/BulkActionBar';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -58,7 +59,6 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [activeTabModal, setActiveTabModal] = useState<'import' | 'export'>('import');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [isBulkCategoryModalOpen, setIsBulkCategoryModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
@@ -546,52 +546,38 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                 </div>
             </section>
 
-            {/* Bulk Actions Floating Bar */}
+            {/* Bulk Actions */}
             {selectedIds.size > 0 && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#1e293b] border border-gray-700 shadow-2xl rounded-full px-6 py-3 flex items-center gap-6 animate-slide-up">
-                    <span className="text-white font-bold text-sm hidden sm:inline">{selectedIds.size} selecionados</span>
-                    <div className="h-6 w-px bg-gray-700 hidden sm:block"></div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setIsBulkCategoryModalOpen(true)}
-                            aria-label={`Editar categoria de ${selectedIds.size} transações selecionadas`}
-                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-700 rounded-lg text-gray-300 transition-colors text-sm font-bold"
-                        >
-                            <Edit2 size={16} aria-hidden="true" /> Editar Categoria
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (confirm(`Tem certeza que deseja excluir ${selectedIds.size} itens?`)) {
-                                    deleteTransactions(Array.from(selectedIds));
-                                    setSelectedIds(new Set());
-                                }
-                            }}
-                            aria-label={`Excluir ${selectedIds.size} transações selecionadas`}
-                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-rose-500/20 text-rose-500 rounded-lg transition-colors text-sm font-bold"
-                        >
-                            <Trash2 size={16} aria-hidden="true" /> Excluir
-                        </button>
-                        <button
-                            onClick={() => setSelectedIds(new Set())}
-                            className="ml-2 p-1.5 hover:bg-gray-700 rounded-full text-gray-400"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {isBulkCategoryModalOpen && (
-                <BulkCategoryModal
-                    selectedCount={selectedIds.size}
+                <BulkActionBar
+                    selectedIds={selectedIds}
+                    filteredTransactions={filteredTransactions}
                     categories={categories}
-                    onClose={() => setIsBulkCategoryModalOpen(false)}
-                    onApply={(catId) => {
+                    accounts={accounts}
+                    onApplyCategory={(catId) => {
                         const txsToUpdate = (transactions || []).filter(t => selectedIds.has(t.id)).map(t => ({ ...t, categoryId: catId }));
                         updateTransactions(txsToUpdate);
-                        setIsBulkCategoryModalOpen(false);
                         setSelectedIds(new Set());
                     }}
+                    onApplyAccount={(accId) => {
+                        const txsToUpdate = (transactions || []).filter(t => selectedIds.has(t.id)).map(t => ({ ...t, accountId: accId }));
+                        updateTransactions(txsToUpdate);
+                        setSelectedIds(new Set());
+                    }}
+                    onDelete={() => {
+                        if (confirm(`Tem certeza que deseja excluir ${selectedIds.size} lançamento${selectedIds.size > 1 ? 's' : ''}?`)) {
+                            deleteTransactions(Array.from(selectedIds));
+                            setSelectedIds(new Set());
+                        }
+                    }}
+                    onSelectAll={() => {
+                        const allIds = filteredTransactions.map(t => t.id);
+                        if (selectedIds.size === filteredTransactions.length) {
+                            setSelectedIds(new Set());
+                        } else {
+                            setSelectedIds(new Set(allIds));
+                        }
+                    }}
+                    onClear={() => setSelectedIds(new Set())}
                 />
             )}
 
@@ -747,41 +733,3 @@ const CategoryCreator = () => {
     )
 }
 
-const BulkCategoryModal: React.FC<{
-    selectedCount: number;
-    categories: Category[];
-    onClose: () => void;
-    onApply: (categoryId: string) => void;
-}> = ({ selectedCount, categories, onClose, onApply }) => {
-    const [selectedCat, setSelectedCat] = useState(categories[0]?.id || '');
-
-    return (
-        <Modal
-            isOpen={true}
-            onClose={onClose}
-            title={`Editar ${selectedCount} itens`}
-            size="md"
-            variant="dark"
-        >
-            <p className="text-sm text-gray-300 mb-6">Selecione a nova categoria para os itens selecionados.</p>
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-xs font-bold text-gray-400 mb-1">Nova Categoria</label>
-                    <select
-                        value={selectedCat}
-                        onChange={(e) => setSelectedCat(e.target.value)}
-                        className="w-full p-3 bg-[#1e293b] border border-gray-700 rounded-xl text-white outline-none focus:border-blue-500"
-                    >
-                        {categories.map(c => (
-                            <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="flex gap-3 pt-4">
-                    <button onClick={onClose} className="flex-1 py-3 text-gray-400 font-bold hover:bg-[#1e293b] rounded-xl transition-colors">Cancelar</button>
-                    <button onClick={() => onApply(selectedCat)} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors">Aplicar</button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
