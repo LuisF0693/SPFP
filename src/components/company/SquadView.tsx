@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Archive, Loader2, LayoutGrid, Activity, Users, MoreHorizontal } from 'lucide-react';
+import { Plus, Archive, Loader2, LayoutGrid, Activity, Users, MoreHorizontal, Megaphone } from 'lucide-react';
 import { useCompany } from '../../context/CompanyContext';
 import { CompanySquad, CompanyBoard } from '../../types/company';
 import { BoardForm } from './forms/BoardForm';
 import { BoardView } from './BoardView';
+import { MarketingHub } from './marketing/MarketingHub';
 
 interface SquadViewProps {
   squad: CompanySquad;
@@ -29,6 +30,11 @@ export const SquadView: React.FC<SquadViewProps> = ({ squad, onEditSquad }) => {
       await addBoard(data);
     }
   };
+
+  // Marketing squad gets the full Marketing Hub
+  if (squad.name === 'Marketing') {
+    return <MarketingHub />;
+  }
 
   // If a board is selected, show its Kanban view
   if (selectedBoard) {
