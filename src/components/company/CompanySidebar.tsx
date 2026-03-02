@@ -1,28 +1,14 @@
 import React from 'react';
-import { Users, ChevronLeft, ChevronRight, Megaphone, ShoppingCart, Package, Settings, HeartHandshake, LayoutDashboard } from 'lucide-react';
-
-export interface Squad {
-  id: string;
-  name: string;
-  icon: React.FC<{ size?: number; className?: string }>;
-  color: string;
-  boardCount?: number;
-}
-
-const PLACEHOLDER_SQUADS: Squad[] = [
-  { id: 'marketing', name: 'Marketing', icon: Megaphone, color: 'text-pink-400', boardCount: 3 },
-  { id: 'vendas', name: 'Vendas', icon: ShoppingCart, color: 'text-emerald-400', boardCount: 4 },
-  { id: 'produtos', name: 'Produtos', icon: Package, color: 'text-blue-400', boardCount: 2 },
-  { id: 'ops', name: 'OPS', icon: Settings, color: 'text-amber-400', boardCount: 5 },
-  { id: 'cs', name: 'Customer Success', icon: HeartHandshake, color: 'text-purple-400', boardCount: 3 },
-  { id: 'admin', name: 'Admin', icon: Users, color: 'text-gray-400', boardCount: 2 },
-];
+import { ChevronLeft, ChevronRight, Plus, LayoutDashboard, Loader2 } from 'lucide-react';
+import { useCompany } from '../../context/CompanyContext';
+import { CompanySquad } from '../../types/company';
 
 interface CompanySidebarProps {
   activeSquadId: string | null;
   onSelectSquad: (squadId: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onNewSquad: () => void;
 }
 
 export const CompanySidebar: React.FC<CompanySidebarProps> = ({
@@ -30,7 +16,10 @@ export const CompanySidebar: React.FC<CompanySidebarProps> = ({
   onSelectSquad,
   collapsed,
   onToggleCollapse,
+  onNewSquad,
 }) => {
+  const { squads, isLoading } = useCompany();
+
   return (
     <aside
       className={`relative flex flex-col h-full bg-[#0d0d1a] border-r border-white/5 transition-all duration-300 ${
@@ -49,36 +38,66 @@ export const CompanySidebar: React.FC<CompanySidebarProps> = ({
 
       {/* Squad list */}
       <nav className="flex-1 overflow-y-auto py-4 space-y-1 px-2">
-        {PLACEHOLDER_SQUADS.map((squad) => {
-          const Icon = squad.icon;
-          const isActive = activeSquadId === squad.id;
-          return (
-            <button
-              key={squad.id}
-              onClick={() => onSelectSquad(squad.id)}
-              title={collapsed ? squad.name : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group ${
-                isActive
-                  ? 'bg-accent/15 border border-accent/20 text-white'
-                  : 'hover:bg-white/5 text-gray-400 hover:text-white border border-transparent'
-              }`}
-            >
-              <Icon size={18} className={`flex-shrink-0 ${isActive ? 'text-accent' : squad.color}`} />
-              {!collapsed && (
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium truncate block">{squad.name}</span>
-                  {squad.boardCount !== undefined && (
-                    <span className="text-[10px] text-gray-500">{squad.boardCount} boards</span>
-                  )}
-                </div>
-              )}
-              {!collapsed && isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-              )}
-            </button>
-          );
-        })}
+        {isLoading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 size={20} className="animate-spin text-gray-500" />
+          </div>
+        ) : squads.length === 0 ? (
+          !collapsed && (
+            <p className="text-xs text-gray-500 text-center px-3 py-4">
+              Nenhum squad ainda
+            </p>
+          )
+        ) : (
+          squads.map((squad: CompanySquad) => {
+            const isActive = activeSquadId === squad.id;
+            return (
+              <button
+                key={squad.id}
+                onClick={() => onSelectSquad(squad.id)}
+                title={collapsed ? squad.name : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group ${
+                  isActive
+                    ? 'bg-accent/15 border border-accent/20 text-white'
+                    : 'hover:bg-white/5 text-gray-400 hover:text-white border border-transparent'
+                }`}
+              >
+                {/* Emoji icon */}
+                <span
+                  className="flex-shrink-0 text-base leading-none w-7 h-7 flex items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `${squad.color}20` }}
+                >
+                  {squad.icon}
+                </span>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium truncate block">{squad.name}</span>
+                    {squad.description && (
+                      <span className="text-[10px] text-gray-500 truncate block">{squad.description}</span>
+                    )}
+                  </div>
+                )}
+                {!collapsed && isActive && (
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: squad.color }} />
+                )}
+              </button>
+            );
+          })
+        )}
       </nav>
+
+      {/* New squad button */}
+      {!collapsed && (
+        <div className="px-2 pb-2">
+          <button
+            onClick={onNewSquad}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all text-sm"
+          >
+            <Plus size={15} />
+            Novo Squad
+          </button>
+        </div>
+      )}
 
       {/* Collapse toggle */}
       <div className="px-2 py-3 border-t border-white/5">
@@ -93,5 +112,3 @@ export const CompanySidebar: React.FC<CompanySidebarProps> = ({
     </aside>
   );
 };
-
-export { PLACEHOLDER_SQUADS };
