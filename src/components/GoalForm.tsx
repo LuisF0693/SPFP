@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Goal, CategoryIconName } from '../types';
-import { X, Target, Calendar, Calculator, Palette } from 'lucide-react';
+import { Calendar, ImagePlus, X as XIcon, Loader2 } from 'lucide-react';
 import { CategoryIcon } from './CategoryIcon';
+import { supabase } from '../supabase';
 
 interface GoalFormProps {
     onClose: () => void;
@@ -30,6 +31,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
     const [deadline, setDeadline] = useState('');
     const [color, setColor] = useState(COLORS[0]);
     const [icon, setIcon] = useState<CategoryIconName>('cart');
+    const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+    const [imageUploading, setImageUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (initialData) {
@@ -39,8 +43,47 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
             setDeadline(initialData.deadline.split('T')[0]);
             setColor(initialData.color);
             setIcon((initialData.icon as CategoryIconName) || 'cart');
+            setImageUrl(initialData.imageUrl);
         }
     }, [initialData]);
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Imagem muito grande. Máximo 2MB.');
+            return;
+        }
+
+        setImageUploading(true);
+        try {
+            const ext = file.name.split('.').pop();
+            const path = `goal-images/${Date.now()}.${ext}`;
+            const { error } = await supabase.storage
+                .from('goal-images')
+                .upload(path, file, { upsert: true });
+
+            if (error) throw error;
+
+            const { data } = supabase.storage.from('goal-images').getPublicUrl(path);
+            setImageUrl(data.publicUrl);
+        } catch (err) {
+            console.error('Erro ao fazer upload da imagem:', err);
+            // Fallback: use local preview
+            const reader = new FileReader();
+            reader.onload = (ev) => setImageUrl(ev.target?.result as string);
+            reader.readAsDataURL(file);
+        } finally {
+            setImageUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImageUrl(undefined);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,6 +94,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
             deadline: new Date(deadline).toISOString(),
             color,
             icon,
+            imageUrl,
             status: 'IN_PROGRESS' as const
         };
 
@@ -69,12 +113,15 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
                 aria-label="Fechar formulário de meta"
                 className="absolute top-4 right-4 p-3 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-                <X size={20} aria-hidden="true" />
+                <XIcon size={20} aria-hidden="true" />
             </button>
 
             <div className="mb-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20`, color: color }}>
-                    <CategoryIcon iconName={icon} size={20} />
+                    {imageUrl
+                        ? <img src={imageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                        : <CategoryIcon iconName={icon} size={20} />
+                    }
                 </div>
                 <div>
                     <h2 className="text-xl font-bold">{initialData ? 'Editar Meta' : 'Nova Meta'}</h2>
@@ -137,6 +184,43 @@ export const GoalForm: React.FC<GoalFormProps> = ({ onClose, initialData, onSubm
                             required
                         />
                     </div>
+                </div>
+
+                {/* Image upload */}
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Imagem de Capa (opcional)</label>
+                    {imageUrl ? (
+                        <div className="relative rounded-xl overflow-hidden h-28 border border-gray-700">
+                            <img src={imageUrl} alt="Capa da meta" className="w-full h-full object-cover" />
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+                                aria-label="Remover imagem"
+                            >
+                                <XIcon size={14} />
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={imageUploading}
+                            className="w-full h-20 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center gap-2 text-gray-500 hover:border-blue-500 hover:text-blue-400 transition-colors disabled:opacity-50"
+                        >
+                            {imageUploading
+                                ? <><Loader2 size={18} className="animate-spin" /><span className="text-sm">Enviando...</span></>
+                                : <><ImagePlus size={18} /><span className="text-sm">Clique para adicionar foto</span></>
+                            }
+                        </button>
+                    )}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                    />
                 </div>
 
                 <div>

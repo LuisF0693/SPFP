@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
-import { Target, Trophy, TrendingUp, Calendar, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Target, Trophy, TrendingUp, Calendar, Plus, Edit2, Trash2, Archive, CheckCircle2, RotateCcw } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { GoalForm } from './GoalForm';
 import { Goal, CategoryIconName } from '../types';
@@ -17,6 +17,7 @@ export const Goals: React.FC = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [filter, setFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
+    const [statusTab, setStatusTab] = useState<'active' | 'completed' | 'archived'>('active');
     const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
     const [newSavingsTarget, setNewSavingsTarget] = useState(userProfile.monthlySavingsTarget || 0);
     const isLoading = !isInitialLoadComplete || isSyncing;
@@ -74,24 +75,49 @@ export const Goals: React.FC = () => {
     const sortedGoals = [...safeGoals].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     const nextGoal = sortedGoals.find(g => g.currentAmount < g.targetAmount);
 
-    const filteredGoals = safeGoals.filter(g => {
+    // Filter by status tab first
+    const goalsByTab = safeGoals.filter(g => {
+        if (statusTab === 'completed') return g.status === 'COMPLETED' || (g.currentAmount >= g.targetAmount && g.status !== 'ARCHIVED');
+        if (statusTab === 'archived') return g.status === 'ARCHIVED';
+        return g.status !== 'ARCHIVED' && g.status !== 'COMPLETED' && g.currentAmount < g.targetAmount;
+    });
+
+    const filteredGoals = goalsByTab.filter(g => {
         if (filter === 'ALL') return true;
         const now = new Date();
         const deadline = new Date(g.deadline);
         const diffYears = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
-
         if (filter === 'SHORT') return diffYears <= 1;
         if (filter === 'MEDIUM') return diffYears > 1 && diffYears <= 5;
         if (filter === 'LONG') return diffYears > 5;
         return true;
     });
 
+    const activeCount = safeGoals.filter(g => g.status !== 'ARCHIVED' && g.status !== 'COMPLETED' && g.currentAmount < g.targetAmount).length;
+    const completedCount = safeGoals.filter(g => g.status === 'COMPLETED' || (g.currentAmount >= g.targetAmount && g.status !== 'ARCHIVED')).length;
+    const archivedCount = safeGoals.filter(g => g.status === 'ARCHIVED').length;
+
     const handleDelete = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (confirm('Tem certeza que deseja excluir este objetivo?')) {
             deleteGoal(id);
         }
-    }
+    };
+
+    const handleArchive = (goal: Goal, e: React.MouseEvent) => {
+        e.stopPropagation();
+        updateGoal({ ...goal, status: 'ARCHIVED' });
+    };
+
+    const handleComplete = (goal: Goal, e: React.MouseEvent) => {
+        e.stopPropagation();
+        updateGoal({ ...goal, status: 'COMPLETED' });
+    };
+
+    const handleReactivate = (goal: Goal, e: React.MouseEvent) => {
+        e.stopPropagation();
+        updateGoal({ ...goal, status: 'IN_PROGRESS' });
+    };
 
     return (
         <div className="p-6 space-y-8 pb-24 animate-fade-in min-h-screen">
@@ -234,6 +260,31 @@ export const Goals: React.FC = () => {
                 )}
             </section>
 
+            {/* Status Tabs */}
+            <div className="flex gap-2">
+                <button
+                    onClick={() => setStatusTab('active')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${statusTab === 'active' ? 'bg-blue-600 text-white' : 'bg-slate-800/60 text-gray-400 hover:text-white'}`}
+                >
+                    <Target size={14} /> Ativas
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${statusTab === 'active' ? 'bg-white/20' : 'bg-gray-700'}`}>{activeCount}</span>
+                </button>
+                <button
+                    onClick={() => setStatusTab('completed')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${statusTab === 'completed' ? 'bg-emerald-600 text-white' : 'bg-slate-800/60 text-gray-400 hover:text-white'}`}
+                >
+                    <CheckCircle2 size={14} /> Concluídas
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${statusTab === 'completed' ? 'bg-white/20' : 'bg-gray-700'}`}>{completedCount}</span>
+                </button>
+                <button
+                    onClick={() => setStatusTab('archived')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${statusTab === 'archived' ? 'bg-gray-600 text-white' : 'bg-slate-800/60 text-gray-400 hover:text-white'}`}
+                >
+                    <Archive size={14} /> Arquivadas
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${statusTab === 'archived' ? 'bg-white/20' : 'bg-gray-700'}`}>{archivedCount}</span>
+                </button>
+            </div>
+
             {/* Filters */}
             <div className="flex gap-8 border-b border-gray-800 pb-1">
                 {(['ALL', 'SHORT', 'MEDIUM', 'LONG'] as const).map(f => (
@@ -271,6 +322,13 @@ export const Goals: React.FC = () => {
                             onClick={() => { setEditingGoal(goal); setIsFormOpen(true); }}
                             className="relative overflow-hidden bg-slate-900/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-white/20 transition-all cursor-pointer group"
                         >
+                            {/* Cover image */}
+                            {goal.imageUrl && (
+                                <div className="absolute inset-0 z-0">
+                                    <img src={goal.imageUrl} alt="" className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40" />
+                                </div>
+                            )}
                             {/* Dynamic glow based on goal color */}
                             <div
                                 className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"
@@ -285,7 +343,7 @@ export const Goals: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-start mb-6">
+                            <div className="relative z-10 flex justify-between items-start mb-6">
                                 <div className="flex items-center gap-4">
                                     <div
                                         className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
@@ -305,6 +363,36 @@ export const Goals: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {statusTab === 'active' && (
+                                        <>
+                                            <button
+                                                onClick={(e) => handleComplete(goal, e)}
+                                                aria-label="Concluir meta"
+                                                title="Concluir"
+                                                className="text-slate-400 hover:text-emerald-400 p-2 rounded-xl hover:bg-emerald-500/10 transition-colors"
+                                            >
+                                                <CheckCircle2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleArchive(goal, e)}
+                                                aria-label="Arquivar meta"
+                                                title="Arquivar"
+                                                className="text-slate-400 hover:text-amber-400 p-2 rounded-xl hover:bg-amber-500/10 transition-colors"
+                                            >
+                                                <Archive size={16} />
+                                            </button>
+                                        </>
+                                    )}
+                                    {(statusTab === 'completed' || statusTab === 'archived') && (
+                                        <button
+                                            onClick={(e) => handleReactivate(goal, e)}
+                                            aria-label="Reativar meta"
+                                            title="Reativar"
+                                            className="text-slate-400 hover:text-blue-400 p-2 rounded-xl hover:bg-blue-500/10 transition-colors"
+                                        >
+                                            <RotateCcw size={16} />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setEditingGoal(goal); setIsFormOpen(true); }}
                                         aria-label={`Editar objetivo: ${goal.name}`}
@@ -322,13 +410,13 @@ export const Goals: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-end gap-2 mb-3">
+                            <div className="relative z-10 flex items-end gap-2 mb-3">
                                 <span className="text-2xl font-bold text-white">{formatCurrency(goal.currentAmount)}</span>
                                 <span className="text-sm text-gray-400 mb-1 font-medium">de {formatCurrency(goal.targetAmount)}</span>
                             </div>
 
                             {/* Enhanced Progress Bar with Glow Effect */}
-                            <div className="relative mb-4">
+                            <div className="relative z-10 mb-4">
                                 {/* Background track */}
                                 <div className="h-3 bg-gray-800/80 rounded-full overflow-hidden backdrop-blur-sm border border-white/5">
                                     {/* Animated gradient fill with glow */}
@@ -376,7 +464,7 @@ export const Goals: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="flex justify-between items-center text-xs font-bold">
+                            <div className="relative z-10 flex justify-between items-center text-xs font-bold">
                                 <span className={`flex items-center gap-1.5 ${percent >= 100 ? 'text-emerald-400' : 'text-gray-400'}`}>
                                     {percent >= 100 && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
                                     {percent.toFixed(0)}% concluído
@@ -387,8 +475,8 @@ export const Goals: React.FC = () => {
                     );
                         })}
 
-                        {/* Card "Criar Nova Meta" - Premium Placeholder */}
-                        <button
+                        {/* Card "Criar Nova Meta" - só visível na aba Ativas */}
+                        {statusTab === 'active' && <button
                             onClick={() => { setEditingGoal(null); setIsFormOpen(true); }}
                             aria-label="Criar novo objetivo"
                             className="relative overflow-hidden bg-slate-900/30 border-2 border-dashed border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-4 min-h-[280px] group backdrop-blur-sm"
@@ -403,7 +491,7 @@ export const Goals: React.FC = () => {
                                 <span className="font-bold text-slate-400 group-hover:text-white block transition-colors">Criar Novo Objetivo</span>
                                 <span className="text-xs text-slate-600 group-hover:text-slate-400 transition-colors">Defina suas metas financeiras</span>
                             </div>
-                        </button>
+                        </button>}
                     </>
                 )}
             </section>

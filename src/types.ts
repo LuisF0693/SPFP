@@ -133,7 +133,8 @@ export interface Goal {
   deadline: string;
   color: string;
   icon?: string;
-  status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED';
+  imageUrl?: string; // URL da imagem de capa (Supabase Storage)
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'ARCHIVED';
   deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
 }
 
