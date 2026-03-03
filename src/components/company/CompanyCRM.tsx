@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Bell, Plus, Menu, X, LayoutGrid, Users, Activity } from 'lucide-react';
+import { ArrowLeft, Search, Bell, Plus, Menu, X, LayoutGrid, Users, Activity, DollarSign } from 'lucide-react';
 import { CompanySidebar } from './CompanySidebar';
 import { SquadView } from './SquadView';
 import { MembersView } from './MembersView';
 import { ActivityFeed } from './ActivityFeed';
+import { RevenueDashboard } from './revenue/RevenueDashboard';
 import { SquadForm } from './forms/SquadForm';
 import { CompanyProvider, useCompany } from '../../context/CompanyContext';
 import { CompanySquad } from '../../types/company';
@@ -36,6 +37,7 @@ const CompanyCRMInner: React.FC = () => {
   const [activeSquadId, setActiveSquadId] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
+  const [showRevenue, setShowRevenue] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,7 +130,7 @@ const CompanyCRMInner: React.FC = () => {
 
           <div className="flex items-center gap-2 ml-auto">
             <button
-              onClick={() => { setShowActivity((v) => !v); setShowMembers(false); setActiveSquadId(null); }}
+              onClick={() => { setShowActivity((v) => !v); setShowMembers(false); setShowRevenue(false); setActiveSquadId(null); }}
               className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 showActivity
                   ? 'bg-accent/10 border border-accent/20 text-accent'
@@ -139,7 +141,7 @@ const CompanyCRMInner: React.FC = () => {
               Atividade
             </button>
             <button
-              onClick={() => { setShowMembers((v) => !v); setShowActivity(false); setActiveSquadId(null); }}
+              onClick={() => { setShowMembers((v) => !v); setShowActivity(false); setShowRevenue(false); setActiveSquadId(null); }}
               className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 showMembers
                   ? 'bg-accent/10 border border-accent/20 text-accent'
@@ -148,6 +150,17 @@ const CompanyCRMInner: React.FC = () => {
             >
               <Users size={15} />
               Membros
+            </button>
+            <button
+              onClick={() => { setShowRevenue((v) => !v); setShowActivity(false); setShowMembers(false); setActiveSquadId(null); }}
+              className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                showRevenue
+                  ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+                  : 'border border-white/10 text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <DollarSign size={15} />
+              Financeiro
             </button>
             <button
               onClick={handleNewSquad}
@@ -164,7 +177,9 @@ const CompanyCRMInner: React.FC = () => {
 
         {/* Main scrollable area */}
         <main className="flex-1 overflow-y-auto">
-          {showActivity ? (
+          {showRevenue ? (
+            <RevenueDashboard />
+          ) : showActivity ? (
             <ActivityFeed />
           ) : showMembers ? (
             <MembersView />
