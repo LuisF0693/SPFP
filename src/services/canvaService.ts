@@ -13,7 +13,9 @@
 import { supabase } from '../supabase';
 
 const CANVA_CLIENT_ID = import.meta.env.VITE_CANVA_CLIENT_ID as string;
-const CANVA_REDIRECT_URI = 'http://127.0.0.1:3000/oauth/canva/callback';
+const CANVA_REDIRECT_URI = import.meta.env.DEV
+  ? 'http://127.0.0.1:3000/oauth/canva/callback'
+  : 'https://spfp.vercel.app/oauth/canva/callback';
 const CANVA_AUTH_URL = 'https://www.canva.com/api/oauth/authorize';
 const CANVA_API_BASE = 'https://api.canva.com/rest/v1';
 
@@ -109,7 +111,7 @@ export async function exchangeCode(code: string, state: string): Promise<void> {
   }
 
   const { data, error } = await supabase.functions.invoke('canva-oauth', {
-    body: { code, code_verifier: verifier },
+    body: { code, code_verifier: verifier, redirect_uri: CANVA_REDIRECT_URI },
   });
 
   if (error) throw new Error(`Erro no token exchange: ${error.message}`);

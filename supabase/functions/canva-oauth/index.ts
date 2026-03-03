@@ -10,7 +10,9 @@ const corsHeaders = {
 };
 
 const CANVA_TOKEN_URL = 'https://api.canva.com/rest/v1/oauth/token';
-const CANVA_REDIRECT_URI = 'http://127.0.0.1:3000/oauth/canva/callback';
+// redirect_uri deve bater com o que foi usado na geração do OAuth URL
+// A Edge Function recebe o redirect_uri do frontend para garantir consistência
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,11 +20,11 @@ serve(async (req) => {
   }
 
   try {
-    const { code, code_verifier } = await req.json();
+    const { code, code_verifier, redirect_uri } = await req.json();
 
-    if (!code || !code_verifier) {
+    if (!code || !code_verifier || !redirect_uri) {
       return new Response(
-        JSON.stringify({ error: 'code e code_verifier são obrigatórios' }),
+        JSON.stringify({ error: 'code, code_verifier e redirect_uri são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -42,7 +44,7 @@ serve(async (req) => {
       grant_type: 'authorization_code',
       code,
       code_verifier,
-      redirect_uri: CANVA_REDIRECT_URI,
+      redirect_uri,
       client_id: clientId,
       client_secret: clientSecret,
     });

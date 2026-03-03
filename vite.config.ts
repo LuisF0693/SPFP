@@ -17,10 +17,10 @@ export default defineConfig(({ mode }) => {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
           "font-src 'self' data:",
-          "connect-src 'self' https://api.github.com https://*.supabase.co https://generativelanguage.googleapis.com",
+          "connect-src 'self' https://api.github.com https://*.supabase.co https://generativelanguage.googleapis.com https://api.canva.com https://www.canva.com",
           "frame-ancestors 'none'",
           "base-uri 'self'",
-          "form-action 'self'"
+          "form-action 'self' https://www.canva.com"
         ].join('; '),
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
