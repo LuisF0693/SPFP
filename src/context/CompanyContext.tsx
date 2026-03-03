@@ -12,6 +12,46 @@ const DEFAULT_SQUADS: Omit<CompanySquad, 'id' | 'user_id' | 'created_at'>[] = [
   { name: 'Admin',            icon: '🏛️', color: '#6b7280', description: 'Squad Administrativo e Financeiro', is_archived: false, sort_order: 5 },
 ];
 
+type DefaultBoard = { name: string; icon: string; description: string };
+
+const DEFAULT_BOARDS_BY_SQUAD: Record<string, DefaultBoard[]> = {
+  'Marketing': [
+    { name: 'Estratégia',  icon: '🗺️', description: 'Planejamento estratégico e calendário' },
+    { name: 'Campanhas',   icon: '📣', description: 'Campanhas ativas de tráfego e conteúdo' },
+    { name: 'Análise',     icon: '📊', description: 'Métricas, resultados e relatórios' },
+  ],
+  'Vendas': [
+    { name: 'Prospecção',  icon: '🔍', description: 'Leads sendo prospectados' },
+    { name: 'Pipeline',    icon: '🔄', description: 'Negociações em andamento' },
+    { name: 'Propostas',   icon: '📄', description: 'Propostas enviadas aguardando resposta' },
+    { name: 'Fechamento',  icon: '🤝', description: 'Em fase de fechamento e assinatura' },
+  ],
+  'Produtos': [
+    { name: 'Discovery',      icon: '🔬', description: 'Pesquisa, entrevistas e validação' },
+    { name: 'Backlog',        icon: '📋', description: 'Funcionalidades priorizadas para desenvolvimento' },
+    { name: 'Desenvolvimento',icon: '⚡', description: 'Em desenvolvimento ativo' },
+    { name: 'QA & Lançamento',icon: '🚀', description: 'Testes e publicação de funcionalidades' },
+  ],
+  'OPS': [
+    { name: 'Mapeamento',    icon: '🗺️', description: 'Mapeamento de processos do fim pro começo' },
+    { name: 'Automações',    icon: '🤖', description: 'Integrações N8N, ClickUp e webhooks' },
+    { name: 'Documentação',  icon: '📝', description: 'SOPs, playbooks e guias operacionais' },
+    { name: 'Quality Check', icon: '✅', description: 'Auditoria e validação de processos' },
+  ],
+  'Customer Success': [
+    { name: 'Onboarding',   icon: '🎉', description: 'Novos clientes em processo de onboarding' },
+    { name: 'Health Check', icon: '💚', description: 'Monitoramento de saúde e engajamento' },
+    { name: 'Suporte',      icon: '🎧', description: 'Tickets abertos N1/N2/N3' },
+    { name: 'Retenção',     icon: '🛡️', description: 'Clientes em risco de churn' },
+  ],
+  'Admin': [
+    { name: 'Financeiro',   icon: '💵', description: 'Contas a pagar/receber e fluxo de caixa' },
+    { name: 'Jurídico',     icon: '⚖️', description: 'Contratos, compliance e LGPD' },
+    { name: 'RH & People',  icon: '👥', description: 'Time, recrutamento e onboarding interno' },
+    { name: 'Ferramentas',  icon: '🔧', description: 'SaaS, acessos e infraestrutura' },
+  ],
+};
+
 interface CompanyContextValue {
   // Squads
   squads: CompanySquad[];
@@ -87,7 +127,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     if (user) {
-      loadSquads(user.id);
+      void loadSquads(user.id);
     } else {
       setSquads([]);
       setBoards([]);
@@ -122,7 +162,32 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [updateSquad]);
 
   // ---- Boards ----
+  const seedDefaultBoards = useCallback(async (squadId: string, userId: string) => {
+    // Descobre o nome do squad para saber quais boards criar
+    const { data: squad } = await supabase
+      .from('company_squads')
+      .select('name')
+      .eq('id', squadId)
+      .single();
+
+    if (!squad) return;
+    const templates = DEFAULT_BOARDS_BY_SQUAD[squad.name];
+    if (!templates) return;
+
+    const rows = templates.map((b, i) => ({
+      squad_id: squadId,
+      user_id: userId,
+      name: b.name,
+      icon: b.icon,
+      description: b.description,
+      is_archived: false,
+      sort_order: i,
+    }));
+    await supabase.from('company_boards').insert(rows);
+  }, []);
+
   const loadBoards = useCallback(async (squadId: string) => {
+    if (!squadId) return;
     setBoardsLoading(true);
     try {
       const { data, error } = await supabase
@@ -132,13 +197,30 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         .eq('is_archived', false)
         .order('sort_order');
       if (error) throw error;
+
+      // Se não há boards, faz seed automático
+      if (!data || data.length === 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await seedDefaultBoards(squadId, user.id);
+          const { data: seeded } = await supabase
+            .from('company_boards')
+            .select('*')
+            .eq('squad_id', squadId)
+            .eq('is_archived', false)
+            .order('sort_order');
+          setBoards(seeded || []);
+          return;
+        }
+      }
+
       setBoards(data || []);
     } catch (err) {
       console.error('[CompanyContext] Error loading boards:', err);
     } finally {
       setBoardsLoading(false);
     }
-  }, []);
+  }, [seedDefaultBoards]);
 
   const addBoard = useCallback(async (data: Omit<CompanyBoard, 'id' | 'user_id' | 'created_at'>) => {
     if (!user) return;

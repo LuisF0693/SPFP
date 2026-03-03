@@ -1,5 +1,5 @@
-import React, { useEffect, useState, Suspense, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useStripeSubscription } from './hooks/useStripeSubscription';
 import { I18nextProvider } from 'react-i18next';
 import i18next from './i18n/config';
@@ -42,6 +42,7 @@ const CorporateHQ = React.lazy(() => import('./components/corporate').then(m => 
 const AutomationDashboard = React.lazy(() => import('./components/automation').then(m => ({ default: m.AutomationDashboard })));
 const CheckoutSuccess = React.lazy(() => import('./components/pages/CheckoutSuccess').then(m => ({ default: m.CheckoutSuccess })));
 const CheckoutCancel = React.lazy(() => import('./components/pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
+const CanvaOAuthCallback = React.lazy(() => import('./components/CanvaOAuthCallback'));
 // FutureCashFlow component removed - replaced by RetirementAdvanced (Projeções descontinuado)
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,7 +71,6 @@ const AppContent: React.FC = () => {
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [processingPendingSubscription, setProcessingPendingSubscription] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Sincroniza dados do usuário autenticado apenas APÓS o carregamento inicial da nuvem
   useEffect(() => {
@@ -108,7 +108,7 @@ const AppContent: React.FC = () => {
       }
     };
 
-    processPendingSubscription();
+    void processPendingSubscription();
   }, [user, createSubscription, processingPendingSubscription]);
 
   // Show loading while auth is initializing
@@ -123,12 +123,12 @@ const AppContent: React.FC = () => {
 
   const handleEditTransaction = (tx: Transaction) => {
     setTransactionToEdit(tx);
-    navigate('/transactions/add');
+    void navigate('/transactions/add');
   };
 
   const handleCloseForm = () => {
     setTransactionToEdit(null);
-    navigate(-1);
+    void navigate(-1);
   };
 
   return (
@@ -142,6 +142,7 @@ const AppContent: React.FC = () => {
 
         <Route path="/checkout-success" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutSuccess /></Suspense>} />
         <Route path="/checkout-cancel" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutCancel /></Suspense>} />
+        <Route path="/oauth/canva/callback" element={<Suspense fallback={<RouteLoadingBoundary />}><CanvaOAuthCallback /></Suspense>} />
 
         <Route path="/dashboard" element={
           <PrivateRoute>

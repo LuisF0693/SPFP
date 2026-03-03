@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { X, Save, Loader2, Upload, ImagePlus } from 'lucide-react';
+import { X, Save, Loader2, ImagePlus } from 'lucide-react';
 import { useMarketing, MarketingContent, ContentType, ContentStatus, Platform } from '../../../context/MarketingContext';
+import CanvaConnect from './CanvaConnect';
 
 const CONTENT_TYPES: { value: ContentType; label: string; emoji: string }[] = [
   { value: 'post',      label: 'Post',      emoji: '🖼️' },
@@ -51,7 +52,7 @@ export const ContentForm: React.FC<ContentFormProps> = ({ initial, onSubmit, onC
       // Use a temp ID for upload before actual content is created
       const url = await uploadMedia(file, `temp-${Date.now()}`);
       setMediaUrls((prev) => [...prev, url]);
-    } catch (err: any) {
+    } catch {
       // Fallback to local preview
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -128,6 +129,16 @@ export const ContentForm: React.FC<ContentFormProps> = ({ initial, onSubmit, onC
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Canva — gerar imagem automaticamente */}
+          <div>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-widest block mb-1.5">Gerar imagem com Canva</label>
+            <CanvaConnect
+              contentTitle={title}
+              contentCaption={caption}
+              onImageGenerated={(url) => setMediaUrls((prev) => [...prev, url])}
+            />
           </div>
 
           {/* Media upload */}
