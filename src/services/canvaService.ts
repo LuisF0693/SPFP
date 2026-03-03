@@ -6,8 +6,8 @@
  * 1. generateOAuthUrl()  → redireciona usuário para autorizar no Canva
  * 2. exchangeCode()      → chama Edge Function que troca code por tokens
  * 3. isConnected()       → verifica se há tokens válidos
- * 4. createDesign()      → cria design a partir de template Canva
- * 5. exportDesign()      → exporta design como URL de imagem
+ * 4. listDesigns()       → lista designs existentes da conta (Canva Pro)
+ * 5. exportDesignAsImage() → exporta design selecionado como PNG
  */
 
 import { supabase } from '../supabase';
@@ -114,7 +114,16 @@ export async function exchangeCode(code: string, state: string): Promise<void> {
     body: { code, code_verifier: verifier, redirect_uri: CANVA_REDIRECT_URI },
   });
 
-  if (error) throw new Error(`Erro no token exchange: ${error.message}`);
+  if (error) {
+    // Extrai o erro real da Canva do contexto do FunctionsHttpError
+    let canvaDetails = '';
+    try {
+      const body = await (error as any).context?.json?.();
+      if (body?.details) canvaDetails = ` | Canva: ${JSON.stringify(body.details)}`;
+      else if (body?.error) canvaDetails = ` | ${body.error}`;
+    } catch { /* ignora erros de parse */ }
+    throw new Error(`Erro no token exchange: ${error.message}${canvaDetails}`);
+  }
   if (!data?.access_token) throw new Error('Token de acesso não recebido do Canva');
 
   // Salva tokens
@@ -165,36 +174,12 @@ async function apiCall<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-/** Retorna lista de Brand Templates disponíveis na conta Canva */
-export async function listBrandTemplates(): Promise<CanvaBrandTemplate[]> {
-  const data = await apiCall<{ items: CanvaBrandTemplate[] }>('/brand-templates');
+/** Retorna lista de designs criados pelo usuário na conta Canva (máx 50) */
+export async function listDesigns(): Promise<CanvaDesign[]> {
+  const data = await apiCall<{ items: CanvaDesign[]; continuation?: string }>(
+    '/designs?limit=50&ownership=owned',
+  );
   return data.items ?? [];
-}
-
-/**
- * Cria um design a partir de um Brand Template.
- * Preenche os campos de texto automaticamente com o conteúdo do marketing.
- */
-export async function createDesignFromTemplate(
-  templateId: string,
-  title: string,
-  textFields: Record<string, string>,
-): Promise<string> {
-  const body = {
-    brand_template_id: templateId,
-    title,
-    data: Object.entries(textFields).map(([dataset_name, text]) => ({
-      dataset_name,
-      data: [{ type: 'text', text }],
-    })),
-  };
-
-  const data = await apiCall<{ design: { id: string } }>('/autofills', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-
-  return data.design.id;
 }
 
 /**
@@ -230,9 +215,11 @@ export async function exportDesignAsImage(designId: string): Promise<string> {
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export interface CanvaBrandTemplate {
+export interface CanvaDesign {
   id: string;
   title: string;
   thumbnail?: { url: string };
-  view_url?: string;
+  urls?: { edit_url?: string; view_url?: string };
+  created_at?: number;
+  updated_at?: number;
 }
