@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 import { AIConfig } from "../types";
 import { retryWithBackoff, logDetailedError, getErrorMessage } from "./retryService";
 import { errorRecovery } from "./errorRecovery";
+import { supabase, SUPABASE_URL } from "../supabase";
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'model' | 'system';
@@ -12,6 +13,55 @@ export interface AIResponse {
     text: string;
     modelName: string;
 }
+
+export interface FinnUsage {
+    used: number;
+    limit: number;
+}
+
+/**
+ * Chama o Finn via Supabase Edge Function (chave centralizada do Luis).
+ * Inclui autenticação JWT, rate limit por plano e registro de uso.
+ *
+ * @param messages - Histórico de mensagens + nova mensagem do usuário
+ * @returns Resposta do Finn com texto e contadores de uso
+ */
+export const callFinnProxy = async (
+    messages: ChatMessage[]
+): Promise<AIResponse & FinnUsage> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+        throw new Error("Usuário não autenticado.");
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/finn-chat`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ messages, model: "gemini-1.5-flash" }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        if (response.status === 429) {
+            throw Object.assign(
+                new Error(data.message ?? "Limite de mensagens atingido."),
+                { isRateLimit: true, used: data.used, limit: data.limit }
+            );
+        }
+        throw new Error(data.message ?? "Erro ao conectar com o Finn.");
+    }
+
+    return {
+        text: data.text,
+        modelName: data.modelName,
+        used: data.used,
+        limit: data.limit,
+    };
+};
 
 /**
  * Unified service to interact with multiple AI providers.

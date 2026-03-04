@@ -12,7 +12,7 @@ import {
 import { FinnAvatar } from './FinnAvatar';
 import { saveAIInteraction, getAIHistory, deleteAIHistory } from '../services/aiHistoryService';
 import { formatCurrency } from '../utils';
-import { chatWithAI, ChatMessage } from '../services/aiService';
+import { chatWithAI, callFinnProxy, ChatMessage } from '../services/aiService';
 
 interface Message {
   id: string;
@@ -43,6 +43,7 @@ export const Insights: React.FC = () => {
   const [showContextInfo, setShowContextInfo] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<Array<{id: string; prompt: string; response: string; timestamp: Date}>>([]);
+  const [finnUsage, setFinnUsage] = useState<{ used: number; limit: number } | null>(null);
 
   // Chips de prompts rápidos — sorteia 6 de um pool maior (Story 8.1)
   const PROMPT_POOL = [
@@ -68,7 +69,10 @@ export const Insights: React.FC = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const aiConfig = userProfile.aiConfig;
-  const hasToken = !!(aiConfig?.apiKey || userProfile.geminiToken);
+  // Finn sempre disponível via plataforma (chave centralizada)
+  // Usuários com chave própria em aiConfig ainda podem usar a sua
+  const hasUserKey = !!(aiConfig?.apiKey || userProfile.geminiToken);
+  const hasToken = true; // Finn está sempre disponível
   const hasData = transactions.length > 0;
 
   // Limpar estado quando usuário muda (cada usuário tem seu próprio histórico)
@@ -217,7 +221,7 @@ export const Insights: React.FC = () => {
 
   const handleSend = async (customPrompt?: string) => {
     const messageText = customPrompt || inputValue.trim();
-    if (!messageText || loading || !hasToken) return;
+    if (!messageText || loading) return;
 
     // Se for o primeiro diagnóstico, mudar estado
     if (customPrompt?.includes("Diagnóstico")) {
@@ -244,10 +248,11 @@ export const Insights: React.FC = () => {
 
       const systemPrompt = `
                 # PERSONA
-                Você não é apenas um chatbot, você é o "Agente de Inteligência Financeira SPFP Premium". 
+                Você é o Finn — o assistente financeiro pessoal do SPFP.
                 Você é um consultor CFP® de elite que acompanha a vida do usuário de forma contínua.
                 Você se alimenta de cada dado (transações, metas, investimentos) para construir um histórico evolutivo.
                 Sua missão é transformar dados frios em insights acionáveis e estratégicos.
+                Sempre se apresente como "Finn" quando relevante. Nunca diga que é um bot genérico.
 
                 # CONTEXTO ATUAL DO USUÁRIO
                 - Usuário: ${context.profile.name} (${context.profile.family})
@@ -278,7 +283,19 @@ export const Insights: React.FC = () => {
         { role: 'user', content: customPrompt ? `Execute a TAREFA completa de Diagnóstico Patrimonial 360 baseada nos meus dados atuais.` : messageText }
       ];
 
-      const { text, modelName } = await chatWithAI(aiMessages, aiConfig!, userProfile.geminiToken);
+      // Usar chave do usuário se disponível; caso contrário usar plataforma (chave do Luis)
+      let text: string;
+      let modelName: string;
+      if (hasUserKey && aiConfig) {
+        const result = await chatWithAI(aiMessages, aiConfig, userProfile.geminiToken);
+        text = result.text;
+        modelName = result.modelName;
+      } else {
+        const result = await callFinnProxy(aiMessages);
+        text = result.text;
+        modelName = result.modelName;
+        setFinnUsage({ used: result.used, limit: result.limit });
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -355,7 +372,25 @@ export const Insights: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {hasToken && (
+          {/* Contador de uso (plataforma) */}
+          {finnUsage && !hasUserKey && (
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {finnUsage.used}/{finnUsage.limit} msgs
+              </span>
+              <div className="w-12 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min((finnUsage.used / finnUsage.limit) * 100, 100)}%`,
+                    background: finnUsage.used >= finnUsage.limit ? '#f43f5e' : '#1B85E3'
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {/* Botão de status apenas para usuários com chave própria */}
+          {hasUserKey && (
             <button
               onClick={testConnection}
               disabled={testStatus === 'testing'}
@@ -460,7 +495,7 @@ export const Insights: React.FC = () => {
 
               <button
                 onClick={() => handleSend("Diagnóstico Inicial")}
-                disabled={loading || !hasToken}
+                disabled={loading}
                 className="group relative w-full py-5 px-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-gray-800 text-white rounded-[1.5rem] font-bold shadow-2xl shadow-blue-500/20 transition-all active:scale-95 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
@@ -560,7 +595,7 @@ export const Insights: React.FC = () => {
               <button
                 key={i}
                 onClick={() => handleSend(chip.text)}
-                disabled={loading || !hasToken}
+                disabled={loading}
                 className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300 hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all font-medium flex items-center gap-1.5 disabled:opacity-40"
               >
                 <span>{chip.icon}</span>{chip.text}
@@ -582,7 +617,7 @@ export const Insights: React.FC = () => {
                 }
               }}
               placeholder={!hasGeneratedInsight ? "Aguardando Finn preparar seu diagnóstico..." : "Pergunte ao Finn sobre suas finanças..."}
-              disabled={!hasToken || loading || !hasGeneratedInsight}
+              disabled={loading || !hasGeneratedInsight}
               className="w-full bg-black/40 border border-white/10 rounded-[1.5rem] p-5 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all resize-none min-h-[64px] max-h-[200px] scrollbar-hide text-sm"
               rows={1}
               data-testid="insights-chat-input"
@@ -593,7 +628,7 @@ export const Insights: React.FC = () => {
           </div>
           <button
             onClick={() => handleSend()}
-            disabled={loading || !inputValue.trim() || !hasToken || !hasGeneratedInsight}
+            disabled={loading || !inputValue.trim() || !hasGeneratedInsight}
             className="w-16 h-16 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:bg-gray-800 text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-xl shadow-blue-500/20 active:scale-95 group"
             data-testid="insights-send-btn"
           >
@@ -601,13 +636,20 @@ export const Insights: React.FC = () => {
           </button>
         </div>
 
-        {!hasToken && (
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md rounded-bottom-[2.5rem] flex items-center justify-center z-30 px-6 text-center">
-            <div className="p-6 glass rounded-2xl border border-amber-500/20 space-y-4">
-              <p className="text-amber-400 font-bold text-sm tracking-widest flex items-center justify-center gap-2 uppercase">
-                <Key size={16} /> Configuração Pendente
-              </p>
-              <p className="text-gray-400 text-xs">Vá para as configurações e insira sua chave da API para ativar o agente.</p>
+        {/* Overlay de limite atingido */}
+        {finnUsage && finnUsage.used >= finnUsage.limit && (
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-30 px-6 text-center rounded-b-[2.5rem]">
+            <div className="p-6 glass rounded-2xl border border-[#1B85E3]/30 space-y-4 max-w-sm">
+              <FinnAvatar mode="advisor" size="lg" className="mx-auto" />
+              <p className="text-white font-bold text-lg">Limite do mês atingido</p>
+              <p className="text-gray-400 text-sm">Você usou {finnUsage.used} de {finnUsage.limit} mensagens. Faça upgrade para o plano Wealth Mentor e converse com o Finn sem limites.</p>
+              <a
+                href="/#pricing"
+                className="block w-full py-3 rounded-xl font-bold text-sm text-white transition-all"
+                style={{ background: '#1B85E3' }}
+              >
+                Ver planos
+              </a>
             </div>
           </div>
         )}
