@@ -50,25 +50,29 @@ export const SalesPage: React.FC = () => {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-900/20 border border-blue-500/20 mb-10 animate-fade-in relative z-10">
-                        <span className="w-2 h-2 rounded-full bg-blue-400 mr-3 animate-pulse"></span>
-                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Inteligência Patrimonial Premium</span>
+                        <span className="w-2 h-2 rounded-full bg-[#00C2A0] mr-3 animate-pulse"></span>
+                        <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-blue-300">Planejamento Financeiro Pessoal</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto animate-slide-up relative z-10">
-                        Sua liberdade financeira <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600">começa no controle</span>
+                    <h1 className="text-5xl md:text-8xl font-sans font-extrabold text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto animate-slide-up relative z-10">
+                        A consultoria do Luis. <br />
+                        <span className="text-[#1B85E3]">A inteligência do Finn.</span>
                     </h1>
 
-                    <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light mb-14 animate-fade-in delay-300 relative z-10">
-                        Domine cada centavo com a tecnologia mais avançada em gestão de patrimônio. Simples o suficiente para o dia a dia, potente o suficiente para investidores.
+                    <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light mb-4 animate-fade-in delay-300 relative z-10">
+                        Você merece mais do que um app. Você merece um especialista — com IA do seu lado.
+                    </p>
+
+                    <p className="text-sm md:text-base text-[#6AA9F4] max-w-xl mx-auto mb-14 animate-fade-in delay-300 relative z-10 font-medium tracking-wide">
+                        Consultoria especializada. Inteligência que nunca dorme.
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in delay-500 relative z-10">
                         <button
                             onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="px-10 py-5 rounded-2xl bg-blue-600 text-white font-bold tracking-widest uppercase hover:bg-blue-500 hover:shadow-[0_0_40px_rgba(37,99,235,0.4)] transition-all duration-300 transform hover:-translate-y-1"
+                            className="px-10 py-5 rounded-2xl bg-[#1B85E3] text-white font-bold tracking-widest uppercase hover:bg-[#1B3A6B] hover:shadow-[0_0_40px_rgba(27,133,227,0.4)] transition-all duration-300 transform hover:-translate-y-1"
                         >
-                            Ver Planos
+                            Quero começar
                         </button>
                         <a
                             href="https://forms.gle/kvH4emTbExNZMt5S6"
@@ -76,9 +80,9 @@ export const SalesPage: React.FC = () => {
                             rel="noopener noreferrer"
                             className="px-10 py-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-medium tracking-wide transition-all duration-300 flex items-center justify-center gap-3 group"
                         >
-                            <span>Agende uma análise gratuita</span>
-                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/40 transition-colors">
-                                <ArrowRight size={16} className="text-blue-400 group-hover:translate-x-0.5 transition-transform" />
+                            <span>Ver como funciona</span>
+                            <div className="w-8 h-8 rounded-full bg-[#1B85E3]/20 flex items-center justify-center group-hover:bg-[#1B85E3]/40 transition-colors">
+                                <ArrowRight size={16} className="text-[#6AA9F4] group-hover:translate-x-0.5 transition-transform" />
                             </div>
                         </a>
                     </div>
@@ -104,19 +108,19 @@ export const SalesPage: React.FC = () => {
                     <div className="container mx-auto px-6">
                         <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
                             <BenefitCard
-                                icon={<Bot size={32} className="text-blue-400" />}
-                                title="Inteligência Artificial"
-                                text="Consultor dedicado que analisa seus padrões de gastos e sugere otimizações automáticas."
+                                icon={<Users size={32} className="text-[#1B85E3]" />}
+                                title="Consultoria com especialista"
+                                text="Sessions estratégicas com Luis para construir seu planejamento financeiro do zero — com visão humana que nenhum app substitui."
                             />
                             <BenefitCard
-                                icon={<MessageCircle size={32} className="text-indigo-400" />}
-                                title="Suporte via WhatsApp"
-                                text="Dúvidas? Nosso time de especialistas está a um clique de distância pronto para ajudar."
+                                icon={<Bot size={32} className="text-[#00C2A0]" />}
+                                title="Finn monitora 24h"
+                                text="Entre as sessions, o Finn analisa seus dados, identifica padrões e te alerta em português claro — sem jargão, sem enrolação."
                             />
                             <BenefitCard
-                                icon={<Calendar size={32} className="text-blue-500" />}
-                                title="Gestão 360º"
-                                text="Desde o café da manhã até seus investimentos complexos. Tudo em uma só tela."
+                                icon={<Calendar size={32} className="text-[#6AA9F4]" />}
+                                title="Tudo em um só lugar"
+                                text="Gastos, metas, investimentos e reserva. Organizado, claro e seguro. Você nunca mais vai perder o controle."
                             />
                         </div>
                     </div>

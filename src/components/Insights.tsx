@@ -5,10 +5,11 @@ import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import {
   TrendingUp, Lightbulb, AlertCircle, RefreshCw, Loader2, Sparkles,
-  BrainCircuit, Key, CheckCircle2, Send, User, Bot, Trash2,
+  BrainCircuit, Key, CheckCircle2, Send, User, Trash2,
   ChevronDown, Info, ShieldCheck, Target, Wallet, BarChart3,
   MessageSquare, Zap, ArrowRight, History
 } from 'lucide-react';
+import { FinnAvatar } from './FinnAvatar';
 import { saveAIInteraction, getAIHistory, deleteAIHistory } from '../services/aiHistoryService';
 import { formatCurrency } from '../utils';
 import { chatWithAI, ChatMessage } from '../services/aiService';
@@ -323,15 +324,13 @@ export const Insights: React.FC = () => {
   if (!hasData) {
     return (
       <div className="p-8 flex flex-col items-center justify-center h-[70vh] text-center animate-fade-in text-white">
-        <div className="bg-blue-600/10 p-8 rounded-full mb-6 border border-blue-500/20">
-          <BrainCircuit size={64} className="text-blue-500 animate-pulse" />
-        </div>
-        <h2 className="text-3xl font-serif font-bold mb-4">Agente de Inteligência SPFP</h2>
+        <FinnAvatar mode="advisor" size="xl" className="mb-6" />
+        <h2 className="text-3xl font-sans font-bold mb-4">Oi. Eu sou o Finn.</h2>
         <p className="text-gray-400 max-w-md mb-8 leading-relaxed">
-          Olá! Sou seu Agente Financeiro de Elite. Para que eu possa me alimentar de dados e gerar insights, você precisa adicionar algumas transações e contas primeiro.
+          Sou seu assistente financeiro pessoal. Para começar a analisar, adicione algumas transações primeiro — depois volto aqui com tudo que você precisa saber.
         </p>
         <div className="flex gap-4">
-          <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-gray-400 uppercase tracking-widest">Aguardando Alimentação de Dados</div>
+          <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-gray-400 uppercase tracking-widest">Aguardando seus dados</div>
         </div>
       </div>
     );
@@ -342,17 +341,15 @@ export const Insights: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-6 glass rounded-t-[2.5rem] shadow-2xl z-10">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <ShieldCheck className="text-white" size={28} />
-          </div>
+          <FinnAvatar mode="advisor" size="md" />
           <div>
-            <h1 className="text-xl font-serif font-bold text-white tracking-wide">Agente SPFP Premium</h1>
+            <h1 className="text-xl font-sans font-bold text-white tracking-wide">Finn</h1>
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#1B85E3] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1B85E3]"></span>
               </span>
-              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Ativo e Analisando</span>
+              <span className="text-[10px] font-bold text-[#6AA9F4] uppercase tracking-widest">Seu assistente financeiro pessoal</span>
             </div>
           </div>
         </div>
@@ -452,18 +449,12 @@ export const Insights: React.FC = () => {
         {!hasGeneratedInsight ? (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-8 text-center bg-slate-950/80 backdrop-blur-md">
             <div className="max-w-md space-y-8 animate-fade-in">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-20 rounded-full animate-pulse"></div>
-                <div className="relative bg-white/5 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
-                  <BarChart3 size={64} className="text-blue-500 mx-auto" />
-                </div>
-              </div>
+              <FinnAvatar mode="advisor" size="xl" />
 
               <div className="space-y-4">
-                <h2 className="text-3xl font-serif font-bold text-white leading-tight">Pronto para o Próximo Nível?</h2>
+                <h2 className="text-3xl font-sans font-bold text-white leading-tight">Oi. Eu sou o Finn.</h2>
                 <p className="text-gray-400 leading-relaxed">
-                  Para iniciarmos nossa consultoria, preciso realizar um **Diagnóstico Patrimonial 360**.
-                  Irei me alimentar das suas transações, metas e histórico para criar sua estratégia personalizada.
+                  Vou analisar seus dados, identificar padrões e te falar exatamente o que está acontecendo com seu dinheiro — sem enrolação.
                 </p>
               </div>
 
@@ -500,9 +491,9 @@ export const Insights: React.FC = () => {
               <div className={`flex gap-4 max-w-[90%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center border shadow-lg ${msg.role === 'user'
                     ? 'bg-blue-600 border-blue-400 text-white'
-                    : 'bg-white/5 border-white/10 text-blue-400'
+                    : 'bg-white/5 border-white/10'
                   }`}>
-                  {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
+                  {msg.role === 'user' ? <User size={20} /> : <FinnAvatar mode="advisor" size="sm" />}
                 </div>
                 <div className={`space-y-2 ${msg.role === 'user' ? 'text-right' : ''}`}>
                   <div className={`p-6 rounded-[1.5rem] shadow-2xl relative ${msg.role === 'user'
@@ -524,7 +515,7 @@ export const Insights: React.FC = () => {
                     )}
                   </div>
                   <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest px-2 block">
-                    {formatTime(msg.timestamp)} • {msg.role === 'user' ? userProfile.name || 'Você' : 'Agente SPFP'}
+                    {formatTime(msg.timestamp)} • {msg.role === 'user' ? userProfile.name || 'Você' : 'Finn'}
                   </span>
                 </div>
               </div>
@@ -534,14 +525,17 @@ export const Insights: React.FC = () => {
           {loading && (
             <div className="flex justify-start animate-fade-in">
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 shadow-lg">
-                  <Loader2 size={20} className="animate-spin" />
+                <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
+                  <FinnAvatar mode="advisor" size="sm" />
                 </div>
                 <div className="bg-white/5 border border-white/10 p-6 rounded-[1.5rem] rounded-tl-none shadow-xl">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-[#1B85E3] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-[#1B85E3] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                      <div className="w-2 h-2 bg-[#1B85E3] rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">Finn está analisando...</span>
                   </div>
                 </div>
               </div>
@@ -587,7 +581,7 @@ export const Insights: React.FC = () => {
                   handleSend();
                 }
               }}
-              placeholder={!hasGeneratedInsight ? "Aguardando diagnóstico inicial..." : "Solicitar informações ou ajustes ao agente..."}
+              placeholder={!hasGeneratedInsight ? "Aguardando Finn preparar seu diagnóstico..." : "Pergunte ao Finn sobre suas finanças..."}
               disabled={!hasToken || loading || !hasGeneratedInsight}
               className="w-full bg-black/40 border border-white/10 rounded-[1.5rem] p-5 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all resize-none min-h-[64px] max-h-[200px] scrollbar-hide text-sm"
               rows={1}

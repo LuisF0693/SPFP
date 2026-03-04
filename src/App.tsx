@@ -14,6 +14,7 @@ import Loading from './components/ui/Loading';
 import { RouteLoadingBoundary } from './components/ui/RouteLoadingBoundary';
 import { Transaction } from './types';
 import { TransformePage } from './components/TransformePage';
+import { Onboarding } from './components/Onboarding';
 
 // Lazy load page components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -67,10 +68,11 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  */
 const AppContent: React.FC = () => {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { userProfile, updateUserProfile, isInitialLoadComplete, isImpersonating } = useSafeFinance();
+  const { userProfile, transactions, updateUserProfile, isInitialLoadComplete, isImpersonating } = useSafeFinance();
   const { createSubscription } = useStripeSubscription();
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [processingPendingSubscription, setProcessingPendingSubscription] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
 
   // Sincroniza dados do usuário autenticado apenas APÓS o carregamento inicial da nuvem
@@ -83,6 +85,23 @@ const AppContent: React.FC = () => {
       });
     }
   }, [user, isInitialLoadComplete, isImpersonating, userProfile.email, updateUserProfile]);
+
+  // Mostra onboarding para novos usuários (sem transações e não viram antes)
+  useEffect(() => {
+    if (!user || !isInitialLoadComplete || isImpersonating) return;
+    const key = `spfp_onboarding_seen_${user.id}`;
+    const seen = localStorage.getItem(key);
+    if (!seen && transactions.length === 0) {
+      setShowOnboarding(true);
+    }
+  }, [user, isInitialLoadComplete, isImpersonating, transactions.length]);
+
+  const handleOnboardingComplete = () => {
+    if (user) {
+      localStorage.setItem(`spfp_onboarding_seen_${user.id}`, 'true');
+    }
+    setShowOnboarding(false);
+  };
 
   // Processa assinatura pendente após login (quando usuário veio da landing page)
   useEffect(() => {
@@ -133,6 +152,13 @@ const AppContent: React.FC = () => {
   };
 
   return (
+    <>
+      {showOnboarding && (
+        <Onboarding
+          userName={userProfile.name}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
     <Suspense fallback={<RouteLoadingBoundary />}>
       <Routes>
         <Route path="/login" element={!user ? <Suspense fallback={<RouteLoadingBoundary />}><Login /></Suspense> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} />
@@ -292,6 +318,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Suspense>
+    </>
   );
 };
 

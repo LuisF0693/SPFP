@@ -8,10 +8,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
-        display: ['Inter', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        display: ['Sora', 'Plus Jakarta Sans', 'sans-serif'],
+        body: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
         pixel: ['Courier New', 'monospace'],
       },
       colors: {
@@ -24,6 +24,15 @@ export default {
         warning: '#f59e0b',
         'card-dark': '#0f172a',
         'bg-dark': '#020617',
+        // SPFP Brand Colors v1.1
+        'navy-900': '#0A1628',
+        'navy-700': '#1B3A6B',
+        'blue-logo': '#1B85E3',
+        'blue-spfp': '#6AA9F4',
+        'blue-100': '#E8F1FD',
+        'teal-500': '#00C2A0',
+        'teal-200': '#99EAD8',
+        'teal-100': '#CCFAF3',
         // STITCH Design System Colors
         stitch: {
           primary: '#135bec',

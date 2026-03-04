@@ -6,6 +6,7 @@ import {
     PieChart, Star, Zap
 } from 'lucide-react';
 import { formatCurrency } from '../utils';
+import { FinnAvatar } from './FinnAvatar';
 
 interface MonthlyRecapProps {
     data: {
@@ -32,15 +33,12 @@ export const MonthlyRecap: React.FC<MonthlyRecapProps> = ({ data, onClose }) => 
             subtitle: `${data.month} em revista`,
             content: (
                 <div className="text-center space-y-6">
-                    <div className="relative inline-block">
-                        <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-30 animate-pulse"></div>
-                        <div className="relative bg-white/10 p-10 rounded-[3rem] border border-white/20 backdrop-blur-xl">
-                            <Sparkles size={80} className="text-blue-400 animate-glow" />
-                        </div>
+                    <div className="flex justify-center">
+                        <FinnAvatar mode="partner" size="xl" showLabel={true} />
                     </div>
                     <div className="space-y-2">
                         <h2 className="text-4xl font-serif font-black text-white">Parabéns, {data.userName}!</h2>
-                        <p className="text-xl text-blue-200 opacity-80">Vamos ver o que você conquistou este mês.</p>
+                        <p className="text-xl text-[#00C2A0] opacity-80">Vamos ver o que você conquistou este mês.</p>
                     </div>
                 </div>
             ),
@@ -116,14 +114,17 @@ export const MonthlyRecap: React.FC<MonthlyRecapProps> = ({ data, onClose }) => 
             title: 'Pronto para o próximo?',
             content: (
                 <div className="text-center space-y-8">
-                    <Zap size={80} className="text-blue-400 mx-auto animate-pulse" />
+                    <div className="flex justify-center">
+                        <FinnAvatar mode="partner" size="xl" showLabel={true} />
+                    </div>
                     <div className="space-y-4">
                         <h3 className="text-3xl font-serif font-bold text-white">Mantenha o Fôlego!</h3>
-                        <p className="text-gray-400 max-w-xs mx-auto">Sua disciplina este mês foi o motor do seu crescimento patrimonial.</p>
+                        <p className="text-gray-400 max-w-xs mx-auto">Sua disciplina este mês foi o motor do seu crescimento patrimonial. O Finn estará aqui no próximo mês também.</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold shadow-2xl transition-all active:scale-95"
+                        className="px-8 py-4 text-white rounded-2xl font-bold shadow-2xl transition-all active:scale-95"
+                        style={{ background: '#00C2A0', boxShadow: '0 8px 32px rgba(0,194,160,0.3)' }}
                     >
                         Fechar Retrospectiva
                     </button>

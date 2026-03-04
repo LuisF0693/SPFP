@@ -7,6 +7,7 @@ import { Goal, CategoryIconName } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { Modal } from './ui/Modal';
 import { Skeleton } from './ui/Skeleton';
+import { FinnAvatar } from './FinnAvatar';
 
 /**
  * Goals component.
@@ -184,9 +185,9 @@ export const Goals: React.FC = () => {
                                 <span className="text-slate-500 text-sm font-medium">/ {safeGoals.length}</span>
                             </div>
                             {completedGoals > 0 && (
-                                <p className="text-amber-400 text-xs font-bold mt-2 relative z-10 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                                    Parabéns!
+                                <p className="text-[#00C2A0] text-xs font-bold mt-2 relative z-10 flex items-center gap-2">
+                                    <FinnAvatar mode="partner" size="sm" />
+                                    Finn celebra com você!
                                 </p>
                             )}
                         </div>
