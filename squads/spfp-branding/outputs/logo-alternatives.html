@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SPFP — Alternativas de Logo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: #F3F4F6;
+      padding: 48px;
+      color: #111827;
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6B7280;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .card-preview-light {
+      background: #FFFFFF;
+      padding: 56px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    .card-preview-dark {
+      background: #0A1628;
+      padding: 56px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      border-bottom: 1px solid #1B3A6B;
+    }
+
+    .card-info {
+      padding: 24px 28px;
+    }
+    .card-info .option-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #1E6FE8;
+      margin-bottom: 6px;
+    }
+    .card-info .option-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .card-info .option-desc {
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.6;
+    }
+
+    /* ── OPÇÃO A — Wordmark puro ── */
+    .logo-a {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .logo-a .wordmark {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 38px;
+      letter-spacing: 0.06em;
+      color: #1B3A6B;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .logo-a .wordmark .dot {
+      width: 8px;
+      height: 8px;
+      background: #00C2A0;
+      border-radius: 50%;
+      margin-left: 3px;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+    }
+    .logo-a .tagline {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6B7280;
+    }
+
+    .logo-a-dark .wordmark-d {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 38px;
+      letter-spacing: 0.06em;
+      color: white;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+    }
+    .logo-a-dark .wordmark-d .dot-d {
+      width: 8px;
+      height: 8px;
+      background: #00C2A0;
+      border-radius: 50%;
+      margin-left: 4px;
+      margin-bottom: 3px;
+      flex-shrink: 0;
+    }
+    .logo-a-dark .tagline-d {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6B7280;
+      margin-top: 6px;
+    }
+
+    /* ── OPÇÃO B — Monograma ── */
+    .logo-b {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo-b .mark {
+      width: 52px;
+      height: 52px;
+      border: 2.5px solid #1E6FE8;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .logo-b .mark .f-letter {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      color: #1B3A6B;
+      line-height: 1;
+    }
+    .logo-b .mark .finn-dot {
+      width: 9px;
+      height: 9px;
+      background: #00C2A0;
+      border-radius: 50%;
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      border: 2px solid white;
+    }
+    .logo-b .text-wrap .wm {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: #1B3A6B;
+      letter-spacing: 0.08em;
+    }
+    .logo-b .text-wrap .tl {
+      font-size: 10px;
+      color: #6B7280;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .logo-b-dark {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo-b-dark .mark-d {
+      width: 52px;
+      height: 52px;
+      border: 2.5px solid #1E6FE8;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      background: rgba(30,111,232,0.12);
+    }
+    .logo-b-dark .mark-d .f-d {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      color: white;
+    }
+    .logo-b-dark .mark-d .dot-d {
+      width: 9px;
+      height: 9px;
+      background: #00C2A0;
+      border-radius: 50%;
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      border: 2px solid #0A1628;
+    }
+    .logo-b-dark .tw .wm { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 24px; color: white; letter-spacing: 0.08em; }
+    .logo-b-dark .tw .tl { font-size: 10px; color: #4B5563; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+
+    /* ── OPÇÃO C — Linha minimalista ── */
+    .logo-c {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .logo-c .accent-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .logo-c .line-blue {
+      width: 24px;
+      height: 2.5px;
+      background: #1E6FE8;
+      border-radius: 2px;
+    }
+    .logo-c .line-teal {
+      width: 8px;
+      height: 2.5px;
+      background: #00C2A0;
+      border-radius: 2px;
+    }
+    .logo-c .wm {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 36px;
+      color: #1B3A6B;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .logo-c .tl {
+      font-size: 10px;
+      color: #6B7280;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .logo-c-dark .accent-line-d {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .logo-c-dark .lb { width: 24px; height: 2.5px; background: #6AA9F4; border-radius: 2px; }
+    .logo-c-dark .lt { width: 8px; height: 2.5px; background: #00C2A0; border-radius: 2px; }
+    .logo-c-dark .wm-d { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 36px; color: white; letter-spacing: 0.04em; line-height: 1; }
+    .logo-c-dark .tl-d { font-size: 10px; color: #4B5563; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 8px; }
+
+    /* ── APP ICONS ── */
+    .icons-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .icon-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .icon-card .ic-label { font-size: 12px; font-weight: 600; color: #6B7280; letter-spacing: 0.06em; text-transform: uppercase; }
+    .app-icon-a, .app-icon-b, .app-icon-c {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      background: #0A1628;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    /* Icon A: ponto teal grande + SPFP micro */
+    .app-icon-a .big-dot {
+      width: 36px;
+      height: 36px;
+      background: #00C2A0;
+      border-radius: 50%;
+    }
+    .app-icon-a .small-text {
+      position: absolute;
+      bottom: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 8px;
+      color: white;
+      letter-spacing: 0.15em;
+    }
+    /* Icon B: F bold */
+    .app-icon-b .f-big {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 46px;
+      color: #6AA9F4;
+      line-height: 1;
+    }
+    .app-icon-b .dot-b {
+      width: 14px;
+      height: 14px;
+      background: #00C2A0;
+      border-radius: 50%;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    /* Icon C: S bold */
+    .app-icon-c .s-big {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 46px;
+      color: white;
+      line-height: 1;
+    }
+    .app-icon-c .dot-c {
+      width: 14px;
+      height: 14px;
+      background: #00C2A0;
+      border-radius: 50%;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+
+    /* Recomendação */
+    .recommendation {
+      background: #0A1628;
+      border-radius: 20px;
+      padding: 40px 48px;
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+    }
+    .rec-badge {
+      background: #00C2A0;
+      color: #0A1628;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+    .rec-content h3 { font-size: 22px; font-weight: 700; color: white; margin-bottom: 12px; }
+    .rec-content p  { font-size: 15px; color: #9CA3AF; line-height: 1.7; }
+    .rec-content strong { color: #6AA9F4; }
+
+    .note {
+      margin-top: 32px;
+      padding: 24px 28px;
+      background: #FEF9C3;
+      border-radius: 12px;
+      border-left: 4px solid #F59E0B;
+      font-size: 14px;
+      color: #713F12;
+      line-height: 1.7;
+    }
+    .note strong { font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<h1>SPFP — Alternativas de Logo · Paula Scher</h1>
+
+<!-- GRID DE OPÇÕES -->
+<div class="grid">
+
+  <!-- OPÇÃO A -->
+  <div class="card">
+    <div class="card-preview-light">
+      <div class="logo-a">
+        <div class="wordmark">
+          SPFP<span class="dot"></span>
+        </div>
+        <div class="tagline">Seu Planejador Financeiro Pessoal</div>
+      </div>
+    </div>
+    <div class="card-preview-dark">
+      <div class="logo-a-dark">
+        <div class="wordmark-d">SPFP<span class="dot-d"></span></div>
+        <div class="tagline-d">Seu Planejador Financeiro Pessoal</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="option-label">Opção A</div>
+      <div class="option-name">Wordmark Puro</div>
+      <div class="option-desc">Só o nome. O ponto teal é o Finn — discreto, presente. Máxima simplicidade. Referência: Notion, Linear.</div>
+    </div>
+  </div>
+
+  <!-- OPÇÃO B -->
+  <div class="card">
+    <div class="card-preview-light">
+      <div class="logo-b">
+        <div class="mark">
+          <span class="f-letter">F</span>
+          <span class="finn-dot"></span>
+        </div>
+        <div class="text-wrap">
+          <div class="wm">SPFP</div>
+          <div class="tl">Seu Planejador Financeiro Pessoal</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-preview-dark">
+      <div class="logo-b-dark">
+        <div class="mark-d">
+          <span class="f-d">F</span>
+          <span class="dot-d"></span>
+        </div>
+        <div class="tw">
+          <div class="wm">SPFP</div>
+          <div class="tl">Seu Planejador Financeiro Pessoal</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="option-label">Opção B</div>
+      <div class="option-name">Monograma F</div>
+      <div class="option-desc">Ícone quadrado com F (de Finn) + ponto teal no canto. Wordmark ao lado. Versátil — o ícone funciona solo como app icon. Referência: Figma, Framer.</div>
+    </div>
+  </div>
+
+  <!-- OPÇÃO C -->
+  <div class="card">
+    <div class="card-preview-light">
+      <div class="logo-c">
+        <div class="accent-line">
+          <div class="line-blue"></div>
+          <div class="line-teal"></div>
+        </div>
+        <div class="wm">SPFP</div>
+        <div class="tl">Seu Planejador Financeiro Pessoal</div>
+      </div>
+    </div>
+    <div class="card-preview-dark">
+      <div class="logo-c-dark">
+        <div class="accent-line-d">
+          <div class="lb"></div>
+          <div class="lt"></div>
+        </div>
+        <div class="wm-d">SPFP</div>
+        <div class="tl-d">Seu Planejador Financeiro Pessoal</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="option-label">Opção C</div>
+      <div class="option-name">Linha + Wordmark</div>
+      <div class="option-desc">Duas linhas acima — azul (SPFP) e teal (Finn). Simples, elegante. O bicolor cria identidade sem precisar de símbolo. Referência: Stripe early brand.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- APP ICONS -->
+<h1 style="margin-bottom:24px;">App Icons — Como fica no celular</h1>
+<div class="icons-row">
+  <div class="icon-card">
+    <div class="app-icon-a">
+      <div class="big-dot"></div>
+      <div class="small-text">SPFP</div>
+    </div>
+    <span class="ic-label">A — Ponto Finn</span>
+  </div>
+  <div class="icon-card">
+    <div class="app-icon-b">
+      <span class="f-big">F</span>
+      <span class="dot-b"></span>
+    </div>
+    <span class="ic-label">B — Monograma F</span>
+  </div>
+  <div class="icon-card">
+    <div class="app-icon-c">
+      <span class="s-big">S</span>
+      <span class="dot-c"></span>
+    </div>
+    <span class="ic-label">C — Inicial S</span>
+  </div>
+</div>
+
+<!-- RECOMENDAÇÃO -->
+<div class="recommendation">
+  <div class="rec-badge">Minha escolha</div>
+  <div class="rec-content">
+    <h3>Opção B — Monograma F</h3>
+    <p>
+      É a única que conecta <strong>Finn ao logo</strong> de forma natural — o F não é só uma letra, é o personagem. O ponto teal no canto do ícone é discreto mas distintivo. Escala perfeitamente: o ícone quadrado funciona sozinho no app, nas redes sociais e no favicon.
+      <br/><br/>
+      A Opção A é mais segura mas pode parecer genérica ao crescer. A C é elegante mas o elemento das duas linhas é frágil em tamanhos pequenos.
+      <br/><br/>
+      <strong>Mas atenção:</strong> o que você está vendo aqui é HTML/CSS — uma aproximação. O logo final precisa ser feito em Figma por um designer com esse brief nas mãos. O que criei serve para você decidir a direção antes de contratar.
+    </p>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Para contratar um designer:</strong> Abra o arquivo <code>BRAND-GUIDELINES-v1.0.md</code> e envie como brief. Está tudo especificado — cores, fontes, conceito, o que é o Finn, o que não fazer. Um bom designer freelancer no Workana ou 99designs executa isso em 2–3 dias com esse nível de detalhe.<br/><br/>
+  <strong>Diga qual opção você prefere</strong> (A, B ou C) e eu atualizo todos os documentos com a direção escolhida.
+</div>
+
+</body>
+</html>

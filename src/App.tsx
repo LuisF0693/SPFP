@@ -43,6 +43,7 @@ const AutomationDashboard = React.lazy(() => import('./components/automation').t
 const CheckoutSuccess = React.lazy(() => import('./components/pages/CheckoutSuccess').then(m => ({ default: m.CheckoutSuccess })));
 const CheckoutCancel = React.lazy(() => import('./components/pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
 const CanvaOAuthCallback = React.lazy(() => import('./components/CanvaOAuthCallback'));
+const Branding = React.lazy(() => import('./components/Branding').then(m => ({ default: m.Branding })));
 // FutureCashFlow component removed - replaced by RetirementAdvanced (Projeções descontinuado)
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -143,6 +144,7 @@ const AppContent: React.FC = () => {
         <Route path="/checkout-success" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutSuccess /></Suspense>} />
         <Route path="/checkout-cancel" element={<Suspense fallback={<RouteLoadingBoundary />}><CheckoutCancel /></Suspense>} />
         <Route path="/oauth/canva/callback" element={<Suspense fallback={<RouteLoadingBoundary />}><CanvaOAuthCallback /></Suspense>} />
+        <Route path="/branding" element={<Suspense fallback={<RouteLoadingBoundary />}><Branding /></Suspense>} />
 
         <Route path="/dashboard" element={
           <PrivateRoute>

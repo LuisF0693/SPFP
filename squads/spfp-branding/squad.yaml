@@ -1,0 +1,22 @@
+name: spfp-branding
+version: 1.0.0
+short-title: Squad Branding SPFP
+description: Squad de branding com experts em identidade de marca, design visual e estratégia de brand para o SPFP
+author: Luis Fernando Gomes Diniz
+license: MIT
+chief: brand-chief
+agents:
+  - brand-chief
+  - visual-identity-designer
+  - brand-auditor
+  - brand-copywriter
+tools:
+  - Figma
+  - Canva Pro
+  - Adobe Creative Suite
+  - Notion
+  - Miro
+  - Coolors
+  - Google Fonts
+  - Font Pair
+created: 2026-03-04

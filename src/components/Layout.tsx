@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella, Building, Building2 } from 'lucide-react';
+import { Home, CreditCard, PlusCircle, History, PieChart, Lightbulb, LogOut, Settings, Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck, X, Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella, Building, Building2, Palette } from 'lucide-react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
@@ -92,6 +92,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'dashboard', path: '/admin', icon: Users, label: 'Gerenciar Clientes' },
     { id: 'corporate', path: '/corporate', icon: Building2, label: 'Corporate HQ', emoji: '🏢' },
     { id: 'partnerships', path: '/partnerships', icon: ArrowLeftRight, label: 'Parcerias' },
+    { id: 'branding', path: '/branding', icon: Palette, label: 'Branding', emoji: '🎨' },
   ];
 
   const handleLogout = async (e: React.MouseEvent) => {

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="SPFP App Icon">
+  <defs>
+    <style>
+      .icon-f {
+        font-family: 'Plus Jakarta Sans', 'DM Sans', 'Arial Black', system-ui, sans-serif;
+        font-weight: 800;
+      }
+    </style>
+    <!-- Cantos arredondados (iOS style ~22%) -->
+    <clipPath id="ios-clip">
+      <rect x="0" y="0" width="200" height="200" rx="44" ry="44"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fundo Navy-900 com cantos arredondados -->
+  <rect x="0" y="0" width="200" height="200" rx="44" ry="44" fill="#0A1628"/>
+
+  <!-- Letra F — Blue-300 -->
+  <text x="100" y="142"
+        class="icon-f"
+        font-size="130"
+        fill="#6AA9F4"
+        text-anchor="middle">F</text>
+
+  <!-- Teal dot — posicionado sobre o braço superior do F -->
+  <!-- O F em 130px, centrado em 100: o braço superior fica aprox em y=52, x direito aprox em 138 -->
+  <circle cx="138" cy="52" r="18" fill="#00C2A0"/>
+
+  <!-- Mini reflexo no dot para dar profundidade -->
+  <circle cx="132" cy="46" r="6" fill="#CCFAF3" opacity="0.4"/>
+</svg>

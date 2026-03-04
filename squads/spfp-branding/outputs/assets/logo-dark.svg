@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" width="300" height="64" role="img" aria-label="SPFP - Seu Planejador Financeiro Pessoal">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&amp;display=swap');
+      .wordmark { font-family: 'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif; font-weight: 600; }
+      .tagline  { font-family: 'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif; font-weight: 400; }
+    </style>
+  </defs>
+
+  <!-- Symbol: F-Arrow (Journey) — versão branca -->
+  <g transform="translate(2, 14)">
+    <line x1="5" y1="34" x2="5" y2="4"
+          stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+
+    <path d="M 5,4 C 12,3.5 19,3 26,2"
+          stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+    <path d="M 20,0 L 27,2 L 22,8"
+          stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <line x1="5" y1="17" x2="20" y2="17"
+          stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Teal dot mantém a cor — único elemento colorido na versão escura -->
+    <circle cx="20" cy="17" r="3.5" fill="#00C2A0"/>
+  </g>
+
+  <!-- Wordmark branco -->
+  <text x="52" y="36"
+        class="wordmark"
+        font-size="28"
+        fill="#FFFFFF"
+        letter-spacing="3">SPFP</text>
+
+  <!-- Separator -->
+  <line x1="52" y1="42" x2="295" y2="42"
+        stroke="#374151" stroke-width="0.75"/>
+
+  <!-- Tagline -->
+  <text x="52" y="56"
+        class="tagline"
+        font-size="10.5"
+        fill="#D1D5DB"
+        letter-spacing="1.2">Seu Planejador Financeiro Pessoal</text>
+</svg>

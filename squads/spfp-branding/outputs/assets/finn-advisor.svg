@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" role="img" aria-label="Finn - Advisor Mode">
+  <defs>
+    <radialGradient id="advisor-bg" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#1B3A6B"/>
+      <stop offset="100%" stop-color="#0A1628"/>
+    </radialGradient>
+    <!-- Glow suave na borda -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Círculo base -->
+  <circle cx="40" cy="40" r="37" fill="url(#advisor-bg)"/>
+
+  <!-- Borda Blue-500 -->
+  <circle cx="40" cy="40" r="37" fill="none" stroke="#1E6FE8" stroke-width="2"/>
+
+  <!-- Sobrancelhas — levemente inclinadas (foco/concentração) -->
+  <path d="M 22,26 L 31,24" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+  <path d="M 49,24 L 58,26" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+
+  <!-- Olhos -->
+  <circle cx="27" cy="34" r="4.5" fill="white"/>
+  <circle cx="53" cy="34" r="4.5" fill="white"/>
+  <!-- Pupilas -->
+  <circle cx="28" cy="35" r="2.5" fill="#1B3A6B"/>
+  <circle cx="54" cy="35" r="2.5" fill="#1B3A6B"/>
+  <!-- Brilho nos olhos -->
+  <circle cx="29.5" cy="33.5" r="1" fill="white"/>
+  <circle cx="55.5" cy="33.5" r="1" fill="white"/>
+
+  <!-- Boca — neutra, horizontal -->
+  <path d="M 30,50 L 50,50" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Detalhe: mini gráfico de linha (Advisor) -->
+  <g opacity="0.55" transform="translate(52, 56)">
+    <polyline points="0,10 4,6 8,8 14,2" stroke="#6AA9F4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="14" cy="2" r="1.5" fill="#6AA9F4"/>
+  </g>
+</svg>
