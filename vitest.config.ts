@@ -16,12 +16,13 @@ export default defineConfig({
                 'src/test/',
                 '**/*.d.ts',
                 '**/*.config.*',
-                '**/mockData.ts',
             ],
-            lines: 70,
-            functions: 70,
-            branches: 70,
-            statements: 70,
+            thresholds: {
+                lines: 70,
+                functions: 70,
+                branches: 70,
+                statements: 70,
+            }
         },
         include: ['src/**/*.test.{ts,tsx}'],
         exclude: [
@@ -34,10 +35,6 @@ export default defineConfig({
         ],
         testTimeout: 10000,
         hookTimeout: 10000,
-        isolate: true,
-        threads: true,
-        maxThreads: 4,
-        minThreads: 1,
     },
     resolve: {
         alias: {
