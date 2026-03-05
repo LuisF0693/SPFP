@@ -52,6 +52,12 @@ export const callFinnProxy = async (
                 { isRateLimit: true, used: data.used, limit: data.limit }
             );
         }
+        if (response.status === 403) {
+            throw Object.assign(
+                new Error(data.message ?? "Assine um plano para usar o Finn."),
+                { isNoPlan: true }
+            );
+        }
         throw new Error(data.message ?? "Erro ao conectar com o Finn.");
     }
 

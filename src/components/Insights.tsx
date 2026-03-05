@@ -44,6 +44,7 @@ export const Insights: React.FC = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<Array<{id: string; prompt: string; response: string; timestamp: Date}>>([]);
   const [finnUsage, setFinnUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [finnBlocked, setFinnBlocked] = useState<{ reason: 'rate_limit' | 'no_plan'; message: string } | null>(null);
 
   // Chips de prompts rápidos — sorteia 6 de um pool maior (Story 8.1)
   const PROMPT_POOL = [
@@ -295,6 +296,7 @@ export const Insights: React.FC = () => {
         text = result.text;
         modelName = result.modelName;
         setFinnUsage({ used: result.used, limit: result.limit });
+        setFinnBlocked(null);
       }
 
       const assistantMessage: Message = {
@@ -315,7 +317,14 @@ export const Insights: React.FC = () => {
 
     } catch (err: any) {
       console.error("Chat Error:", err);
-      setError(err.message || "Erro ao processar sua solicitação.");
+      if (err.isRateLimit) {
+        setFinnBlocked({ reason: 'rate_limit', message: err.message });
+        setFinnUsage({ used: err.used ?? finnUsage?.used ?? 0, limit: err.limit ?? finnUsage?.limit ?? 10 });
+      } else if (err.isNoPlan) {
+        setFinnBlocked({ reason: 'no_plan', message: err.message });
+      } else {
+        setError(err.message || "Erro ao processar sua solicitação.");
+      }
     } finally {
       setLoading(false);
     }
@@ -636,19 +645,21 @@ export const Insights: React.FC = () => {
           </button>
         </div>
 
-        {/* Overlay de limite atingido */}
-        {finnUsage && finnUsage.used >= finnUsage.limit && (
+        {/* Overlay de bloqueio (sem plano ou limite atingido) */}
+        {finnBlocked && (
           <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-30 px-6 text-center rounded-b-[2.5rem]">
             <div className="p-6 glass rounded-2xl border border-[#1B85E3]/30 space-y-4 max-w-sm">
               <FinnAvatar mode="advisor" size="lg" className="mx-auto" />
-              <p className="text-white font-bold text-lg">Limite do mês atingido</p>
-              <p className="text-gray-400 text-sm">Você usou {finnUsage.used} de {finnUsage.limit} mensagens. Faça upgrade para o plano Wealth Mentor e converse com o Finn sem limites.</p>
+              <p className="text-white font-bold text-lg">
+                {finnBlocked.reason === 'no_plan' ? 'Finn é exclusivo para assinantes' : 'Limite do mês atingido'}
+              </p>
+              <p className="text-gray-400 text-sm">{finnBlocked.message}</p>
               <a
                 href="/#pricing"
-                className="block w-full py-3 rounded-xl font-bold text-sm text-white transition-all"
+                className="block w-full py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95"
                 style={{ background: '#1B85E3' }}
               >
-                Ver planos
+                {finnBlocked.reason === 'no_plan' ? 'Ver planos' : 'Fazer upgrade'}
               </a>
             </div>
           </div>

@@ -7,16 +7,15 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 // Limites por price_id do Stripe
+// Essencial: 10 msgs/mês | Wealth Mentor: 15 msgs/mês | Sem plano: bloqueado
 const PLAN_LIMITS: Record<string, number> = {
   // Essencial R$99
-  "price_1T1yllIZBkfjgy2X30qaXxQo": 30,
-  "price_1T1ym7IZBkfjgy2XXytc5SOt": 30,
+  "price_1T1yllIZBkfjgy2X30qaXxQo": 10,
+  "price_1T1ym7IZBkfjgy2XXytc5SOt": 10,
   // Wealth Mentor R$349
-  "price_1T1ymOIZBkfjgy2XPWFYJSGi": 300,
-  "price_1T1ymeIZBkfjgy2XtLyCqyBE": 300,
+  "price_1T1ymOIZBkfjgy2XPWFYJSGi": 15,
+  "price_1T1ymeIZBkfjgy2XtLyCqyBE": 15,
 };
-
-const DEFAULT_LIMIT = 10; // usuários sem plano ativo (teste)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -60,7 +59,15 @@ serve(async (req) => {
       .maybeSingle();
 
     const priceId = subscription?.price_id ?? "";
-    const limit = PLAN_LIMITS[priceId] ?? DEFAULT_LIMIT;
+    const limit = PLAN_LIMITS[priceId];
+
+    // Sem plano ativo — Finn é exclusivo para assinantes
+    if (limit === undefined) {
+      return json({
+        error: "no_plan",
+        message: "O Finn é exclusivo para assinantes SPFP. Escolha um plano para começar.",
+      }, 403);
+    }
 
     // Uso atual do mês (resiliente: se a tabela não existir, permite o uso)
     let used = 0;
@@ -84,10 +91,13 @@ serve(async (req) => {
     }
 
     if (usageEnabled && used >= limit) {
+      const isEssencial = limit === 10;
       return json(
         {
           error: "rate_limit_exceeded",
-          message: `Você usou ${used} de ${limit} mensagens este mês. Faça upgrade do seu plano para continuar conversando com o Finn.`,
+          message: isEssencial
+            ? `Você usou suas ${limit} mensagens do plano Essencial este mês. Faça upgrade para o Wealth Mentor e tenha 15 mensagens.`
+            : `Você usou suas ${limit} mensagens deste mês. Elas renovam no início do próximo mês.`,
           used,
           limit,
         },
