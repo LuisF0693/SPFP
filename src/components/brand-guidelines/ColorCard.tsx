@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface ColorCardProps {
   name: string;
@@ -11,11 +11,11 @@ interface ColorCardProps {
 
 export const ColorCard: React.FC<ColorCardProps> = ({ name, hex, rgb, usage, textColor = "text-white" }) => {
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -5 }}
       className="rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white flex flex-col h-full"
     >
-      <div 
+      <div
         className="h-32 w-full flex items-end p-4"
         style={{ backgroundColor: hex }}
       >
