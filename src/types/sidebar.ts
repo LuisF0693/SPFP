@@ -19,29 +19,41 @@ export interface SidebarState {
   hoveredItem?: string;
   lastUpdated: number;
   deviceWidth?: number;
+  isDrawerOpen?: boolean;
+  [key: string]: unknown;
 }
 
 /**
  * Context type for SidebarContext hook
  */
 export interface SidebarContextType {
-  sidebarState: SidebarState;
-  isExpanded: boolean;
-  expandedSections: Record<SidebarSection, boolean>;
+  sidebarState?: SidebarState;
+  state: SidebarState;
+  isExpanded?: boolean;
+  expandedSections?: Record<SidebarSection, boolean>;
   hoveredItem?: string;
 
-  toggleSidebar(): void;
-  setSidebarExpanded(expanded: boolean): void;
-  toggleSection(section: SidebarSection): void;
-  setSectionExpanded(section: SidebarSection, expanded: boolean): void;
-  setHoveredItem(itemId: string | undefined): void;
+  toggleSidebar?(): void;
+  setSidebarExpanded?(expanded: boolean): void;
+  toggleSection(section: SidebarSection | string): void;
+  setSectionExpanded?(section: SidebarSection, expanded: boolean): void;
+  setHoveredItem?(itemId: string | undefined): void;
 
-  saveSidebarState(): void;
-  loadSidebarState(): void;
+  saveSidebarState?(): void;
+  loadSidebarState?(): void;
 
-  getIsMobile(): boolean;
-  getIsTablet(): boolean;
-  getIsDesktop(): boolean;
+  getIsMobile?(): boolean;
+  getIsTablet?(): boolean;
+  getIsDesktop?(): boolean;
+
+  // Additional methods from SidebarContext implementation
+  expandSection?(section: SidebarSection | string): void;
+  collapseSection?(section: SidebarSection | string): void;
+  toggleDrawer?(): void;
+  openDrawer?(): void;
+  closeDrawer?(): void;
+  resetToDefaults?(): void;
+  setAllSections?(expanded: boolean): void;
 }
 
 /**

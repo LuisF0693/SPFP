@@ -186,7 +186,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           className="mr-3 sm:mr-4 p-2 -ml-2 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           data-testid="transaction-form-close-btn"
         >
-          <ChevronLeft size={20} sm:size={24} aria-hidden="true" />
+          <ChevronLeft size={20} aria-hidden="true" />
         </button>
         <h2 className="text-xl sm:text-2xl font-bold text-slate-100">
           {initialData ? 'Editar Transação' : 'Nova Transação'}

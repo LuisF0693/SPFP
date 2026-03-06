@@ -162,7 +162,7 @@ export const Budget: React.FC = () => {
     if (!investments || !Array.isArray(investments)) return 0;
     // Assume emergency fund is in low-risk investments
     return investments
-      .filter(inv => inv.type === 'EMERGENCY_FUND' || inv.name?.toLowerCase().includes('emergência'))
+      .filter(inv => (inv.type as any) === 'EMERGENCY_FUND' || inv.name?.toLowerCase().includes('emergência'))
       .reduce((sum, inv) => sum + (inv.currentValue || 0), 0);
   }, [investments]);
 

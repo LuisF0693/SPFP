@@ -47,7 +47,7 @@ export const PatrimonyListEnhanced: React.FC<PatrimonyListEnhancedProps> = ({
     const consolidated: PatrimonyAsset[] = [];
 
     accounts.filter(a => !a.deletedAt).forEach(a => {
-      consolidated.push({ ...a, type: 'account' });
+      (consolidated as any[]).push({ ...a, type: 'account' });
     });
 
     investments.filter(i => !i.deletedAt).forEach(i => {
@@ -59,7 +59,7 @@ export const PatrimonyListEnhanced: React.FC<PatrimonyListEnhancedProps> = ({
     });
 
     patrimonyItems.filter(p => !p.deletedAt).forEach(p => {
-      consolidated.push({ ...p, type: 'patrimony' });
+      (consolidated as any[]).push({ ...p, type: 'patrimony' });
     });
 
     return consolidated;

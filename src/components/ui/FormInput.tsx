@@ -4,7 +4,7 @@ import { LucideIcon } from 'lucide-react';
 type InputType = 'text' | 'email' | 'password' | 'number' | 'date' | 'tel' | 'url';
 type InputSize = 'sm' | 'md' | 'lg';
 
-interface FormInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface FormInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
   type?: InputType;
   label?: string;
   error?: string;
@@ -82,6 +82,7 @@ export const FormInput: React.FC<FormInputProps> = ({
   `.trim();
 
   const isIconReactNode = Icon && typeof Icon !== 'function';
+  const IconComponent = Icon as React.ComponentType<{ size?: number }>;
 
   return (
     <div className="flex flex-col gap-2">
@@ -112,7 +113,7 @@ export const FormInput: React.FC<FormInputProps> = ({
             }`}
             aria-hidden="true"
           >
-            {isIconReactNode ? Icon : <Icon size={18} />}
+            {isIconReactNode ? Icon : <IconComponent size={18} />}
           </div>
         )}
       </div>

@@ -56,7 +56,7 @@ export const CheckoutCancel: React.FC = () => {
 
         {/* Action Buttons */}
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' }) || navigate('/#pricing')}
+          onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/#pricing'); }}
           className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 mb-4 group"
         >
           <span>Voltar aos Planos</span>

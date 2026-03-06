@@ -83,6 +83,7 @@ export interface Account {
   // Virtual card support (Story 3.1)
   isVirtualCard?: boolean; // true if this is a virtual card
   parentCardId?: string;   // ID of the physical (parent) card this virtual card belongs to
+  expirationDate?: string; // Card expiration date (MM/YY)
 }
 
 /**
@@ -125,6 +126,9 @@ export interface Transaction {
   // Extended fields for credit card sync
   externalId?: string; // External reference ID (e.g., credit card transaction ID)
   amount?: number; // Alternative amount field (some services use amount instead of value)
+  // Extended fields for validation service
+  recurrence?: string; // Recurrence pattern (e.g., 'monthly', 'weekly')
+  installments?: number; // Number of installments
 }
 
 /**
