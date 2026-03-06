@@ -11,17 +11,14 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Readable } from 'stream';
 import { constructWebhookEvent } from '../services/stripe-service';
 import {
   updateCheckoutSessionStatus,
   updateSubscriptionStatus,
   grantUserAccess,
   getCheckoutSession,
-  getSubscription,
 } from '../services/database-service';
 import { sendWelcomeEmail } from '../services/email-service';
-import { ApiResponse } from '../types';
 
 /**
  * Read raw body for webhook signature validation
@@ -46,7 +43,7 @@ async function getRawBody(req: VercelRequest): Promise<string> {
   });
 }
 
-async function handler(req: VercelRequest, res: VercelResponse<ApiResponse>) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   // Only accept POST
   if (req.method !== 'POST') {
     return res.status(405).json({
@@ -230,7 +227,6 @@ async function handleCheckoutSessionCompleted(event: any): Promise<void> {
 async function handleSubscriptionCreated(event: any): Promise<void> {
   const subscription = event.data.object;
   const subscriptionId = subscription.id;
-  const customerId = subscription.customer;
   const metadata = subscription.metadata || {};
   const userId = metadata.user_id;
 

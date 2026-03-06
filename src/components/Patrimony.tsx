@@ -230,7 +230,7 @@ export const Patrimony: React.FC = () => {
                                 <YAxis hide domain={['dataMin', 'auto']} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                    formatter={(value: number) => formatCurrency(value)}
+                                    formatter={((value: number) => formatCurrency(value)) as any}
                                 />
                                 <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fillUrl="#colorNetWorth" />
                             </AreaChart>

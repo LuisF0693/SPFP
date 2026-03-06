@@ -6,7 +6,7 @@ interface SkeletonProps {
   height?: string;
   width?: string;
   circle?: boolean;
-  variant?: 'card' | 'text' | 'avatar' | 'line';
+  variant?: 'card' | 'text' | 'avatar' | 'line' | 'chart' | 'table-row';
 }
 
 /**
@@ -28,6 +28,8 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     text: `rounded-md ${height} ${width}`,
     avatar: 'rounded-2xl h-16 w-16',
     line: `rounded-md ${height} ${width}`,
+    chart: 'rounded-2xl min-h-48 w-full',
+    'table-row': `rounded-md h-10 ${width}`,
   };
 
   const circleClasses = circle ? 'rounded-full' : '';

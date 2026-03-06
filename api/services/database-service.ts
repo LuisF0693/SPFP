@@ -5,7 +5,6 @@
 
 import { supabaseAdmin } from '../supabase';
 import { StripeSession, StripeSubscriptionDB, UserAccess } from '../types';
-import { withErrorRecovery } from '../../src/services/errorRecovery';
 
 /**
  * Save checkout session to database

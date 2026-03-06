@@ -1,0 +1,139 @@
+name: clone-deploy
+version: 1.0.0
+short-title: Clone Deploy - Mind Clone Multi-Channel Deployment System
+description: >-
+  Full-stack pipeline for deploying cognitive clones as conversational bots
+  across multiple channels (WhatsApp, Telegram, Web App). Takes minds processed
+  by MMOS Mind Mapper and deploys them as production-ready RAG-powered chatbots
+  with persona fidelity, hybrid search, and real-time monitoring.
+author: José Carlos Amorim
+slash_prefix: "CloneDeploy"
+
+# Dependencies
+dependencies:
+  - name: mmos-mind-mapper
+    path: ../mmos-mind-mapper
+    required: true
+    description: "Pipeline de criação de minds cognitivas. Clone Deploy consome os outputs do MMOS."
+  - name: etl-data-collector
+    path: ../etl-data-collector
+    required: false
+    description: "Coleta de fontes para ingestão. Opcional se fontes já estiverem disponíveis."
+
+# Minimum AIOS version required
+requires:
+  aios-version: "4.0.0"
+
+# Pack metadata
+domain: AI Deployment / Conversational AI / RAG Systems
+target_users:
+  - Empresas que querem assistentes baseados em seus experts internos
+  - Infoprodutores que querem clonar sua voz via chatbot
+  - Times de produto criando assistentes de domínio específico
+  - Consultores oferecendo clones como serviço
+
+key_capabilities:
+  - Pipeline completo: ingestão → RAG → clone → deploy → monitoring
+  - Multi-canal: WhatsApp (UazAPI), Telegram (Bot API), Web App (REST API)
+  - RAG com Supabase pgvector (hybrid search: semântico + full-text)
+  - Persona fidelity baseada em frameworks PersonaTwin e DPRF
+  - Gateway pattern: thin adapters + central engine
+  - Deploy automatizado via EasyPanel/Docker
+  - Health monitoring e conversation analytics
+
+# Components
+agents:
+  - id: clone-deploy-chief
+    file: agents/clone-deploy-chief.md
+    role: Squad Orchestrator - Routes requests and manages full pipeline
+  - id: clone-diagnostician
+    file: agents/clone-diagnostician.md
+    role: Mind Quality Analyst - Evaluates mind readiness for deployment
+  - id: rag-architect
+    file: agents/rag-architect.md
+    role: RAG Pipeline Designer - Chunking, embeddings, search optimization
+  - id: clone-builder
+    file: agents/clone-builder.md
+    role: Clone Engine Creator - System prompts, persona tuning, fidelity
+  - id: deploy-engineer
+    file: agents/deploy-engineer.md
+    role: Multi-Channel Deployer - Docker, EasyPanel, CI/CD, monitoring
+  - id: whatsapp-specialist
+    file: agents/whatsapp-specialist.md
+    role: WhatsApp Integration Expert - UazAPI, webhooks, message handling
+  - id: telegram-specialist
+    file: agents/telegram-specialist.md
+    role: Telegram Integration Expert - Bot API, webhooks, commands
+  - id: webapp-specialist
+    file: agents/webapp-specialist.md
+    role: Web App Integration Expert - REST API, chat widget, frontend
+
+tasks:
+  - id: diagnose-mind
+    file: tasks/diagnose-mind.md
+    purpose: Evaluate mind quality and readiness for deployment
+  - id: ingest-mind
+    file: tasks/ingest-mind.md
+    purpose: Process sources and create RAG chunks in Supabase pgvector
+  - id: build-clone
+    file: tasks/build-clone.md
+    purpose: Create clone engine with system prompt and persona configuration
+  - id: deploy-whatsapp
+    file: tasks/deploy-whatsapp.md
+    purpose: Deploy clone bot on WhatsApp via UazAPI
+  - id: deploy-telegram
+    file: tasks/deploy-telegram.md
+    purpose: Deploy clone bot on Telegram via Bot API
+  - id: deploy-webapp
+    file: tasks/deploy-webapp.md
+    purpose: Deploy clone as REST API with embeddable chat widget
+  - id: test-fidelity
+    file: tasks/test-fidelity.md
+    purpose: Test clone fidelity with benchmark questions
+  - id: monitor-health
+    file: tasks/monitor-health.md
+    purpose: Health check and conversation analytics monitoring
+
+workflows:
+  - id: full-pipeline
+    file: workflows/full-pipeline.md
+    purpose: Complete pipeline from mind ingestion to multi-channel deployment
+  - id: deploy-multi-channel
+    file: workflows/deploy-multi-channel.md
+    purpose: Deploy existing clone to multiple channels simultaneously
+  - id: clone-quality-check
+    file: workflows/clone-quality-check.md
+    purpose: Test and improve clone fidelity iteratively
+
+templates:
+  - system-prompt-template.md
+  - env-template.md
+  - dockerfile-template.md
+
+checklists:
+  - pre-deploy-checklist.md
+  - fidelity-checklist.md
+  - production-readiness-checklist.md
+
+# Installation
+installation:
+  command: npm run install:expansion clone-deploy
+  post_install_message: |
+    🤖 Clone Deploy v1.0 instalado com sucesso!
+
+    Quick start:
+    1. Ative o orquestrador: @clone-deploy-chief
+    2. Rode o pipeline completo: /CloneDeploy:workflows:full-pipeline
+    3. Ou faça deploy direto: /CloneDeploy:tasks:deploy-whatsapp
+
+    Pré-requisitos:
+    - Mind processada pelo MMOS Mind Mapper (outputs/minds/{slug}/)
+    - Supabase com pgvector habilitado
+    - UazAPI configurado (para WhatsApp)
+    - Telegram Bot Token (para Telegram)
+
+    Comandos úteis:
+    - /CloneDeploy:tasks:diagnose-mind → verifica qualidade da mind
+    - /CloneDeploy:tasks:build-clone → cria o clone engine
+    - /CloneDeploy:tasks:deploy-whatsapp → deploy no WhatsApp
+    - /CloneDeploy:tasks:test-fidelity → testa fidelidade

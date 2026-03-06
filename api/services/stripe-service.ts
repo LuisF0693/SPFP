@@ -15,7 +15,7 @@ if (!STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2023-10-16',
 });
 
 interface CheckoutSessionOptions {
@@ -82,7 +82,6 @@ export async function createCheckoutSession(
       {
         maxRetries: 3,
         userId,
-        metadata: { priceId, email, planType },
       }
     );
 
@@ -164,7 +163,6 @@ export async function createSubscription(
       {
         maxRetries: 3,
         userId,
-        metadata: { priceId, email },
       }
     );
 
@@ -237,7 +235,7 @@ export function constructWebhookEvent(body: string, signature: string, secret: s
  */
 export async function cancelSubscription(subscriptionId: string): Promise<boolean> {
   try {
-    const result = await stripe.subscriptions.del(subscriptionId);
+    const result = await stripe.subscriptions.cancel(subscriptionId);
     return result.status === 'canceled';
   } catch (error) {
     console.error('Error canceling subscription:', error);

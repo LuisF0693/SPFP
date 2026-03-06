@@ -61,6 +61,7 @@ export interface UserProfile {
   geminiToken?: string; // Legacy Google Gemini API token
   aiConfig?: AIConfig;
   retirementConfig?: RetirementConfig;
+  birthDate?: string; // Used by retirement calculations
 }
 
 /**
@@ -93,6 +94,7 @@ export interface Category {
   color: string;
   group: CategoryGroup;
   icon?: string; // Nome do ícone (chave do mapa de ícones)
+  deletedAt?: number; // Soft delete timestamp
 }
 
 /**
@@ -120,6 +122,9 @@ export interface Transaction {
   groupIndex?: number; // Índice atual (1, 2, 3...)
   groupTotal?: number; // Total de parcelas (null para recorrente infinito)
   deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
+  // Extended fields for credit card sync
+  externalId?: string; // External reference ID (e.g., credit card transaction ID)
+  amount?: number; // Alternative amount field (some services use amount instead of value)
 }
 
 /**
@@ -154,6 +159,12 @@ export interface InvestmentAsset {
   sector?: string;
   lastUpdate: string;
   deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
+  // Extended fields (used by investment portfolio components)
+  assetType?: string;
+  totalValue?: number;
+  purchasePrice?: number;
+  currentValue?: number;
+  purchaseValue?: number;
 }
 
 export type PatrimonyType = 'REAL_ESTATE' | 'VEHICLE' | 'MILES' | 'DEBT' | 'FINANCIAL' | 'OTHER';
@@ -173,6 +184,7 @@ export interface PatrimonyItem {
 }
 
 export interface CategoryBudget {
+  id?: string;
   categoryId: string;
   limit: number;
 }

@@ -10,13 +10,11 @@ import * as stripeService from '../../services/stripe-service';
 import * as dbService from '../../services/database-service';
 
 describe('POST /api/stripe/checkout-session', () => {
-  let mockReq: Partial<VercelRequest>;
-  let mockRes: Partial<VercelResponse>;
-  let statusCode: number;
+  let mockReq: any;
+  let mockRes: any;
   let responseBody: any;
 
   beforeEach(() => {
-    statusCode = 200;
     responseBody = null;
 
     mockReq = {

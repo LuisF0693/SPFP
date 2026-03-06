@@ -1,4 +1,5 @@
 import { useFinance } from '../context/FinanceContext';
+export { useFinance };
 import { INITIAL_ACCOUNTS, INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from '../data/initialData';
 import type { FinanceContextData } from '../context/FinanceContext';
 
@@ -64,12 +65,13 @@ export const useSafeFinance = (): FinanceContextData => {
       addTransaction: () => {},
       addManyTransactions: () => {},
       updateTransaction: () => {},
+      updateTransactions: () => {},
       deleteTransaction: () => {},
       deleteTransactions: () => {},
       addAccount: () => {},
       updateAccount: () => {},
       deleteAccount: () => {},
-      addCategory: () => {},
+      addCategory: () => '',
       updateCategory: () => {},
       deleteCategory: () => {},
       addGoal: () => {},

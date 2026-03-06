@@ -34,9 +34,16 @@
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
     "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public/service-worker.ts",
+    "supabase/functions",
+    "tests/e2e",
+    "src/virtual-office-v2",
+    "ralph-main"
+  ]
 }

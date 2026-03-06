@@ -97,7 +97,7 @@ export function usePortfolio(): UsePortfolioReturn {
         return;
       }
 
-      const tickers = investmentsWithTickers.map(inv => inv.ticker);
+      const tickers = investmentsWithTickers.map(inv => inv.ticker).filter(Boolean) as string[];
       const quotes = await MarketDataService.getQuotes(tickers);
 
       // Create a map of symbol -> MarketData

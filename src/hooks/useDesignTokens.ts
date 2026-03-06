@@ -23,10 +23,9 @@ import {
  * const spacing = tokens.spacing.md;
  */
 export const useDesignTokens = () => {
-  const { theme: currentTheme, isDarkMode } = useUI();
+  const { theme: currentTheme, isDark } = useUI();
 
   return useMemo(() => {
-    const isDark = isDarkMode;
 
     return {
       // Color tokens with theme awareness
@@ -73,5 +72,5 @@ export const useDesignTokens = () => {
       isDarkMode: isDark,
       currentTheme,
     };
-  }, [isDarkMode, currentTheme]);
+  }, [isDark, currentTheme]);
 };

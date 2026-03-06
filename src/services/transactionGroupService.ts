@@ -75,10 +75,12 @@ export const transactionGroupService = {
       const orphans: OrphanedTransaction[] = [];
 
       for (const tx of transactionsWithGroups) {
-        if (tx.group_id && !validGroupIds.has(tx.group_id)) {
+        const txAny = tx as any;
+        if (txAny.group_id && !validGroupIds.has(txAny.group_id)) {
           orphans.push({
             ...tx,
-            reason: `Invalid group reference: ${tx.group_id}`
+            groupId: txAny.group_id,
+            reason: `Invalid group reference: ${txAny.group_id}`
           });
         }
       }
@@ -86,7 +88,7 @@ export const transactionGroupService = {
       result.orphanedCount = orphans.length;
       result.orphans = orphans;
       result.isValid = orphans.length === 0;
-      result.invalidGroupReferences = [...new Set(orphans.map(o => o.group_id))];
+      result.invalidGroupReferences = [...new Set(orphans.map(o => o.groupId).filter(Boolean) as string[])];
 
       console.log(`[GROUP VALIDATION] Orphan detection complete:`, {
         total: transactionsWithGroups.length,
@@ -206,21 +208,23 @@ export const transactionGroupService = {
     error?: string;
   }> => {
     // If no group, it's valid
-    if (!transaction.group_id) {
+    if (!transaction.groupId) {
       return { valid: true };
     }
 
     // If group provided, validate it exists
-    if (transaction.user_id) {
+    const transactionAny = transaction as any;
+    if (transactionAny.userId || transactionAny.user_id) {
+      const userId = transactionAny.userId || transactionAny.user_id;
       const isValid = await transactionGroupService.validateGroup(
-        transaction.group_id,
-        transaction.user_id
+        transaction.groupId,
+        userId
       );
 
       if (!isValid) {
         return {
           valid: false,
-          error: `Transaction group not found: ${transaction.group_id}`
+          error: `Transaction group not found: ${transaction.groupId}`
         };
       }
     }
@@ -265,7 +269,7 @@ export const transactionGroupService = {
 
     // Check sequential group_index
     const indexes = transactions
-      .map(t => t.group_index)
+      .map(t => t.groupIndex)
       .filter(idx => idx !== null && idx !== undefined)
       .sort((a, b) => (a as number) - (b as number));
 
@@ -276,7 +280,7 @@ export const transactionGroupService = {
     }
 
     // Check all transactions reference the same group
-    const uniqueGroups = new Set(transactions.map(t => t.group_id));
+    const uniqueGroups = new Set(transactions.map(t => t.groupId));
     if (uniqueGroups.size > 1) {
       issues.push(`Transactions reference multiple groups: ${Array.from(uniqueGroups).join(', ')}`);
     }

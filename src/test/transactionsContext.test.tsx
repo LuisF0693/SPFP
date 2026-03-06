@@ -340,7 +340,6 @@ describe('TransactionsContext — deleteTransaction', () => {
     });
 
     const tx = result.current.transactions[0];
-    const firstTimestamp = Date.now();
 
     act(() => {
       result.current.deleteTransaction(tx.id);

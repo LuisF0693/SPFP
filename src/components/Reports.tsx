@@ -400,7 +400,7 @@ export const Reports: React.FC = () => {
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} dy={10} />
                                 <Tooltip
                                     contentStyle={{ background: '#111', border: '1px solid #ffffff10', borderRadius: '16px' }}
-                                    formatter={(v: number) => formatCurrency(v)}
+                                    formatter={((v: number) => formatCurrency(v)) as any}
                                 />
                                 <Area type="monotone" dataKey="income" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={2} />
                                 <Area type="monotone" dataKey="expense" stroke="#f43f5e" fillOpacity={1} fill="url(#colorExpense)" strokeWidth={2} />
@@ -432,7 +432,7 @@ export const Reports: React.FC = () => {
                                     </Pie>
                                     <Tooltip
                                         contentStyle={{ background: '#111', border: '1px solid #ffffff10', borderRadius: '16px' }}
-                                        formatter={(v: number) => formatCurrency(v)}
+                                        formatter={((v: number) => formatCurrency(v)) as any}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>

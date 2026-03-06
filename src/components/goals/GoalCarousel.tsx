@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, Target } from 'lucide-react';
 import { formatCurrency } from '../../utils';
 import { Goal, CategoryIconName } from '../../types';
 import { CategoryIcon } from '../CategoryIcon';

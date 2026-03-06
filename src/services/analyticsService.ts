@@ -85,7 +85,7 @@ const logToSupabase = async (event: SidebarAnalyticsLog): Promise<void> => {
   } catch (error) {
     // Log error but don't throw - fallback to localStorage already done
     logDetailedError(
-      error as Error,
+      String(error),
       'Failed to log sidebar analytics to Supabase',
       {
         action: 'logSidebarAnalytics',

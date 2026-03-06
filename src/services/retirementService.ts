@@ -149,12 +149,12 @@ export const retirementService = {
   /**
    * Calculate monthly savings needed
    */
-  calculateMonthlySavingsNeeded = (
+  calculateMonthlySavingsNeeded(
     targetAmount: number,
     currentAmount: number,
     years: number,
     annualRate: number
-  ): number => {
+  ): number {
     const monthlyRate = annualRate / 12;
     const months = years * 12;
 

@@ -118,7 +118,7 @@ export const DashboardChart = memo<DashboardChartProps>(
                     color: '#fff'
                   }}
                   itemStyle={{ color: '#fff' }}
-                  formatter={(value: number) => formatCurrency(value)}
+                  formatter={((value: number) => formatCurrency(value)) as any}
                 />
                 <Area
                   type="monotone"
@@ -174,7 +174,7 @@ export const DashboardChart = memo<DashboardChartProps>(
                     height={100}
                   />
                   <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
+                    formatter={((value: number) => formatCurrency(value)) as any}
                     contentStyle={{
                       backgroundColor: '#1f2937',
                       border: 'none',

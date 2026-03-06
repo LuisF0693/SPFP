@@ -19,7 +19,7 @@ export const crmService = {
         body: JSON.stringify({ userId, ...data })
       }).then(r => r.json()),
       'Create client',
-      { userId, data }
+      { userId }
     )
   },
 
@@ -31,7 +31,7 @@ export const crmService = {
         body: JSON.stringify(data)
       }).then(r => r.json()),
       'Update client',
-      { clientId, data }
+      {}
     )
   },
 
@@ -41,7 +41,7 @@ export const crmService = {
         method: 'DELETE'
       }).then(r => r.json()),
       'Delete client',
-      { clientId }
+      {}
     )
   },
 
@@ -50,7 +50,7 @@ export const crmService = {
     return withErrorRecovery(
       () => fetch(`/api/crm/meeting-notes?clientId=${clientId}`).then(r => r.json()),
       'Fetch meeting notes',
-      { clientId }
+      {}
     )
   },
 
@@ -62,7 +62,7 @@ export const crmService = {
         body: JSON.stringify(data)
       }).then(r => r.json()),
       'Create meeting note',
-      { data }
+      {}
     )
   },
 
@@ -74,7 +74,7 @@ export const crmService = {
         body: JSON.stringify(data)
       }).then(r => r.json()),
       'Update meeting note',
-      { noteId, data }
+      {}
     )
   },
 
@@ -84,7 +84,7 @@ export const crmService = {
         method: 'DELETE'
       }).then(r => r.json()),
       'Delete meeting note',
-      { noteId }
+      {}
     )
   },
 
@@ -101,7 +101,7 @@ export const crmService = {
         body: formData
       }).then(r => r.json()),
       'Upload file',
-      { clientId, fileName: file.name }
+      {}
     )
   },
 
@@ -109,7 +109,7 @@ export const crmService = {
     return withErrorRecovery(
       () => fetch(`/api/crm/files?clientId=${clientId}`).then(r => r.json()),
       'Fetch client files',
-      { clientId }
+      {}
     )
   },
 
@@ -119,7 +119,7 @@ export const crmService = {
         method: 'DELETE'
       }).then(r => r.json()),
       'Delete file',
-      { fileId }
+      {}
     )
   }
 }

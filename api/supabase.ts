@@ -34,8 +34,10 @@ export function createUserClient(accessToken: string) {
       autoRefreshToken: false,
       persistSession: false,
     },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   });
 }

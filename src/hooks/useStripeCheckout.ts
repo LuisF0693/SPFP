@@ -55,15 +55,10 @@ export const useStripeCheckout = (): UseStripeCheckoutResult => {
         `Criar sessão de checkout para ${planType}`,
         {
           maxRetries: 2,
-          metadata: {
-            priceId,
-            planType,
-          },
         }
       );
 
-      // Backend returns { data: { url } } or { url } depending on structure
-      const checkoutUrl = response.data?.url || response.url;
+      const checkoutUrl = response.url;
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {

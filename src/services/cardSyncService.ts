@@ -186,7 +186,7 @@ export const cardSyncService = {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       logDetailedError(
-        error as Error,
+        String(error),
         'Failed to sync credit card transactions',
         {
           action: 'syncCreditCardInvoices',

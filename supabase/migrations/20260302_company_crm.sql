@@ -42,17 +42,21 @@ CREATE POLICY "Users manage own boards"
 
 -- Tasks (com status Kanban)
 CREATE TABLE IF NOT EXISTS company_tasks (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  board_id     UUID NOT NULL REFERENCES company_boards(id) ON DELETE CASCADE,
-  user_id      UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  title        TEXT NOT NULL,
-  description  TEXT,
-  status       TEXT NOT NULL DEFAULT 'TODO' CHECK (status IN ('TODO','IN_PROGRESS','REVIEW','DONE')),
-  priority     TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW','MEDIUM','HIGH','URGENT')),
-  assignee_id  UUID REFERENCES auth.users(id),
-  due_date     DATE,
-  sort_order   INT NOT NULL DEFAULT 0,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  board_id        UUID NOT NULL REFERENCES company_boards(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title           TEXT NOT NULL,
+  description     TEXT,
+  status          TEXT NOT NULL DEFAULT 'TODO' CHECK (status IN ('TODO','IN_PROGRESS','REVIEW','DONE')),
+  priority        TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW','MEDIUM','HIGH','URGENT')),
+  assignee_id     UUID REFERENCES auth.users(id),
+  assignee_name   TEXT,
+  assignee_avatar TEXT,
+  tags            TEXT[] DEFAULT '{}',
+  due_date        DATE,
+  sort_order      INT NOT NULL DEFAULT 0,
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE company_tasks ENABLE ROW LEVEL SECURITY;

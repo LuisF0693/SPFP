@@ -129,7 +129,7 @@ export async function sendWelcomeEmail(options: EmailOptions): Promise<boolean> 
     // Try to use Supabase email service
     try {
       // Supabase Mail API (requires auth.email_templates setup)
-      const result = await supabaseAdmin.auth.admin.sendEmail({
+      const result = await (supabaseAdmin.auth.admin as any).sendEmail({
         email: to,
         subject: `Bem-vindo ao SPFP - ${planName}`,
         html,

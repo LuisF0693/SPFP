@@ -63,10 +63,6 @@ export const useStripeSubscription = (): UseStripeSubscriptionResult => {
         'Criar assinatura mensal Stripe',
         {
           maxRetries: 2,
-          metadata: {
-            priceId,
-            userId: user.id,
-          },
         }
       );
 

@@ -1,879 +1,440 @@
-# UX/Frontend Specialist Review - SPFP
-
-**Especialista:** @ux-design-expert (Luna)
-**Data:** 2026-01-26
-**Status:** Validação Completa + Débitos Adicionados
-**Metodologia:** Auditoria de acessibilidade, responsividade, design consistency, e performance UX
-
----
-
-## Resumo Executivo
-
-Foram analisados **30 componentes React** e **8.816 linhas de código** frontend. A plataforma possui uma **base visual sólida com glassmorphism** e **boa UX em desktop**, mas sofre com:
-
-1. **Débitos Críticos (P0):**
-   - Zero conformidade WCAG (0 atributos aria-*, keyboard nav quebrada)
-   - Mobile experience fragmentada (modais, charts com overflow)
-   - Nenhum erro boundary (crash em 1 componente quebra tudo)
-
-2. **Débitos Altos (P1):**
-   - 650+ linhas em Dashboard sem memoization = re-renders excessivos
-   - Dark mode hardcoded (não persiste com refresh)
-   - Performance de charts em mobile (Recharts sem ResponsiveContainer)
-
-3. **Débitos Médios (P2):**
-   - Design tokens espalhados (Tailwind inline = manutenção difícil)
-   - Modais duplicados em 4+ componentes (ImportExport, Goals, etc)
-   - Loading skeleton missing (apenas spinner genérico)
-
-**Impacto UX Geral:** MÉDIO-ALTO (2-3 sprints de otimização necessárias pré-produção)
+# UX Specialist Review — Technical Debt DRAFT
+> Brownfield Discovery — Fase 6 | @ux-design-expert (Uma) | 2026-03-05
+> Documento revisado: `docs/prd/technical-debt-DRAFT.md` (Fase 4, @architect)
+> Referencia: `docs/frontend/frontend-spec.md` (Fase 3, @ux-design-expert)
+> Substitui revisao anterior (2026-01-26 / Luna) — contexto pre-rebranding EPIC-013
 
 ---
 
-## Débitos Validados & Estimados
+## 1. Validacao dos Debitos de UX/Frontend no DRAFT
 
-### Seção 1: Acessibilidade (FE-001)
+### TD-005 — Duplicacao ativa Goals v1+v2 / Retirement v1+v2
 
-| Característica | Status | Achado |
-|---|---|---|
-| **aria-label / aria-describedby** | ❌ ZERO | 0/30 componentes com labels acessíveis |
-| **role attributes** | ❌ ZERO | Modais, botões, inputs sem roles semânticos |
-| **tabIndex management** | ❌ FALHO | Navegação por teclado impossível em modais |
-| **Screen reader support** | ❌ NÃO | Conteúdo dinâmico não anunciado |
-| **Keyboard navigation** | ❌ QUEBRADA | Modais trapam focus, sem Esc handler |
-| **Color contrast** | ✅ BOM | Glassmorphism + dark mode = bom contraste |
-| **Form labels** | ⚠️ PARCIAL | <label htmlFor> presentes, mas aria falta |
+**Status: EXPANDIDO**
 
-**Validação:** CONFIRMADO - Débito é **CRÍTICO**
+A descricao do DRAFT esta correta mas subestima o impacto de UX. Alem da confusao de navegacao, ha um problema de estado: usuarios que criaram metas em Goals v1 podem nao encontrar seus dados ao migrar para Goals v2 se os dois componentes nao compartilharem a mesma fonte de dados no FinanceContext. A duplicacao tambem gera degradacao silenciosa: quando features evoluem somente em v2, usuarios em v1 ficam com funcionalidade inferior sem saber.
 
-**Exemplos encontrados:**
-```typescript
-// ❌ Settings.tsx:68 - Sem role/aria-label
-<button onClick={() => handleChange('theme', 'light')} className="...">
+O DRAFT menciona apenas "confusao de UX" mas omite o risco de perda de dados percebida e a degradacao silenciosa de funcionalidade.
 
-// ❌ TransactionForm.tsx - Modal sem focus trap
-<div className="fixed inset-0 bg-black/30" onClick={onClose}>
-  {/* Sem aria-modal, role="dialog", aria-labelledby */}
-</div>
+A estimativa M (4-16h) esta correta apenas se a decisao de produto for tomada antes da implementacao. Sem decisao clara de qual versao e canonica, o esforco real sobe para L (16-40h) — refatoracao de estado, validacao de que dados de usuarios existentes sao preservados, testes de regressao nos dois fluxos.
 
-// ❌ Dashboard.tsx - 115 className sem nenhum aria
-{crmAlerts.map(alert => (
-  <div key={alert.type}>{alert.message}</div> // Sem role="alert"
-))}
-```
-
-**Esforço Estimado:** **12-14 horas**
-- Adicionar 150+ aria-* attributes: 4h
-- Implementar focus management em modais: 3h
-- Adicionar keyboard handlers (Esc, Tab): 2h
-- Testar com axe DevTools: 1h
-- Testing library updates: 2h
-
-**Impacto UX:** **P0 (CRÍTICO)**
-- Sem acessibilidade = exclusão de usuários com deficiência
-- Não WCAG 2.1 AA compliant
-- Risco legal/compliance
+**Adicao ao criterio de aceitacao:** Antes de iniciar implementacao, documentar qual versao e canonica e validar com o PO que todos os dados de usuarios existentes serao preservados na transicao. Rota antiga deve redirecionar com `history.replace`, nao `history.push`, para nao criar entrada fantasma no historico de navegacao.
 
 ---
 
-### Seção 2: Mobile Responsiveness (FE-002)
+### TD-006 — Ausencia de data-testid (impossibilita testes UI)
 
-| Aspecto | Status | Achado |
-|---|---|---|
-| **Breakpoints definidos** | ✅ PRESENTE | Tailwind breakpoints (sm, md, lg) mapeados |
-| **Mobile-first approach** | ❌ NÃO | Desktop-first design, mobile é afterthought |
-| **Modais em mobile** | ❌ QUEBRADAS | Modal width > 90% da tela em <768px |
-| **Charts responsiveness** | ❌ FALHO | Recharts sem ResponsiveContainer em Dashboard |
-| **Touch targets (44px)** | ⚠️ PEQUENOS | Buttons 32px, fácil miss-tap |
-| **Viewport meta** | ✅ PRESENTE | viewport-fit=cover definido |
-| **Horizontal scroll** | ⚠️ PRESENTE | TransactionList em mobile scrolls horizontalmente |
+**Status: CONFIRMADO com ressalva de classificacao**
 
-**Validação:** CONFIRMADO - Débito é **ALTO**
+A descricao tecnica esta correta. No entanto, a classificacao como CRITICO e discutivel sob criterios de UX puro: `data-testid` e um debito de qualidade de engenharia, nao um debito que afeta o usuario final hoje. O impacto de UX e indireto — sem testabilidade, regressoes passam despercebidas e chegam ao usuario. A classificacao correta seria ALTO (nao CRITICO) sob a otica de UX.
 
-**Exemplo de problema:**
-```typescript
-// ❌ DeleteTransactionModal.tsx - Modal não responsivo
-<div className="fixed inset-0 flex items-center justify-center bg-black/50">
-  <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-    {/* Em mobile <375px, max-w-md = 448px > 90% viewport */}
-  </div>
-</div>
-
-// ✅ Settings.tsx:37 - Usa media breakpoints (mas não suficiente)
-<div className="p-5 md:p-0"> {/* Falta sm: breakpoint */}
-```
-
-**Impacto observado em <768px:**
-1. Dashboard widgets overflow em 3+ pontos
-2. TransactionForm recurrence UI inacessível
-3. AdminCRM alerts sem wrapping
-4. Charts (Investments, Budget) cortados
-
-**Esforço Estimado:** **8-10 horas**
-- Testar em 5+ breakpoints: 2h
-- Refatorar modais para mobile: 3h
-- ResponsiveContainer para Recharts: 1.5h
-- Fix touch targets (padding): 1.5h
-- Test em real devices/browsers: 1h
-
-**Impacto UX:** **P1 (ALTO)**
-- ~40% de usuários mobile perdidos (Brasil = 70% mobile)
-- Cart abandonment em formulários
-- Frustration com modais "presos"
+Recomendacao: manter como CRITICO pela perspectiva de manutenibilidade/engenharia, mas documentar que o impacto no usuario e indireto e de longo prazo, nao imediato.
 
 ---
 
-### Seção 3: Component Performance & Memoization (FE-003 + SYS-004/010)
+### TD-007 — Sem focus trap em modais (acessibilidade critica)
 
-| Componente | LOC | React.memo | useMemo | useCallback | Issue |
-|---|---|---|---|---|---|
-| **Dashboard.tsx** | 658 | ❌ NÃO | ✅ 8x | ❌ NÃO | Re-render ao mudar transaction = todo widget recalcula |
-| **TransactionForm.tsx** | 641 | ❌ NÃO | ✅ 2x | ❌ NÃO | 20+ useState = state explosion |
-| **TransactionList.tsx** | 597 | ❌ NÃO | ✅ 4x | ❌ NÃO | Filter on client side, N+1 filter iterations |
-| **Insights.tsx** | 494 | ❌ NÃO | ✅ 1x | ✅ 1x | Chat re-renders entire message list on input |
-| **AdminCRM.tsx** | ~500 | ❌ NÃO | ✅ 0x | ❌ NÃO | Impersonation state change = full re-render |
+**Status: CONFIRMADO e EXPANDIDO**
 
-**Validação:** CONFIRMADO - Débito é **MÉDIO-ALTO**
+A descricao esta correta. O DRAFT menciona "Onboarding, TransactionForm fullscreen" — o TransactionForm opera como fullscreen modal sem `<Layout>`, o que significa que o usuario pode Tab para elementos do DOM subjacente que estao visualmente bloqueados, criando uma experiencia de teclado completamente quebrada.
 
-**Impacto de Performance:**
-- 1000+ transações = 500ms+ render time (Dashboard filter)
-- Memory footprint cresce com dataset
-- Mobile devices (low-end Android) ficam lentos
+Impacto expandido que nao consta no DRAFT:
+- Usuarios com motor impairment que dependem de teclado ficam presos ou perdem o contexto do modal
+- Leitores de tela (NVDA, VoiceOver) continuam lendo o conteudo de fundo, criando confusao cognitiva grave
+- A ausencia de `aria-modal="true"` no elemento de modal agrava o problema para tecnologias assistivas
 
-**Esforço Estimado:** **6-8 horas**
-- Wrap child components em React.memo: 2h
-- Add useCallback para event handlers: 1.5h
-- Implement virtualization (react-window) para listas: 2.5h
-- Performance profiling (React DevTools): 1h
+A estimativa S (1-4h) esta correta apenas se uma biblioteca como `focus-trap-react` for usada. Implementacao manual com ARIA correto pode chegar a M (4-16h).
 
-**Impacto UX:** **P1 (ALTO)**
-- Jank perception (não smooth)
-- Battery drain em mobile
-- Poor First Contentful Paint (>2s)
+**Adicao ao criterio de aceitacao:** Adicionar `aria-modal="true"` e `role="dialog"` nos modais, alem do focus trap. Testar especificamente com NVDA no Windows (plataforma do dev principal conforme historico do projeto).
 
 ---
 
-### Seção 4: Dark Mode Implementation (FE-011 AJUSTADO)
+### TD-013 — Insights.tsx muito grande (~675 LOC)
 
-| Aspecto | Status | Achado |
-|---|---|---|
-| **Toggle UI** | ✅ PRESENTE | Settings.tsx tem Sun/Moon buttons |
-| **Persistence** | ❌ NÃO PERSISTE | Theme salvo em userProfile mas não aplicado ao refresh |
-| **CSS dark: prefix** | ✅ USADO | dark:bg-gray-700 em alguns componentes (Settings.tsx:86) |
-| **localStorage sync** | ❌ FALTA | Tema carregado do userProfile, não localStorage |
-| **Force dark mode** | ⚠️ HARDCODED | Layout.tsx:27 força dark sempre (document.documentElement.classList.add('dark')) |
+**Status: CONFIRMADO com contexto adicional**
 
-**Validação:** AJUSTADO - **NÃO é simplesmente P3, é P2**
+A descricao esta correta. O frontend-spec.md confirma: "Muitos useState (10+)" em Insights.tsx. O impacto de UX e duplo: (1) manutenibilidade ruim = bugs de UI que chegam ao usuario sem deteccao previa; (2) o componente mistura logica de negocio (rate limit, historico) com renderizacao, tornando impossivel testar cenarios de UX isolados como "o que o usuario ve quando o Finn esta indisponivel" ou "qual e a UX quando o rate limit e atingido".
 
-**Problema critico encontrado:**
-```typescript
-// ❌ Layout.tsx:25-28 - Dark mode FORÇADO SEMPRE
-useEffect(() => {
-  document.documentElement.classList.add('dark');
-}, []);
-
-// Toggle em Settings faz nada porque Layout refaz isso:
-handleChange('theme', 'light'); // Salva em userProfile
-// Mas ao fazer refresh, Layout reaplica dark SEMPRE
-```
-
-**Componentes com partial dark mode:**
-- Settings.tsx: 4/120 classes com dark:
-- TransactionForm.tsx: 0/400+ classes
-- Dashboard.tsx: 0/300+ classes
-
-**Esforço Estimado:** **4-5 horas**
-- Remove hardcoded dark mode, use userProfile.theme: 1h
-- Add dark: prefix a todos componentes: 2h
-- Test theme persistence: 0.5h
-- Update Tailwind config: 0.5h
-
-**Impacto UX:** **P2 (MÉDIO)**
-- Users can't use light mode (preference lost)
-- Eye strain em light theme preference
-- Inconsistent with user expectation
+O split proposto no DRAFT (FinnChat, FinnDiagnosis, FinnRateLimit, FinnQuickChips) esta alinhado com a estrutura de UX real do componente. Aprovado como proposta.
 
 ---
 
-### Seção 5: Charts & Recharts Responsiveness (FE-003)
+### TD-014 — Layout.tsx muito grande (~467 LOC)
 
-| Gráfico | Componente | Issue |
-|---|---|---|
-| **AreaChart** | Dashboard | Sem ResponsiveContainer, fixed height |
-| **PieChart** | Dashboard, Budget | Cutoff em mobile |
-| **BarChart** | Reports | Falta xAxis rotation em mobile |
+**Status: CONFIRMADO com impacto de UX subestimado**
 
-**Exemplo:**
-```typescript
-// ❌ Dashboard.tsx - Sem ResponsiveContainer
-<AreaChart width={800} height={300} data={chartData}>
-  <Area type="monotone" dataKey="balance" />
-</AreaChart>
+O DRAFT trata como debito de manutenibilidade, mas ha impacto direto de UX: o Layout.tsx sem `memo()` (confirmado no frontend-spec.md — "Componente sem memo()") causa re-renders desnecessarios em toda a arvore de navegacao a cada mudanca de estado global. Usuarios percebem isso como micro-lags na navegacao entre paginas — especialmente noticel em dispositivos mid-range Android.
 
-// Deveria ser:
-<ResponsiveContainer width="100%" height={300}>
-  <AreaChart data={chartData}>
-    <Area type="monotone" dataKey="balance" />
-  </AreaChart>
-</ResponsiveContainer>
-```
+O split proposto (DesktopSidebar, MobileBottomNav, AdminSidebar) esta correto.
 
-**Esforço Estimado:** **3-4 horas**
-- Wrap all Recharts em ResponsiveContainer: 1h
-- Add mobile-specific chart configs: 1.5h
-- Test em multiple viewports: 1h
-
-**Impacto UX:** **P2 (MÉDIO)**
-- Charts ilegíveis em mobile
-- "Broken" perception
-- Insights not accessible on-the-go
+**Adicao ao criterio de aceitacao:** Cada componente resultante deve usar `React.memo()` onde aplicavel. Medir re-renders com React DevTools Profiler antes e depois da refatoracao.
 
 ---
 
-### Seção 6: Design Consistency & Tokens (FE-009)
+### TD-015 — Sem sistema de toast notifications global
 
-| Aspecto | Status | Achado |
-|---|---|---|
-| **Color palette** | ✅ CONSISTENTE | PRIMARY=3b82f6, ACCENT=0ea5e9 bem distribuídos |
-| **Spacing scale** | ⚠️ IRREGULAR | p-5, p-6, p-8, px-4, py-2 espalhados sem sistema |
-| **Typography scale** | ⚠️ INFORMAL | text-xl, text-lg, text-sm/xs sem designação (h1/body/caption) |
-| **Radius consistency** | ✅ BOM | rounded-2xl, rounded-xl, rounded-lg padronizados |
-| **Border colors** | ⚠️ INCONSISTENTE | border-gray-200, border-gray-300, border-gray-400 misturados |
-| **Shadow system** | ✅ BÔNUS | shadow-sm, shadow-md, shadow-lg bem usados |
-| **Icons** | ⚠️ MISTOS | Lucide-react (bom), mas inconsistência em tamanhos (16, 18, 20, 24, 32) |
+**Status: CONFIRMADO e EXPANDIDO**
 
-**Validação:** AJUSTADO - **Débito real = P2**
+O impacto de UX esta subestimado no DRAFT. A ausencia de toast system significa que falhas criticas sao silenciosas — o frontend-spec.md confirma "falhas silenciosas em FinanceContext". Quando o Supabase falha ao salvar uma transacao, o usuario nao recebe feedback e pode assumir que o dado foi salvo, criando um problema de integridade percebida.
 
-**Esforço Estimado:** **5-7 horas**
-- Create `tokens.ts` (colors, spacing, typography): 1h
-- Refactor 100+ className calls: 3h
-- Update tailwind.config.ts com tokens: 1h
-- Test consistency: 1h
+Casos concretos de impacto real:
+- Adicionar transacao com falha de rede: usuario cria duplicata ao tentar novamente
+- Salvar meta com timeout: usuario perde dado sem saber
+- Sync Supabase falha silenciosamente: estado local diverge do banco sem aviso visual
 
-**Impacto UX:** **P2 (MÉDIO)**
-- Maintenance nightmare
-- Brand inconsistency
-- Hard to scale to multiple themes
+A proposta de `react-hot-toast` ou `sonner` esta correta. `sonner` e preferivel por compatibilidade com Tailwind dark mode e design system SPFP existente (Navy-900 #0A1628).
+
+**Adicao ao criterio de aceitacao:** Toast de loading para operacoes assincronas com duracao > 500ms. Toast de sucesso com confirmacao visual. Toast de erro com acao de retry quando aplicavel. Toasts de sucesso devem ter duracao curta (2-3s); erros devem persistir ate dismiss manual.
 
 ---
 
-### Seção 7: Modal & Form Duplication (FE-010)
+### TD-016 — Contraste WCAG nao validado (#6AA9F4 em fundo escuro)
 
-| Modal | Encontrado em | LOC | Duplication |
-|---|---|---|---|
-| **ImportExport** | TransactionList | ~150 | Reutilizável mas não é componente genérico |
-| **InvestmentImportExport** | Investments | ~120 | Cópia/adaptação de ImportExport |
-| **GoalForm** | Goals | ~100 | Forma modal própria |
-| **DeleteTransactionModal** | TransactionList | ~80 | Específica mas padrão modal |
-| **Settings modal patterns** | Settings | ~60 | Custom modals sem abstração |
+**Status: CORRIGIDO — escopo incompleto no DRAFT**
 
-**Padrão encontrado:**
-```typescript
-// Todos usam esse pattern (não abstraído):
-const [isOpen, setIsOpen] = useState(false);
-const [isLoading, setIsLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
+O DRAFT menciona apenas `#6AA9F4` sobre fundo dark. A analise do design system no frontend-spec.md revela que varios outros pares de cores precisam de validacao:
 
-// Sem componente modal reutilizável:
-<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-  <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-    {/* Conteúdo específico */}
-  </div>
-</div>
-```
+| Par de Cores | Uso | Risco Estimado |
+|-------------|-----|----------------|
+| `#6AA9F4` (Blue-SPFP) sobre `#0A1628` (Navy-900) | Texto auxiliar sobre fundo principal | ALTO — ratio estimado ~3.8:1, abaixo do 4.5:1 exigido WCAG AA |
+| `#92a4c9` (text-secondary-dark) sobre `#1A2233` (surface-dark) | Textos secundarios em cards | ALTO — cinza claro em superficie escura |
+| `#00C2A0` (Teal-500/Finn) sobre `#0A1628` | Indicadores Finn e metas sobre fundo principal | MEDIO — teal pode ser adequado mas nao validado |
+| `#1B85E3` (Blue-Logo) sobre `#0A1628` | Links e acoes primarias | MEDIO |
+| `#2e374a` (border-dark) como texto sobre `#1A2233` | Bordas e separadores | BAIXO — elemento nao-textual |
 
-**Oportunidade:**
-```typescript
-// ✅ Deveria existir:
-<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Importar">
-  <ImportForm />
-</Modal>
-```
+A auditoria deve cobrir TODOS os pares, nao apenas o `#6AA9F4`. A estimativa S (1-4h) para auditoria esta correta, mas a correcao dos tokens que falharem pode exigir ate M (4-16h) considerando impacto no design system e necessidade de validacao pos-correcao.
 
-**Esforço Estimado:** **6-8 horas**
-- Create BaseModal component: 1.5h
-- Refactor 4 modalidades: 3h
-- Update imports em 6+ files: 1.5h
-- Test modal interactions: 1h
-
-**Impacto UX:** **P2 (MÉDIO)**
-- Inconsistent modal UX
-- Harder to add global modal features (custom scrolling, animations)
-- Code duplication = maintenance burden
+**Adicao ao criterio de aceitacao:** Relatorio de auditoria deve documentar ratio medido de cada par (nao apenas pass/fail). Tokens corrigidos devem ser atualizados no `tailwind.config.js` para garantir consistencia futura.
 
 ---
 
-### Seção 8: Loading States & Skeletons (FE-012)
+### TD-026 — Mobile: Recharts overflow em telas pequenas
 
-| Estado | Implementação | Issue |
-|---|---|---|
-| **Initial Load** | `<Loading />` spinner | Genérico, sem progress indication |
-| **Data refresh** | Spinner inline | Sem skeleton, layout shift óbvio |
-| **Chart load** | Recharts default | Sem placeholder chart |
-| **Transaction fetch** | Spinner + empty state | Sem progressive load |
+**Status: CONFIRMADO com impacto expandido**
 
-**Exemplo:**
-```typescript
-// ❌ Dashboard.tsx - Apenas spinner
-{isSyncing ? (
-  <Loading message="Sincronizando..." />
-) : (
-  <ChartComponent data={chartData} />
-)}
+O DRAFT menciona apenas o risco de overflow. O mobile bottom navigation tem 8 items (frontend-spec.md), o que ja cria uma experiencia densa em telas pequenas. Charts que fazem overflow sobre isso criam um layout quebrado que impede o usuario de ver dados financeiros criticos no dispositivo mais comum de acesso no Brasil.
 
-// ✅ Deveria ser:
-{isSyncing ? (
-  <ChartSkeleton /> // Placeholder shape
-) : (
-  <ChartComponent data={chartData} />
-)}
-```
+Viewports criticos para testar: 320px (iPhone SE — ainda amplamente usado no Brasil), 375px (iPhone 13 mini/padrao), 390px (iPhone 14).
 
-**Esforço Estimado:** **4-5 horas**
-- Create Skeleton components (Card, Chart, List): 2h
-- Use in 6 main components: 1.5h
-- Add skeleton animations: 1h
-
-**Impacto UX:** **P2 (MÉDIO)**
-- Poor perceived performance
-- Layout shift = CLS (Core Web Vital fail)
-- More polished feeling
+O Dashboard usa `DashboardChart` e `DashboardMetrics` como sub-componentes — ambos precisam de `ResponsiveContainer` com `minHeight` adequado e comportamento de fallback para viewports estreitos.
 
 ---
 
-## Débitos Adicionados (Não na PRD original)
+### TD-027 — useEffect cleanup ausente — risco de memory leaks
 
-### FE-015: Error Boundary Missing
+**Status: CONFIRMADO**
 
-**Severidade:** ALTO | **Esforço:** 2h | **Prioridade:** P1
-
-**Problema:**
-```
-❌ Zero error boundaries in codebase
-❌ Single component crash breaks entire app
-❌ Supabase sync error = white screen
-```
-
-**Validação:** 0 matches found for `ErrorBoundary` or error catch in components
-
-**Impacto UX:** P1 - Users see blank page on any component error
-
-**Solução:** Create global + regional error boundaries
+O frontend-spec.md confirma a vulnerabilidade especificamente em `Insights.tsx`. Em termos de UX, memory leaks acumulados ao longo de uma sessao longa causam degradacao de performance perceptivel: o chat do Finn fica lento, animacoes falham, o app fica irresponsivo. Os usuarios power — que mais usam o Finn em sessoes longas — sao exatamente os mais afetados.
 
 ---
 
-### FE-016: Keyboard Navigation & Focus Management
+### TD-032 — Animacoes sem prefers-reduced-motion
 
-**Severidade:** MÉDIO | **Esforço:** 4h | **Prioridade:** P1
+**Status: CONFIRMADO com severidade subestimada**
 
-**Problema:**
-```
-❌ Modal doesn't trap focus (Tab escapes)
-❌ Dropdowns (Category picker) not keyboard accessible
-❌ No visible focus indicator
-```
+O DRAFT classifica como BAIXO. Da perspectiva de UX/a11y, este deveria ser MEDIO: usuarios com vestibular disorders e epilepsia fotossensivel podem ter sintomas fisicos com as animacoes existentes (pulse-slow 4s infinite, glow 2s infinite, breathing). O `prefers-reduced-motion` e um media query de 1-2 linhas por animacao — o esforco e XS mas o impacto de nao implementar e potencialmente severo para um subconjunto de usuarios.
 
-**Exemplo:**
-```typescript
-// ❌ TransactionForm.tsx - Category dropdown has no keyboard support
-const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-// Missing: useEffect(() => { if (isCategoryOpen) inputRef.current?.focus() })
-```
-
-**Impacto UX:** P1 - Keyboard-only users can't use modals
+**Recomendacao formal:** Elevar de BAIXO para MEDIO no inventario de debitos.
 
 ---
 
-### FE-017: Animations & Transitions Inconsistency
+### TD-033 — Skeleton colors nao alinhados ao tema
 
-**Severidade:** BAIXO | **Esforço:** 3h | **Prioridade:** P3
+**Status: CONFIRMADO**
 
-**Achados:**
-- `animate-fade-in` used in Settings/Reports
-- No animation on modal open (jarring)
-- Recharts transitions missing on mobile
-- Page transitions are instant (no smoothness)
-
-**Impacto UX:** P3 - Polish issue, not blocking
+Loading states visualmente inconsistentes com o design system criam flashes visuais na transicao de loading para conteudo carregado. Em um produto financeiro premium como o SPFP, esses detalhes sao relevantes para a percepcao de confiabilidade — especialmente considerando o rebranding EPIC-013 que elevou o nivel visual do produto.
 
 ---
 
-### FE-018: Image Optimization & Lazy Loading
+## 2. Debitos de UX/Frontend Nao Capturados no DRAFT
 
-**Severidade:** MÉDIO | **Esforço:** 3h | **Prioridade:** P2
+Os itens abaixo constam explicitamente no documento fonte `frontend-spec.md` (Secao 8, lista P0) mas foram omitidos do DRAFT. Tres dos cinco debitos P0 de UX identificados na Fase 3 nao foram capturados.
 
-**Problema:**
-```typescript
-// ❌ Settings.tsx:88 - No lazy loading on avatar
-<img src={formData.avatar} alt="Avatar" className="..."
-  onError={(e) => (e.currentTarget.src = '...')} />
-```
+### TD-036 — TransactionForm sem Layout wrapper (UX inconsistente)
 
-**Missing:**
-- No `loading="lazy"` on images
-- No image optimization (no webp)
-- Avatar image not cached
+**Severidade: CRITICO | Esforco: M (4-16h) | Origem: frontend-spec.md Sec.8 P0**
 
-**Impacto UX:** P2 - Affects Core Web Vitals (LCP)
+O DRAFT nao capturou este debito apesar de constar como P0 no documento fonte.
+
+**Problema:** TransactionForm opera como fullscreen modal na rota `/transactions/add` sem o wrapper `<Layout>`. O usuario perde o sidebar de navegacao, header, e contexto de posicao no app. Para cancelar, precisa usar o botao voltar do navegador — sem nav consistente. Em mobile, perde o bottom navigation completamente.
+
+**Impacto no fluxo:** Adicionar uma transacao e a acao mais frequente do usuario no app. Um fluxo de UX inconsistente aqui afeta a sessao mais repetida do produto. A inconsistencia e especialmente confusa porque todas as outras rotas tem o Layout normalmente.
+
+**Proposta:** Integrar TransactionForm ao Layout com slideover panel lateral (desktop) ou bottom sheet (mobile), mantendo contexto de navegacao. Evitar reutilizar o padrao de fullscreen modal que demonstrou os problemas acima.
 
 ---
 
-### FE-019: Localization Structure Missing
+### TD-037 — Ausencia de error boundaries granulares em paginas criticas
 
-**Severidade:** MÉDIO | **Esforço:** 8h | **Prioridade:** P2
+**Severidade: ALTO | Esforco: S (1-4h) | Origem: frontend-spec.md Sec.8 P0**
 
-**Achados:**
-- Hardcoded Portuguese strings everywhere
-- No i18n library (react-i18next)
-- Button labels, errors, labels all inline
+**Problema:** Existe um `ErrorBoundary` global, mas sem boundaries por pagina. Se o componente `Insights.tsx` lancar um erro nao tratado (ex: falha de API Gemini), o boundary global derruba toda a aplicacao — o usuario perde acesso ao Dashboard, Transacoes, e todos os dados da sessao.
 
-**Example:**
-```typescript
-// ❌ TransactionForm.tsx - No i18n
-<span>Descrição</span>
-<span>Categoria</span>
-<span>Recorrência</span>
-```
+Com boundaries granulares, o erro ficaria isolado em Insights e o usuario poderia navegar para outras partes do app normalmente.
 
-**Impact:** P2 - Blocks international expansion
+**Impacto:** Erros no Finn dependem de API externa (Gemini) com variabilidade alta. A combinacao de alta probabilidade de erro com alto impacto (derruba todo o app) e critica.
+
+**Proposta:** `<ErrorBoundary>` individual envolvendo Insights, Goals, AdminCRM, Budget, e Patrimony. Fallback com mensagem amigavel ("O Finn esta descansando, tente novamente em breve") e link para Dashboard.
 
 ---
 
-### FE-020: Form Validation UX
+### TD-038 — Dashboard, TransactionList e Patrimony sem empty states visuais
 
-**Severidade:** MÉDIO | **Esforço:** 3h | **Prioridade:** P2
+**Severidade: ALTO | Esforco: S (1-4h) | Origem: frontend-spec.md Sec.5**
 
-**Issues:**
-- No inline validation feedback
-- Error messages appear after submit
-- No visual error states (red borders)
-- No success feedback before modal close
+**Problema:** Novos usuarios que completam o onboarding chegam ao Dashboard e veem um layout vazio sem orientacao. Nao ha indicacao do que fazer primeiro, nenhum CTA, nenhuma explicacao. A mesma ausencia existe em TransactionList (lista vazia sem texto) e Patrimony.
 
-**Example:**
-```typescript
-// ❌ TransactionForm.tsx - No inline validation
-<input type="number" value={value} onChange={(e) => setValue(e.target.value)} />
-{/* No error message if value < 0 */}
-```
+**Impacto no onboarding:** O onboarding com Finn (5 telas — bem implementado no EPIC-013) termina e entrega o usuario em um Dashboard vazio sem next steps claros. Isso quebra o first value moment do produto: o usuario completou o onboarding mas nao sabe como comecar a usar o app.
 
-**Impact:** P2 - Poor form UX, user confusion
+**Proposta:** Empty states com `<FinnAvatar mode="partner" />`, texto orientador contextual, e CTA primario em Dashboard ("Adicione sua primeira transacao"), TransactionList ("Sem transacoes — adicionar agora"), Goals ("Crie sua primeira meta"), e Patrimony ("Registre seus ativos").
 
 ---
 
-## Respostas ao Architect
+### TD-039 — TransactionForm e Patrimony sem loading states em submit
 
-### Q1: WCAG Target - AA ou AAA?
+**Severidade: MEDIO | Esforco: S (1-4h) | Origem: frontend-spec.md Sec.5**
 
-**A:** Recomendo **WCAG 2.1 AA** como baseline pré-produção:
+**Problema:** Quando o usuario salva uma transacao ou ativo de patrimonio e ha latencia de rede, o botao de submit nao da feedback visual de loading. O usuario pode clicar multiplas vezes, criando registros duplicados no banco.
 
-**Justificativa:**
-- AA é o padrão legal em Brasil/EU/USA
-- AAA é para missão-crítica (banking seria bom candidato)
-- Esforço AA = 12-14h; AAA = +20h
-
-**Roadmap:**
-- Sprint 1: Implement AA conformance (FE-001)
-- Sprint 3: Target AAA para módulo Insights (IA finance advice = critical)
-
-**Checklist AA:**
-```
-✅ Color contrast (4.5:1 normal text)
-✅ Keyboard accessible (Tab, Enter, Esc)
-✅ Screen reader compatible (aria-label, role)
-✅ Focus visible (outline-2 outline-blue-500)
-✅ Form labels associated
-✅ Error messages linked to inputs
-```
+**Proposta:** Estado de loading no botao de submit (`disabled + spinner`) durante operacoes assincronas em TransactionForm e Patrimony. Previne duplicatas e comunica progresso ao usuario.
 
 ---
 
-### Q2: Mobile-First Design Approach?
+### TD-040 — Input fields sem aria-describedby (associacao com mensagens de erro)
 
-**A:** **Hybrid approach recomendado, não pure mobile-first:**
+**Severidade: MEDIO | Esforco: S (1-4h) | Origem: frontend-spec.md Sec.6**
 
-**Análise de uso (assumido):**
-- Desktop: Admin, reports, detailed transaction entry
-- Mobile: Quick checks, recent transactions, goals progress
+**Problema:** Quando um campo de formulario tem erro de validacao, a mensagem de erro nao esta programaticamente associada ao campo via `aria-describedby`. Leitores de tela nao anunciam o erro quando o usuario foca o campo — o usuario de leitor de tela precisa navegar pelo formulario inteiro para descobrir onde estao os erros.
 
-**Recomendação:**
-```
-Tier 1 (Mobile-First Priority):
-- Dashboard widgets → card layout
-- TransactionList → simplified mobile view
-- Goals progress → icon-based mobile view
-
-Tier 2 (Desktop-Optimized):
-- AdminCRM → full data tables (needs desktop)
-- Reports/Charts → detail tables (mobile: chart only)
-- Investments → complex UI (desktop: full, mobile: summary)
-```
-
-**Breakpoints:**
-```css
-xs: 320px  /* iPhone SE */
-sm: 640px  /* iPhone 12 */
-md: 768px  /* iPad */
-lg: 1024px /* Desktop */
-xl: 1280px /* Large desktop */
-```
-
-**Effort:** 2 sprints (FE-002 + memoization)
+**Proposta:** Adicionar `aria-describedby="campo-error-id"` e `aria-invalid="true"` nos inputs com erro em TransactionForm, Login, e Settings. Garantir que a mensagem de erro tenha o ID correspondente.
 
 ---
 
-### Q3: Design System Priority?
+### TD-041 — Goals, Insights e Budget com cobertura ARIA insuficiente
 
-**A:** **MUST DO BEFORE SCALE - Recomendo P1 pré-produção**
+**Severidade: MEDIO | Esforco: M (4-16h) | Origem: frontend-spec.md Sec.6**
 
-**Current State:**
-- 115+ random className patterns in Dashboard
-- No token system → brand drift
-- Tailwind config não customizado
+**Problema:** As paginas mais ricas em interacoes do app (Goals, Insights/Finn chat, Budget) tem ARIA insuficiente. Botoes de progresso de metas, mensagens de chat do Finn, graficos de orcamento — nenhum desses elementos tem descricoes ARIA adequadas que permitam uso por leitores de tela.
 
-**Proposed Design Tokens (`src/tokens.ts`):**
-```typescript
-export const TOKENS = {
-  colors: {
-    primary: '#3b82f6',
-    accent: '#0ea5e9',
-    danger: '#ef4444',
-  },
-  spacing: {
-    xs: '4px',
-    sm: '8px',
-    md: '16px',
-    lg: '24px',
-    xl: '32px',
-  },
-  typography: {
-    h1: { size: '32px', weight: 700, lineHeight: '40px' },
-    h2: { size: '24px', weight: 600, lineHeight: '32px' },
-    body: { size: '14px', weight: 400, lineHeight: '20px' },
-  },
-  radius: {
-    sm: '6px',
-    md: '12px',
-    lg: '16px',
-  },
-};
-```
-
-**Timeline:**
-- Define tokens: 4h
-- Refactor components: 3 sprints (slow to avoid breaking)
-- Update Storybook: 1 sprint (future: component library)
-
-**ROI:** High - enables consistent branding, easier maintenance, future design changes
+**Proposta:** Auditoria ARIA especifica para Goals, Insights, e Budget. Prioridade: elementos interativos (botoes, inputs, controles de chart), depois elementos informativos (mensagens Finn, alertas de orcamento, indicadores de progresso de metas).
 
 ---
 
-## Prioritization Matrix (UX Perspective)
+### TD-042 — Recharts sem custom tooltips acessiveis
 
-### Critical Path (Must fix before production)
+**Severidade: MEDIO | Esforco: M (4-16h) | Origem: frontend-spec.md Sec.8 P2**
 
-| Débito | Esforço | Impacto | Score | Sprint |
-|---|---|---|---|---|
-| FE-001 (Accessibility) | 12h | P0 Crítico | 9.5/10 | 1 |
-| FE-002 (Mobile) | 8h | P1 Alto | 9/10 | 1 |
-| FE-015 (Error Boundary) | 2h | P1 Alto | 8.5/10 | 0 |
-| SYS-010 (Memoization) | 6h | P1 Alto | 8/10 | 2 |
-| FE-011 (Dark Mode fix) | 4h | P2 Médio | 7/10 | 2 |
+**Problema:** Os tooltips padrao do Recharts nao sao acessiveis por teclado e nao tem ARIA adequado. Usuarios que nao usam mouse nao conseguem acessar os dados dos graficos financeiros (Dashboard, Budget, Reports). Em um app de financas, os dados dos graficos sao informacao critica — nao decorativa.
 
-### Nice-to-Have (Can ship with, but less critical)
-
-| Débito | Esforço | Impacto | Score | Sprint |
-|---|---|---|---|---|
-| FE-009 (Tokens) | 5h | P2 Médio | 7.5/10 | 3 |
-| FE-010 (Modal abstraction) | 7h | P2 Médio | 6.5/10 | 3 |
-| FE-012 (Skeletons) | 4h | P2 Médio | 6/10 | 3 |
-| FE-019 (i18n) | 8h | P2 Médio | 5/10 | 4 |
+**Proposta:** Custom `<CustomTooltip>` component com `role="tooltip"` e `aria-label`. Implementar navegacao por teclado nos pontos de dados dos graficos (Tab entre pontos do LineChart/BarChart/AreaChart).
 
 ---
 
-## Recomendações de Design & UX
+### TD-043 — SalesPage sem micro-copy de confianca e social proof
 
-### 1. Component Decomposition Strategy
+**Severidade: MEDIO | Esforco: M (4-16h)**
 
-**Para Desktop (658+ LOC) → 5 sub-components:**
+**Problema nao capturado em nenhum documento anterior:** A SalesPage e o primeiro ponto de contato do usuario potencial. Ausencias identificadas na analise:
+- Sem social proof (numero de usuarios, depoimentos, casos reais)
+- Sem micro-copy de confianca proxima ao CTA primario ("Seus dados protegidos — LGPD compliant", "Cancele quando quiser")
+- Rota `/transforme` listada no frontend-spec.md com "propósito unclear" — possivelmente landing alternativa sem manutencao ativa, pode estar entregando experiencia degradada a usuarios que chegam por esse caminho
 
-```typescript
-export const Dashboard: React.FC = () => {
-  // Keep only orchestration
-  return (
-    <Layout>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DashboardHeader /> {/* Welcome + date + sync status */}
-        <BalanceCard /> {/* Balance widget, memoized */}
-        <SpendingChart /> {/* Recharts area, responsive */}
-        <BudgetAlerts /> {/* Category budgets, memoized */}
-        <RecentTransactionsList /> {/* List, lazy loaded */}
-        <CRMAlerts /> {/* Admin only, async */}
-      </div>
-    </Layout>
-  );
-};
-```
-
-**Benefits:**
-- Each <500 LOC (readable)
-- Memoized independently
-- Testable in isolation
-- Reusable in other pages
+**Proposta:** Auditoria de conversao da SalesPage com foco em: (1) clareza do value proposition baseado nas taglines aprovadas do EPIC-013, (2) social proof autentico, (3) reducao de ansiedade no CTA. Investigar proposta da rota `/transforme` e deprecar se nao tiver funcao ativa.
 
 ---
 
-### 2. Accessibility Quick Wins
+## 3. Impact Map de UX
 
-```typescript
-// Modal pattern (apply to all 4 modal components):
-<div
-  className="fixed inset-0 bg-black/50 flex items-center justify-center"
-  role="presentation"
-  onClick={(e) => e.target === e.currentTarget && onClose()}
->
-  <div
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-title"
-    className="bg-white rounded-2xl p-8 max-w-md w-full shadow-lg"
-  >
-    <h2 id="modal-title" className="text-lg font-bold mb-4">
-      {title}
-    </h2>
-    {children}
-  </div>
-</div>
-```
+Para os debitos criticos e altos, mapeamento do impacto real nos fluxos de usuario:
 
----
+### TD-005 — Duplicacao Goals v1+v2
 
-### 3. Responsive Mobile Wrapper
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | Planejamento de metas e aposentadoria — nucleo do produto |
+| Usuarios impactados | 100% dos usuarios autenticados (sidebar sempre visivel) |
+| Frequencia do problema | A cada sessao — sidebar com items duplicados sempre presente |
+| Severidade | Alta — usuario nao sabe qual versao usar; dados percebidos como inconsistentes |
+| Risco de churn | Medio — confusao nao impede uso, mas degrada confianca no produto |
 
-```typescript
-// For all modal components:
-export const ResponsiveModal = ({ isOpen, onClose, title, children }) => {
-  return (
-    <div className={`fixed inset-0 z-50 ${isOpen ? '' : 'hidden'}`}>
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          className={`
-            bg-white rounded-2xl p-4 sm:p-8 shadow-lg pointer-events-auto
-            max-h-[90vh] overflow-y-auto
-            w-full mx-4 sm:max-w-md
-          `}
-        >
-          <h2 className="text-lg sm:text-xl font-bold mb-4">{title}</h2>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-```
+### TD-007 — Sem focus trap em modais
 
----
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | Onboarding (novos usuarios) e adicao de transacoes (fluxo mais frequente) |
+| Usuarios impactados | ~2-5% de usuarios que usam teclado ou tecnologias assistivas; risco legal ilimitado |
+| Frequencia | A cada uso de modal — critico no onboarding (primeira experiencia do usuario) |
+| Severidade | Critica para usuarios de teclado — modal inutilizavel |
+| Risco de churn | Alto para publico com necessidades de acessibilidade |
 
-### 4. Performance: Virtualization for Large Lists
+### TD-015 — Sem toast notifications
 
-```typescript
-// TransactionList.tsx - para 1000+ transactions:
-import { FixedSizeList } from 'react-window';
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | Qualquer operacao de escrita: transacao, meta, sync Supabase |
+| Usuarios impactados | 100% dos usuarios ativos (todas as operacoes de dado) |
+| Frequencia | Multiplas vezes por sessao |
+| Severidade | Alta quando ha falha — usuario nao sabe se dado foi salvo; pode criar duplicatas |
+| Risco de churn | Alto — dados perdidos ou duplicados destroem confianca em produto financeiro |
 
-export const TransactionList = () => {
-  return (
-    <FixedSizeList
-      height={600}
-      itemCount={filteredTransactions.length}
-      itemSize={72}
-      width="100%"
-    >
-      {({ index, style }) => (
-        <TransactionRow
-          style={style}
-          transaction={filteredTransactions[index]}
-        />
-      )}
-    </FixedSizeList>
-  );
-};
-```
+### TD-036 — TransactionForm sem Layout (novo)
 
-**Benefit:** 1000 items = 10ms render (vs 500ms without)
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | Adicionar transacao — acao mais frequente do produto |
+| Usuarios impactados | 100% dos usuarios ativos |
+| Frequencia | Multiplas vezes por sessao para usuarios ativos |
+| Severidade | Media — funcionalidade preservada, mas contexto de navegacao perdido |
+| Risco de churn | Baixo-medio — irritante recorrente, especialmente em mobile |
+
+### TD-038 — Ausencia de empty states (novo)
+
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | First value moment — primeiro acesso pos-onboarding |
+| Usuarios impactados | 100% dos novos usuarios |
+| Frequencia | Uma vez por usuario (momento critico de primeiro uso) |
+| Severidade | Alta — usuario perdido logo apos onboarding = abandono imediato |
+| Risco de churn | Alto — usuarios que nao entendem o que fazer no D1 raramente retornam |
+
+### TD-016 — Contraste WCAG nao validado
+
+| Dimensao | Avaliacao |
+|---------|----------|
+| Fluxo afetado | Todo o app — design system global |
+| Usuarios impactados | ~8% populacao com deficiencia visual; todos em ambientes de baixa luminosidade |
+| Frequencia | Constante — todo elemento com cor afetada |
+| Severidade | Varia de media (leitura dificultada) a critica (ilegibilidade total) |
+| Risco de churn | Medio — nao impede uso para maioria, mas degrada experiencia continuamente |
 
 ---
 
-### 5. Dark Mode Proper Implementation
+## 4. Quick Wins de UX
 
-```typescript
-// Context for theme:
-export const ThemeProvider: React.FC = ({ children }) => {
-  const { userProfile } = useFinance();
+Debitos resolviveis em menos de 2h com impacto imediato no usuario:
 
-  useEffect(() => {
-    const isDark = userProfile.theme === 'dark';
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [userProfile.theme]);
-
-  return <>{children}</>;
-};
-
-// In all components:
-<div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
-  {/* Content */}
-</div>
-```
+| ID | O que mudar | Onde | Como |
+|----|------------|------|------|
+| TD-033 | Alinhar skeleton colors ao tema dark SPFP | `src/components/ui/Skeleton.tsx` | Substituir cores hardcoded por `bg-navy-700/50` e `bg-navy-600/30` |
+| TD-032 | Adicionar prefers-reduced-motion | `tailwind.config.js` + componentes com animacoes | Envolver animacoes `pulse-slow`, `glow`, `breathing` com `@media (prefers-reduced-motion: reduce)` |
+| TD-039 | Loading state no botao de submit | `TransactionForm.tsx` — botao principal | `disabled={isSubmitting}` + `<Loader2 className="animate-spin" />` |
+| TD-037 | Error boundary em Insights | `App.tsx` — rota `/insights` | `<ErrorBoundary fallback={<FinnUnavailable />}>` ao redor da rota |
+| TD-038 (parcial) | Empty state no Dashboard | `Dashboard.tsx` — condicional sem transacoes | `<FinnAvatar mode="partner" />` + CTA quando `transactions.length === 0` |
+| TD-016 (auditoria) | Testar contraste dos 4 pares principais | Browser + axe DevTools | Executar axe no Dashboard, anotar ratios — 30min de auditoria, zero codigo |
 
 ---
 
-### 6. Design Tokens Pattern
+## 5. UX Debt vs Feature Debt
 
-```typescript
-// src/styles/tokens.ts
-export const COLORS = {
-  primary: 'rgb(59, 130, 246)', // blue-500
-  surface: {
-    light: 'rgb(255, 255, 255)',
-    dark: 'rgb(15, 23, 42)', // slate-900
-  },
-  text: {
-    primary: 'rgb(15, 23, 42)',
-    secondary: 'rgb(100, 116, 139)',
-  },
-};
+Separacao clara dos tipos de debito — frequentemente confundidos no DRAFT:
 
-// src/styles/globals.css
-:root {
-  --color-primary: rgb(59, 130, 246);
-  --color-surface: rgb(255, 255, 255);
-}
+### REGRESSIONS — Debitos que degradam UX existente (deveria funcionar, esta quebrado)
 
-.dark {
-  --color-surface: rgb(15, 23, 42);
-}
+| ID | Debito | Tipo de Regressao |
+|----|--------|-----------------|
+| TD-007 | Sem focus trap em modais | Navegacao por teclado quebrada — deveria funcionar WCAG AA |
+| TD-015 | Sem toast notifications | Feedback de operacoes ausente — usuario opera sem confirmacao |
+| TD-016 | Contraste nao validado | Legibilidade comprometida — design system com defeito de acessibilidade |
+| TD-032 | Sem prefers-reduced-motion | Sistema de acessibilidade ignorado — pode causar desconforto fisico |
+| TD-036 | TransactionForm sem Layout | Fluxo mais frequente com UX inconsistente com o restante do app |
+| TD-039 | Sem loading state em forms | Prevencao de duplicatas ausente — usuario cria registros multiplos sem querer |
+| TD-040 | Inputs sem aria-describedby | Associacao de erros quebrada para leitores de tela |
 
-// Usage:
-<div className="bg-[var(--color-surface)] text-[var(--color-text)]" />
-```
+### NEW CAPABILITIES — Features ausentes (nao eram promessa, sao oportunidades)
 
----
+| ID | Debito | Feature Ausente |
+|----|--------|----------------|
+| TD-017 | Sem data export (LGPD) | Exportacao de dados — nova feature regulatoria |
+| TD-018 | Sem real-time sync | Atualizacao em tempo real — nova feature de produto |
+| TD-021 | Sem full-text search | Busca textual em transacoes — nova feature de usabilidade |
+| TD-028 | Strings sem i18n | Internacionalizacao — nova feature futura |
+| TD-038 | Sem empty states | Orientacao pos-onboarding — nova feature de UX de ativacao |
+| TD-042 | Recharts sem tooltips acessiveis | Navegacao de graficos por teclado — nova feature de a11y |
+| TD-043 | SalesPage sem social proof | Elementos de conversao — nova feature de growth |
 
-### 7. Form Validation Pattern
-
-```typescript
-// Create reusable FormInput component:
-interface FormInputProps {
-  label: string;
-  error?: string;
-  required?: boolean;
-  [key: string]: any;
-}
-
-export const FormInput: React.FC<FormInputProps> = ({
-  label, error, required, ...props
-}) => (
-  <div className="space-y-1">
-    <label className="text-sm font-semibold text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <input
-      {...props}
-      aria-label={label}
-      aria-invalid={!!error}
-      aria-describedby={error ? `${props.id}-error` : undefined}
-      className={`
-        w-full px-3 py-2 border rounded-lg
-        ${error ? 'border-red-500 bg-red-50' : 'border-gray-300'}
-      `}
-    />
-    {error && (
-      <p id={`${props.id}-error`} className="text-sm text-red-600">
-        {error}
-      </p>
-    )}
-  </div>
-);
-```
+**Nota importante para o roadmap:** O Sprint 2 do DRAFT mistura regressions (TD-007, TD-016) com new capabilities (TD-005). Regressions tem precedencia sobre new capabilities com mesma severidade — corrigir o que esta quebrado antes de adicionar o que falta.
 
 ---
 
-## Estimativa de Esforço Total (UX Fixes)
+## 6. Priorizacao de UX por Business Impact
 
-| Fase | Sprint | Débitos | Esforço | Foco |
-|---|---|---|---|---|
-| **0** | Week 1 | FE-015 (Error Boundary) | 2h | Safety |
-| **1a** | Week 2-3 | FE-001 (Accessibility) | 12h | Compliance |
-| **1b** | Week 2-3 | FE-002 (Mobile) | 8h | Responsiveness |
-| **2a** | Week 4-5 | SYS-010 (Memoization) | 6h | Performance |
-| **2b** | Week 4-5 | FE-011 (Dark Mode) | 4h | Feature fix |
-| **3a** | Week 6-7 | FE-009 (Tokens) | 5h | Design system |
-| **3b** | Week 6-7 | FE-010 (Modals) | 7h | Code quality |
-| **4** | Week 8 | FE-012 (Skeletons) + remaining | 4h | Polish |
+Reordenando debitos de UX por impacto no negocio (nao apenas severidade tecnica):
 
-**Total: 48 horas ≈ 1.2 sprints (1 designer + 1 dev full-time)**
+### Tier 1 — Churn Risk (debitos que fazem usuarios desistirem)
 
----
+| ID | Debito | Por que e Churn Risk |
+|----|--------|--------------------|
+| TD-015 | Sem toast / falhas silenciosas | Dados "perdidos" destroem confianca em produto financeiro — churn imediato |
+| TD-038 | Sem empty states no Dashboard | Novos usuarios nao entendem o que fazer — abandono no primeiro dia (D1) |
+| TD-005 | Duplicacao Goals/Retirement v1+v2 | Confusao sobre qual dado e "real" — usuarios questionam integridade do app |
+| TD-036 | TransactionForm sem Layout | Fluxo mais frequente com UX inconsistente — irritante cronica em mobile |
 
-## Testing Strategy (UX Validation)
+### Tier 2 — Conversion Risk (debitos que afetam trial-to-paid)
 
-### Accessibility Testing
-```bash
-# Run in each component:
-npm install --save-dev @axe-core/react
-# Test with axe DevTools + NVDA (screen reader)
-```
+| ID | Debito | Por que e Conversion Risk |
+|----|--------|--------------------------|
+| TD-037 | Sem error boundaries granulares | App que "quebra" durante trial -> nao assina |
+| TD-007 | Sem focus trap em modais | Onboarding com UX quebrada de teclado -> trial negativo |
+| TD-043 | SalesPage sem social proof | Landing page nao convence -> nao inicia trial |
+| TD-016 | Contraste nao validado | App visualmente ilegivel para ~8% dos usuarios -> nao percebe valor |
 
-### Mobile Testing
-```
-Physical devices:
-- iPhone 12 (375px)
-- Samsung S21 (360px)
-- iPad Pro (1024px)
+### Tier 3 — Retention Risk (debitos que afetam uso recorrente)
 
-Emulation:
-- Chrome DevTools (responsive mode)
-- Firefox Mobile
-- Safari iOS
-```
-
-### Performance Profiling
-```bash
-# React DevTools Profiler:
-1. Open Profiler tab
-2. Record interaction (add transaction, filter)
-3. Check render time, component re-renders
-4. Goal: <100ms render time per interaction
-```
+| ID | Debito | Por que e Retention Risk |
+|----|--------|-------------------------|
+| TD-026 | Mobile Recharts overflow | Usuarios mobile nao conseguem ver dados -> param de usar em mobile |
+| TD-042 | Recharts sem tooltips acessiveis | Dados de graficos inacessiveis por teclado -> decisao financeira prejudicada |
+| TD-039 | Forms sem loading states | Duplicatas de dados -> frustracao recorrente com limpeza manual |
+| TD-032 | Sem prefers-reduced-motion | Desconforto fisico para usuarios sensiveis -> abandono silencioso |
+| TD-027 | Memory leaks (useEffect) | Degradacao de performance em sessoes longas -> power users afetados |
+| TD-033 | Skeleton colors errados | Micro-degradacao de percepcao de qualidade -> erosao de confianca premium |
 
 ---
 
-## Sign-Off & Next Steps
+## 7. Recomendacao Final
 
-### Validação Concluída
-- [x] FE-001: Accessibility → CRÍTICO, 12h
-- [x] FE-002: Mobile → ALTO, 8h
-- [x] FE-003: Charts → MÉDIO, 4h
-- [x] FE-011: Dark Mode → AJUSTADO P2, 4h
-- [x] +5 novos débitos adicionados (FE-015 a FE-020)
+### Aprovacao dos debitos de UX no DRAFT
 
-### Próximos Passos
-1. **Sprint 0:** Implementar FE-015 (Error Boundary)
-2. **Sprint 1:** FE-001 + FE-002 em paralelo
-3. **Sprint 2:** Memoization + dark mode fix
-4. **Sprint 3+:** Design tokens, modals, i18n
+**APROVADO COM RESSALVAS**
 
-### Questões Abertos para @architect
-1. Priorizar WCAG AA vs AAA?
-2. Budget de time para design tokens (Sprint 3)?
-3. Considerar component library (Storybook) pós-refactor?
+Os debitos de UX capturados no DRAFT sao validos e as propostas de solucao estao geralmente corretas. As ressalvas que exigem correcao antes do QA Gate:
+
+1. **5 debitos de UX nao capturados (TD-036 a TD-040)** — Omitidos apesar de constarem explicitamente no documento fonte `frontend-spec.md` Secao 8. O DRAFT perdeu 3 dos 5 P0 de UX listados na Fase 3. Estes precisam ser adicionados ao inventario e ao roadmap.
+
+2. **TD-032 com severidade subestimada** — Classificado como BAIXO mas deveria ser MEDIO dado o impacto de saude para usuarios com vestibular disorders.
+
+3. **TD-016 com escopo incompleto** — Auditoria de contraste deve cobrir todos os pares de cor do design system SPFP, nao apenas o `#6AA9F4`.
+
+4. **Estimativa de TD-005 pode estar subestimada** — Sem decisao de produto documentada, o esforco real pode ser L (16-40h), nao M (4-16h).
+
+5. **TD-015 no roadmap do DRAFT esta correto (Sprint 2)** — Mas deve ser posicionado como pre-requisito para TD-037 e TD-039, nao apenas para TD-019 conforme diagrama de dependencias atual.
+
+### Debito mais urgente de UX na visao da especialista
+
+**TD-038 — Ausencia de empty states no Dashboard e TransactionList**
+
+Justificativa: Este debito afeta 100% dos novos usuarios no momento mais critico do produto — o primeiro acesso pos-onboarding. O SPFP tem um onboarding cuidadoso com Finn (5 telas implementadas no EPIC-013) mas o "post-onboarding state" — o momento logo apos o onboarding terminar — esta completamente sem design. E como ter uma porta de entrada cuidadosa que leva a uma sala vazia sem sinaleiras.
+
+A janela de maior risco de churn e os primeiros 5 minutos: usuarios que nao entendem o que fazer logo apos o onboarding raramente retornam. O custo de correcao e baixo (S, 1-4h) e o impacto e imediato e mensuravel via taxa de retencao no D1.
+
+**Co-urgente:** TD-015 (toast notifications) — falhas silenciosas em produto financeiro destroem confianca de forma irreversivel. Um usuario que "perdeu" uma transacao e vai para um concorrente.
+
+### Comentarios para o @architect
+
+1. **TD-008 (FinanceContext split) e pre-requisito para empty states granulares:** Os empty states ideais verificam estado por dominio (`accounts.length === 0`, `transactions.length === 0`). O split de contextos facilita isso. Recomendo implementar empty states simples agora (verificando o estado atual do FinanceContext) e refinar com estados granulares pos-split — nao bloquear o TD-038 esperando o TD-008.
+
+2. **TD-013 (Insights split) deve ser acompanhado de design specs:** O split proposto (FinnChat, FinnDiagnosis, FinnRateLimit, FinnQuickChips) abre a oportunidade de projetar estados de loading e error especificos por sub-fluxo. Recomendo que a implementacao inclua design specs para cada estado (loading, error, empty, rate-limited) — nao apenas refatoracao estrutural.
+
+3. **TD-010 (Dual AI path) tem impacto de UX indireto:** Se o rate limiting so funciona no caminho do Finn Edge Function, usuarios que caem no caminho do SDK direto (aiService.ts) podem nao receber o overlay "Finn bloqueado" corretamente. Isso cria inconsistencia de UX onde o mesmo usuario pode ver experiencias diferentes dependendo do caminho de codigo executado.
+
+4. **Mobile-first para TD-036:** A integracao do TransactionForm ao Layout deve priorizar mobile. Sugiro bottom sheet (slide-up panel) para mobile e slideover lateral para desktop — ambos mantendo contexto de navegacao. O padrao de fullscreen modal que existe hoje ja demonstrou problemas (falta de contexto de nav, focus trap ausente) — nao reutilizar.
+
+5. **Rota `/transforme` precisa de decisao:** O frontend-spec.md marca esta rota como "propósito unclear". Se for uma landing page alternativa sem manutencao, pode estar entregando experiencia degradada a usuarios que chegam por esse caminho. Recomendar investigacao e decisao de deprecacao se nao tiver funcao ativa documentada.
 
 ---
 
-**Assinado:** Luna - @ux-design-expert
-**Data:** 2026-01-26
-**Status:** ✅ VALIDAÇÃO COMPLETA
-**Próxima Fase:** @qa (QA Review)
+> Produzido por @ux-design-expert (Uma) — Brownfield Discovery Fase 6
+> Debitos do DRAFT revisados: 35 | Debitos validados: 13 de UX/Frontend | Debitos novos identificados: 8 (TD-036 a TD-043)
+> Veredicto: APROVADO COM RESSALVAS
+> Ressalvas: 5 debitos ausentes no inventario + 2 severidades incorretas + 1 escopo incompleto
+> Proximo passo: @qa (Aria) — QA Gate Fase 7

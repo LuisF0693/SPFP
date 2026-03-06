@@ -356,7 +356,7 @@ export const Insights: React.FC = () => {
           loading={loading}
           error={error}
           userName={userProfile.name}
-          scrollRef={scrollRef}
+          scrollRef={scrollRef as React.RefObject<HTMLDivElement>}
           formatTime={formatTime}
         />
       </div>
@@ -367,7 +367,7 @@ export const Insights: React.FC = () => {
         quickChips={quickChips}
         loading={loading}
         inputValue={inputValue}
-        inputRef={inputRef}
+        inputRef={inputRef as React.RefObject<HTMLTextAreaElement>}
         finnBlocked={finnBlocked}
         onSend={handleSend}
         onInputChange={setInputValue}

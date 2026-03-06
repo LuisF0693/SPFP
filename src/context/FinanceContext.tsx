@@ -936,12 +936,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // Log sync
       logInteraction({
-        action: 'sync_credit_card_invoices',
+        action_type: 'sync_credit_card_invoices' as any,
+        admin_id: '',
+        client_id: '',
+        description: 'sync_credit_card_invoices',
         metadata: { invoiceCount: allInvoices.length }
       });
     } catch (error) {
       logDetailedError(
-        error as Error,
+        String(error),
         'Failed to sync credit card invoices',
         { action: 'syncCreditCardInvoices', severity: 'medium' }
       );

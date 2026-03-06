@@ -10,8 +10,8 @@ import * as dbService from '../../services/database-service';
 import * as emailService from '../../services/email-service';
 
 describe('POST /api/stripe/webhook', () => {
-  let mockReq: Partial<VercelRequest>;
-  let mockRes: Partial<VercelResponse>;
+  let mockReq: any;
+  let mockRes: any;
   let responseBody: any;
 
   beforeEach(() => {
@@ -48,7 +48,7 @@ describe('POST /api/stripe/webhook', () => {
           receipt_email: 'test@example.com',
         },
       },
-    });
+    } as any);
 
     // Mock database services
     vi.spyOn(dbService, 'updateCheckoutSessionStatus').mockResolvedValue(true);
@@ -128,7 +128,7 @@ describe('POST /api/stripe/webhook', () => {
           customer_email: 'test@example.com',
         },
       },
-    });
+    } as any);
 
     mockReq.on = vi.fn((event, callback) => {
       if (event === 'end') {
@@ -157,7 +157,7 @@ describe('POST /api/stripe/webhook', () => {
           status: 'active',
         },
       },
-    });
+    } as any);
 
     mockReq.on = vi.fn((event, callback) => {
       if (event === 'end') {
@@ -195,7 +195,7 @@ describe('POST /api/stripe/webhook', () => {
           amount: 9900,
         },
       },
-    });
+    } as any);
 
     mockReq.on = vi.fn((event, callback) => {
       if (event === 'end') {

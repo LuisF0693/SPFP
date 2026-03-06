@@ -37,8 +37,8 @@ const Retirement = React.lazy(() => import('./components/Retirement').then(m => 
 const Acquisition = React.lazy(() => import('./components/Acquisition').then(m => ({ default: m.Acquisition })));
 
 const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({ default: m.Portfolio })));
-const GoalsAdvanced = React.lazy(() => import('./components/goals').then(m => ({ default: m.GoalsAdvanced })));
-const RetirementAdvanced = React.lazy(() => import('./components/retirement').then(m => ({ default: m.RetirementAdvanced })));
+const GoalsAdvanced = React.lazy(() => import('./components/goals/index').then(m => ({ default: m.GoalsAdvanced })));
+const RetirementAdvanced = React.lazy(() => import('./components/retirement/index').then(m => ({ default: m.RetirementAdvanced })));
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
 const CorporateHQ = React.lazy(() => import('./components/corporate').then(m => ({ default: m.CorporateHQ })));
 const AutomationDashboard = React.lazy(() => import('./components/automation').then(m => ({ default: m.AutomationDashboard })));

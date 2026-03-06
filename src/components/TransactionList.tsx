@@ -47,7 +47,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
     const [deleteModalTransaction, setDeleteModalTransaction] = useState<Transaction | null>(null);
 
     // Filter State
-    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PAID' | 'SCHEDULED' | 'LATE'>('ALL');
+    const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE' | 'PENDING' | 'PAID' | 'SCHEDULED' | 'LATE'>('ALL');
     const [searchTerm, setSearchTerm] = useState('');
 
     // Pagination State (OPTIMIZATION: Phase 1)

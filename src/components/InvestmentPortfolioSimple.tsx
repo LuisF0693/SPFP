@@ -20,7 +20,8 @@ import { EmptyState } from './ui/EmptyState';
 import { calculateGain, calculateGainPercentage, calculatePortfolioSummary } from '../services/investmentService';
 
 export const InvestmentPortfolioSimple: React.FC = () => {
-  const { investments = [], addInvestment, updateInvestment, deleteInvestment } = useSafeFinance();
+  const { investments: rawInvestments = [], addInvestment, updateInvestment, deleteInvestment } = useSafeFinance();
+  const investments = rawInvestments as unknown as InvestmentAsset[];
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

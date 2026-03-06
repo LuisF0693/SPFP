@@ -74,3 +74,7 @@ Thumbs.db
 
 # Ralph reference (local only)
 ralph-main/
+
+# AIOX Local (AIOX)
+.aiox-core/local/
+.aiox/install-log.txt

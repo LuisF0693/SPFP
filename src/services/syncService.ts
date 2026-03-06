@@ -115,7 +115,7 @@ class SyncErrorRecovery {
         operation,
         {
           maxRetries: 5,
-          initialDelay: 100,
+          initialDelayMs: 100,
           backoffMultiplier: 2,
           operationName: options.action,
           onRetry: (attempt, error) => {
