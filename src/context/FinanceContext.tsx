@@ -15,6 +15,7 @@ import { partnershipService } from '../services/partnershipService';
 import { offlineSyncService } from '../services/offlineSyncService';
 import { Asset } from '../types/assets';
 import { assetService } from '../services/assetService';
+import { impersonationService } from '../services/impersonationService';
 
 interface GlobalState {
   accounts: Account[];
@@ -149,16 +150,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [isInvoicesSyncing, setIsInvoicesSyncing] = useState(false);
 
-  // Persistent Impersonation State Keys
-  const IMPERSONATION_KEY = 'spfp_is_impersonating';
-  const IMPERSONATED_USER_ID_KEY = 'spfp_impersonated_user_id';
-
-  // Initialize state from localStorage
+  // Initialize impersonation state from localStorage via service
   const [isImpersonating, setIsImpersonating] = useState(() => {
-    return localStorage.getItem(IMPERSONATION_KEY) === 'true';
+    return impersonationService.isActive();
   });
   const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(() => {
-    return localStorage.getItem(IMPERSONATED_USER_ID_KEY);
+    return impersonationService.getTargetUserId();
   });
 
   const [adminOriginalState, setAdminOriginalState] = useState<GlobalState | null>(null);
@@ -207,7 +204,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [state, setState] = useState<GlobalState>(() => {
     // Se estiver personificando no load inicial, tenta carregar o estado desse usuário alvo
-    const storedTargetId = localStorage.getItem(IMPERSONATED_USER_ID_KEY);
+    const storedTargetId = impersonationService.getTargetUserId();
     if (storedTargetId) {
       return getInitialState(storedTargetId);
     }
@@ -726,8 +723,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             stateUserIdRef.current = userId;
 
             // PERSIST IMPERSONATION
-            localStorage.setItem(IMPERSONATION_KEY, 'true');
-            localStorage.setItem(IMPERSONATED_USER_ID_KEY, userId);
+            impersonationService.persist(userId);
 
             setIsImpersonating(true);
             setImpersonatedUserId(userId);
@@ -770,8 +766,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
    */
   const stopImpersonating = (redirectPath: string = '/admin') => {
     // Clear Persistence
-    localStorage.removeItem(IMPERSONATION_KEY);
-    localStorage.removeItem(IMPERSONATED_USER_ID_KEY);
+    impersonationService.clear();
 
     setIsImpersonating(false);
     setImpersonatedUserId(null);
