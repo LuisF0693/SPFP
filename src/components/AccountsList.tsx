@@ -23,6 +23,7 @@ import { formatCurrency, formatDate } from '../utils';
 import { CategoryIcon } from './CategoryIcon';
 import { CreditCardDisplay } from './CreditCardDisplay';
 import { getCardHolderName } from '../utils/ownerUtils';
+import { EmptyState } from './ui/EmptyState';
 
 interface AccountsListProps {
   creditCards: Account[];
@@ -180,13 +181,13 @@ export const AccountsList: React.FC<AccountsListProps> = ({
           </div>
 
           {orderedCards.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 dark:bg-[#0f172a] rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
-              <CreditCard size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 font-medium">Você ainda não tem cartões cadastrados.</p>
-              <button onClick={onAddNew} className="mt-4 text-accent font-bold text-sm hover:underline">
-                Cadastrar Cartão
-              </button>
-            </div>
+            <EmptyState
+              title="Nenhum cartão cadastrado"
+              description="Adicione seus cartões de crédito para controlar faturas, limites e gastos automaticamente."
+              ctaLabel="Cadastrar Cartão"
+              onCta={onAddNew}
+              finnTip="Com o cartão cadastrado, consigo rastrear seus gastos por categoria sem você precisar lançar manualmente."
+            />
           ) : (
             orderedCards.map(({ card, isVirtual, parentName }) => {
               // For virtual cards: use parent's shared limit calc

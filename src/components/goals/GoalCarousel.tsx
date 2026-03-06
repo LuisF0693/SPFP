@@ -1,9 +1,10 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Target, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '../../utils';
 import { Goal, CategoryIconName } from '../../types';
 import { CategoryIcon } from '../CategoryIcon';
 import { InlineEdit } from '../ui/InlineEdit';
+import { EmptyState } from '../ui/EmptyState';
 
 interface GoalCarouselProps {
   goals: Goal[];
@@ -180,18 +181,12 @@ export const GoalCarousel: React.FC<GoalCarouselProps> = ({
 
   if (goals.length === 0) {
     return (
-      <div className={`
-        flex items-center justify-center h-48
-        rounded-2xl bg-[#1A2233] border-2 border-dashed border-[#2e374a]
-        text-[#92a4c9]
-        ${className}
-      `}>
-        <div className="text-center">
-          <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium">Nenhuma meta cadastrada</p>
-          <p className="text-sm opacity-75">Crie sua primeira meta financeira!</p>
-        </div>
-      </div>
+      <EmptyState
+        title="Nenhuma meta cadastrada"
+        description="Defina sua primeira meta financeira — reserva de emergência, viagem, aposentadoria. O Finn monitora o progresso por você."
+        finnTip="Metas funcionam melhor quando são específicas e têm prazo. Me pergunte como começar."
+        className={className}
+      />
     );
   }
 

@@ -53,7 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
     { id: 'transactions', path: '/transactions', icon: History, label: 'Extrato' },
     { id: 'portfolio', path: '/portfolio', icon: TrendingUp, label: 'Portfólio', isFab: false },
     { id: 'patrimony', path: '/patrimony', icon: Wallet, label: 'Patrimônio' },
-    { id: 'goals', path: '/goals', icon: Target, label: 'Objetivos' },
+    { id: 'goals', path: '/goals-v2', icon: Target, label: 'Objetivos' },
     { id: 'budget', path: '/budget', icon: Calculator, label: 'Metas' },
     { id: 'reports', path: '/reports', icon: PieChart, label: 'Relatórios' },
     { id: 'settings', path: '/settings', icon: Settings, label: 'Perfil' },

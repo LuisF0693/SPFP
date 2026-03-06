@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
+import { Toaster } from 'sonner';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useStripeSubscription } from './hooks/useStripeSubscription';
 import { I18nextProvider } from 'react-i18next';
@@ -198,13 +199,8 @@ const AppContent: React.FC = () => {
             <TransactionForm initialData={transactionToEdit} onClose={handleCloseForm} />
           </PrivateRoute>
         } />
-        <Route path="/goals" element={
-          <PrivateRoute>
-            <Layout mode="personal">
-              <Goals />
-            </Layout>
-          </PrivateRoute>
-        } />
+        {/* Goals — v2 é canônico. /goals redireciona para /goals-v2 (TD-S2-001) */}
+        <Route path="/goals" element={<Navigate to="/goals-v2" replace />} />
         <Route path="/goals-v2" element={
           <PrivateRoute>
             <Layout mode="personal">
@@ -247,13 +243,8 @@ const AppContent: React.FC = () => {
             </Layout>
           </PrivateRoute>
         } />
-        <Route path="/retirement" element={
-          <PrivateRoute>
-            <Layout mode="personal">
-              <Retirement />
-            </Layout>
-          </PrivateRoute>
-        } />
+        {/* Retirement — v2 é canônico. /retirement redireciona para /retirement-v2 (TD-S2-001) */}
+        <Route path="/retirement" element={<Navigate to="/retirement-v2" replace />} />
         <Route path="/retirement-v2" element={
           <PrivateRoute>
             <Layout mode="personal">
@@ -337,6 +328,13 @@ export const App: React.FC = () => {
               <SidebarProvider>
                 <FinanceProvider>
                   <AppContent />
+                  <Toaster
+                    theme="dark"
+                    richColors
+                    position="top-right"
+                    toastOptions={{ duration: 4000 }}
+                    visibleToasts={3}
+                  />
                 </FinanceProvider>
               </SidebarProvider>
             </AuthProvider>

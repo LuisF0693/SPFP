@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSafeFinance } from '../hooks/useSafeFinance';
 import { useUI } from '../context/UIContext';
+import { useAuth } from '../context/AuthContext';
 import { AIConfig } from '../types';
-import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2, Globe, ChevronDown } from 'lucide-react';
+import { User, Mail, Phone, FileText, Heart, Users, Save, Baby, Check, Moon, Sun, Image as ImageIcon, Plus, Trash2, Globe, ChevronDown, AlertTriangle } from 'lucide-react';
 import { CategoryManagement } from './transaction/CategoryManagement';
+import { supabase } from '../supabase';
 
 /**
  * Settings component.
@@ -15,9 +17,44 @@ export const Settings: React.FC = () => {
     const { t, i18n } = useTranslation();
     const { userProfile, updateUserProfile, categories, transactions, updateCategory, deleteCategory } = useSafeFinance();
     const { theme, setTheme } = useUI();
+    const { logout } = useAuth();
     const [formData, setFormData] = useState(userProfile);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
+
+    // Estados para exclusao de conta (LGPD)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== 'EXCLUIR') return;
+        setIsDeleting(true);
+        setDeleteError(null);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) throw new Error('Sessao expirada. Faca login novamente.');
+
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || (supabase as any).supabaseUrl;
+            const res = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Erro ao excluir conta.');
+            }
+
+            await logout();
+        } catch (err: any) {
+            setDeleteError(err.message || 'Erro ao excluir conta. Tente novamente.');
+            setIsDeleting(false);
+        }
+    };
 
     useEffect(() => {
         setFormData(userProfile);
@@ -450,7 +487,104 @@ export const Settings: React.FC = () => {
                         </button>
                     </div>
                 </form>
+
+                {/* ZONA DE PERIGO — Excluir conta (LGPD) */}
+                <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-red-200 dark:border-red-900">
+                    <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2 flex items-center">
+                        <AlertTriangle className="mr-2" size={20} />
+                        Zona de Perigo
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        A exclusão de conta é permanente e irreversível. Todos os seus dados financeiros, metas, transações e histórico do Finn serão deletados para sempre em conformidade com a LGPD (Art. 18, VI).
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
+                    >
+                        Excluir minha conta
+                    </button>
+                </div>
             </div>
+
+            {/* DIALOG 1 — Aviso inicial */}
+            {showDeleteDialog && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex items-center mb-4">
+                            <div className="bg-red-100 dark:bg-red-950 rounded-full p-2 mr-3">
+                                <AlertTriangle className="text-red-600" size={24} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Excluir conta permanentemente?</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Esta ação irá deletar <strong>todos os seus dados</strong> de forma permanente:
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 mb-6 space-y-1 list-disc list-inside">
+                            <li>Todas as transações e contas</li>
+                            <li>Metas e investimentos</li>
+                            <li>Histórico de conversas com o Finn</li>
+                            <li>Configurações e perfil</li>
+                        </ul>
+                        <p className="text-sm font-semibold text-red-600 dark:text-red-400 mb-6">
+                            Esta ação não pode ser desfeita.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteDialog(false)}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => { setShowDeleteDialog(false); setShowDeleteConfirm(true); }}
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition-colors"
+                            >
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* DIALOG 2 — Confirmacao digitando EXCLUIR */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Confirmação final</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Para confirmar, digite <strong className="text-red-600">EXCLUIR</strong> no campo abaixo:
+                        </p>
+                        <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="Digite EXCLUIR"
+                            className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-500 mb-4 text-gray-900 dark:text-white"
+                            autoFocus
+                        />
+                        {deleteError && (
+                            <p className="text-sm text-red-600 dark:text-red-400 mb-4">{deleteError}</p>
+                        )}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); setDeleteError(null); }}
+                                disabled={isDeleting}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteConfirmText !== 'EXCLUIR' || isDeleting}
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {isDeleting ? 'Excluindo...' : 'Excluir permanentemente'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

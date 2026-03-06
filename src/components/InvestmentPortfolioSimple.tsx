@@ -16,6 +16,7 @@ import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, ArrowRight } from 'lucid
 import { formatCurrency } from '../utils';
 import { InvestmentAsset, ASSET_TYPE_CONFIG } from '../types/investment';
 import { Modal } from './ui/Modal';
+import { EmptyState } from './ui/EmptyState';
 import { calculateGain, calculateGainPercentage, calculatePortfolioSummary } from '../services/investmentService';
 
 export const InvestmentPortfolioSimple: React.FC = () => {
@@ -110,19 +111,14 @@ export const InvestmentPortfolioSimple: React.FC = () => {
   if (activeInvestments.length === 0) {
     return (
       <div className="bg-card-dark border border-gray-800 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">Portfólio de Investimentos</h2>
-          <Plus size={20} className="text-gray-500" />
-        </div>
-        <div className="text-center py-12">
-          <p className="text-gray-400 mb-4">Nenhum investimento registrado</p>
-          <button
-            onClick={handleAddClick}
-            className="px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-500/30 transition-colors text-sm font-medium"
-          >
-            Adicionar Investimento
-          </button>
-        </div>
+        <h2 className="text-lg font-bold text-white mb-4">Portfólio de Investimentos</h2>
+        <EmptyState
+          title="Nenhum investimento registrado"
+          description="Registre seus ativos — renda fixa, ações, FIIs — e acompanhe a performance do seu portfólio em tempo real."
+          ctaLabel="Adicionar Investimento"
+          onCta={handleAddClick}
+          finnTip="Comece pelo que você já tem investido hoje. Posso te ajudar a entender cada ativo."
+        />
       </div>
     );
   }

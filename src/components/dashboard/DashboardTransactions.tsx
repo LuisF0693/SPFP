@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from '../../utils';
 import { Wallet, MoreHorizontal } from 'lucide-react';
 import { Account, Transaction, Category } from '../../types';
 import { CategoryIcon } from '../CategoryIcon';
+import { EmptyState } from '../ui/EmptyState';
 
 interface DashboardTransactionsProps {
   accounts: Account[];
@@ -83,9 +84,13 @@ export const DashboardTransactions = memo<DashboardTransactionsProps>(
             </table>
 
             {(Array.isArray(transactions) ? transactions : []).length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">
-                Nenhuma transação registrada.
-              </div>
+              <EmptyState
+                title="Nenhuma transação ainda"
+                description="Adicione sua primeira receita ou despesa para começar a enxergar sua vida financeira."
+                ctaLabel="Adicionar lançamento"
+                onCta={() => navigate('/transactions/add')}
+                finnTip="Comece registrando o que você recebe e o que gasta. Eu cuido do resto."
+              />
             )}
           </div>
         </div>

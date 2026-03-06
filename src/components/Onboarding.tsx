@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FinnAvatar } from './FinnAvatar';
 import { ArrowRight, X } from 'lucide-react';
+import { FocusTrapModal } from './ui/FocusTrapModal';
 
 interface OnboardingProps {
   userName?: string;
@@ -74,6 +75,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userName, onComplete }) 
   };
 
   return (
+    <FocusTrapModal active={true} onClose={onComplete} ariaLabel="Onboarding — Bem-vindo ao SPFP">
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
       <div className="relative w-full max-w-md bg-[#0A1628] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
         {/* Skip */}
@@ -164,5 +166,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userName, onComplete }) 
         </div>
       </div>
     </div>
+    </FocusTrapModal>
   );
 };

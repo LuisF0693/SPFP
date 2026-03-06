@@ -14,7 +14,10 @@ interface AuthContextType {
   isAdmin: boolean;
 }
 
-const ADMIN_EMAILS = ['nando062218@gmail.com'];
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map((email: string) => email.trim())
+  .filter(Boolean);
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

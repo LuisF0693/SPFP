@@ -7,6 +7,7 @@ import { supabase } from '../supabase';
 import { logInteraction } from '../services/logService';
 import { useAuth } from './AuthContext';
 import { retryWithBackoff, logDetailedError, getErrorMessage } from '../services/retryService';
+import { showSuccess, showError } from '../utils/toast';
 import { CardInvoice } from '../types/creditCard';
 import cardInvoiceService from '../services/cardInvoiceService';
 import { Partner } from '../types/partnership';
@@ -453,6 +454,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return acc;
     });
     updateAndSync({ transactions: nextTx, accounts: nextAcc });
+    showSuccess('Lançamento adicionado');
   };
 
   /**
@@ -522,6 +524,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const nextAcc = state.accounts.map(a => (a.id === tx.accountId && shouldAffectBalanceNow(tx.date)) ? { ...a, balance: a.balance + (tx.type === 'INCOME' ? -tx.value : tx.value) } : a);
     const nextTx = state.transactions.map(t => t.id === id ? { ...t, deletedAt: Date.now() } : t);
     updateAndSync({ accounts: nextAcc, transactions: nextTx });
+    showSuccess('Lançamento excluído');
   };
 
   /**
@@ -602,13 +605,20 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Goal Logic
-  const addGoal = (g: Omit<Goal, 'id'>) => updateAndSync({ goals: [...state.goals, { ...g, id: generateId() }] });
-  const updateGoal = (u: Goal) => updateAndSync({ goals: state.goals.map(g => g.id === u.id ? u : g) });
+  const addGoal = (g: Omit<Goal, 'id'>) => {
+    updateAndSync({ goals: [...state.goals, { ...g, id: generateId() }] });
+    showSuccess('Meta criada com sucesso');
+  };
+  const updateGoal = (u: Goal) => {
+    updateAndSync({ goals: state.goals.map(g => g.id === u.id ? u : g) });
+    showSuccess('Meta atualizada');
+  };
   const deleteGoal = (id: string) => {
     const goal = state.goals.find(g => g.id === id);
     if (!goal || goal.deletedAt) return;
     const nextGoals = state.goals.map(g => g.id === id ? { ...g, deletedAt: Date.now() } : g);
     updateAndSync({ goals: nextGoals });
+    showSuccess('Meta excluída');
   };
 
   // Investment Logic

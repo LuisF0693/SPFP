@@ -16,6 +16,7 @@ import { CategoryModal } from './transaction/CategoryModal';
 import { Modal } from './ui/Modal';
 import { Skeleton } from './ui/Skeleton';
 import { BulkActionBar } from './ui/BulkActionBar';
+import { EmptyState } from './ui/EmptyState';
 
 interface TransactionListProps {
     onEdit: (transaction: Transaction) => void;
@@ -346,8 +347,18 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                             <tbody className="divide-y divide-gray-800">
                                 {filteredTransactions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="p-8 text-center text-gray-400 font-medium">
-                                            Nenhuma transação encontrada.
+                                        <td colSpan={9}>
+                                            {transactions.length === 0 ? (
+                                                <EmptyState
+                                                    title="Nenhuma transação ainda"
+                                                    description="Adicione sua primeira receita ou despesa para começar a enxergar sua vida financeira."
+                                                    ctaLabel="Adicionar lançamento"
+                                                    onCta={() => setIsTransactionModalOpen(true)}
+                                                    finnTip="Comece registrando o que você recebe e o que gasta. Eu cuido do resto."
+                                                />
+                                            ) : (
+                                                <p className="p-8 text-center text-gray-400 font-medium">Nenhuma transação encontrada.</p>
+                                            )}
                                         </td>
                                     </tr>
                                 ) : (
@@ -446,9 +457,19 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                     {isLoading ? (
                         <Skeleton variant="table-row" count={8} />
                     ) : filteredTransactions.length === 0 ? (
-                        <div className="p-8 text-center text-gray-400 font-medium">
-                            Nenhuma transação encontrada.
-                        </div>
+                        transactions.length === 0 ? (
+                            <EmptyState
+                                title="Nenhuma transação ainda"
+                                description="Adicione sua primeira receita ou despesa para começar a enxergar sua vida financeira."
+                                ctaLabel="Adicionar lançamento"
+                                onCta={() => setIsTransactionModalOpen(true)}
+                                finnTip="Comece registrando o que você recebe e o que gasta. Eu cuido do resto."
+                            />
+                        ) : (
+                            <div className="p-8 text-center text-gray-400 font-medium">
+                                Nenhuma transação encontrada.
+                            </div>
+                        )
                     ) : (
                         paginatedTransactions.map(tx => {
                             const cat = categories.find(c => c.id === tx.categoryId);
