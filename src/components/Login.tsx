@@ -130,7 +130,7 @@ export const Login: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" data-testid="login-form">
             {isRegistering && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-2 tracking-widest">Seu Nome</label>
@@ -153,6 +153,7 @@ export const Login: React.FC = () => {
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-accent transition-colors" size={18} />
                 <input
                   type="email"
+                  data-testid="login-email-input"
                   className="w-full pl-14 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all text-white placeholder-gray-600 font-medium"
                   placeholder="seu@exemplo.com"
                   value={email}
@@ -167,6 +168,7 @@ export const Login: React.FC = () => {
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-accent transition-colors" size={18} />
                 <input
                   type="password"
+                  data-testid="login-password-input"
                   className="w-full pl-14 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all text-white placeholder-gray-600 font-medium"
                   placeholder="••••••••"
                   value={password}
@@ -178,6 +180,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
+              data-testid="login-submit-btn"
               className="w-full flex items-center justify-center premium-gradient text-white font-bold py-5 rounded-2xl transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-8 border border-white/10"
             >
               {isLoading ? (

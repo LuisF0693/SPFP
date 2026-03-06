@@ -12,6 +12,7 @@ export interface ActionButtonProps {
   fullWidth?: boolean;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
+  'data-testid'?: string;
 }
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -25,6 +26,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   fullWidth = false,
   className = '',
   type = 'button',
+  'data-testid': dataTestId,
 }) => {
   const baseStyles = `
     group flex items-center justify-center gap-2 font-bold rounded-lg
@@ -63,6 +65,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      data-testid={dataTestId}
       className={`
         ${baseStyles}
         ${variantStyles[variant]}

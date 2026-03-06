@@ -133,6 +133,7 @@ export const GoalsAdvanced: React.FC = () => {
                 setEditingGoal(null);
                 setIsFormOpen(true);
               }}
+              data-testid="add-goal-btn"
             />
           </div>
         </div>
