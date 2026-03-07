@@ -110,9 +110,9 @@ export const investmentService = {
       id: generateId(),
       dateAdded: now,
       lastUpdated: now,
+      ...data,
       totalValue: calculateTotalValue(data.quantity, data.currentPrice),
       purchaseValue: calculatePurchaseValue(data.quantity, data.purchasePrice),
-      ...data
     };
   },
 

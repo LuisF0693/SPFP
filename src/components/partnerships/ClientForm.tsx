@@ -25,7 +25,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     contract_value: 0,
     commission_rate: 50,
     closed_at: new Date().toISOString().split('T')[0],
-    status: 'pending' as const,
+    status: 'pending' as 'pending' | 'paid',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 

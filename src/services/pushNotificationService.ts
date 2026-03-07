@@ -65,7 +65,7 @@ export const pushNotificationService = {
           data: payload.data,
           actions: payload.actions,
           requireInteraction: false
-        });
+        } as any);
       } else {
         // Fallback to standard Notification API
         new Notification(payload.title, {
@@ -235,14 +235,14 @@ export const pushNotificationService = {
    * Listen to notification clicks
    */
   onNotificationClick: (callback: (action: string, data: Record<string, any>) => void): (() => void) => {
-    const handleClick = (event: NotificationEvent) => {
+    const handleClick = (event: any) => {
       const action = event.action || 'default';
       callback(action, event.notification.data);
       event.notification.close();
     };
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event: ExtendableMessageEvent) => {
+      navigator.serviceWorker.addEventListener('message', (event: any) => {
         if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
           callback(event.data.action, event.data.data);
         }

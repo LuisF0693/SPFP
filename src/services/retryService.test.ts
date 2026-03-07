@@ -25,7 +25,7 @@ describe('retryService', () => {
       expect(detectErrorType(error)).toBe(ErrorType.NETWORK);
 
       const error2 = new Error('ECONNREFUSED');
-      error2.code = 'ECONNREFUSED';
+      (error2 as any).code = 'ECONNREFUSED';
       expect(detectErrorType(error2)).toBe(ErrorType.NETWORK);
     });
 
@@ -34,14 +34,14 @@ describe('retryService', () => {
       expect(detectErrorType(error)).toBe(ErrorType.TIMEOUT);
 
       const error2 = new Error('Operation timed out');
-      error2.code = 'ETIMEDOUT';
+      (error2 as any).code = 'ETIMEDOUT';
       expect(detectErrorType(error2)).toBe(ErrorType.TIMEOUT);
     });
 
     it('should detect rate limit errors', () => {
       const error = new Error('Rate limit exceeded');
       const error2 = new Error('Too many requests');
-      error2.status = 429;
+      (error2 as any).status = 429;
 
       expect(detectErrorType(error)).toBe(ErrorType.RATE_LIMIT);
       expect(detectErrorType(error2)).toBe(ErrorType.RATE_LIMIT);
@@ -49,23 +49,23 @@ describe('retryService', () => {
 
     it('should detect not found errors', () => {
       const error = new Error('404 Not Found');
-      error.status = 404;
+      (error as any).status = 404;
       expect(detectErrorType(error)).toBe(ErrorType.NOT_FOUND);
     });
 
     it('should detect unauthorized errors', () => {
       const error = new Error('Unauthorized');
-      error.status = 401;
+      (error as any).status = 401;
       expect(detectErrorType(error)).toBe(ErrorType.UNAUTHORIZED);
 
       const error2 = new Error('Forbidden');
-      error2.status = 403;
+      (error2 as any).status = 403;
       expect(detectErrorType(error2)).toBe(ErrorType.UNAUTHORIZED);
     });
 
     it('should detect validation errors', () => {
       const error = new Error('Validation failed');
-      error.status = 400;
+      (error as any).status = 400;
       expect(detectErrorType(error)).toBe(ErrorType.VALIDATION);
     });
 
@@ -93,25 +93,25 @@ describe('retryService', () => {
 
     it('should return true for rate limit errors', () => {
       const error = new Error('Rate limit');
-      error.status = 429;
+      (error as any).status = 429;
       expect(isRetryable(error)).toBe(true);
     });
 
     it('should return false for not found errors', () => {
       const error = new Error('404 Not Found');
-      error.status = 404;
+      (error as any).status = 404;
       expect(isRetryable(error)).toBe(false);
     });
 
     it('should return false for unauthorized errors', () => {
       const error = new Error('Unauthorized');
-      error.status = 401;
+      (error as any).status = 401;
       expect(isRetryable(error)).toBe(false);
     });
 
     it('should return false for validation errors', () => {
       const error = new Error('Validation failed');
-      error.status = 400;
+      (error as any).status = 400;
       expect(isRetryable(error)).toBe(false);
     });
   });
@@ -206,7 +206,7 @@ describe('retryService', () => {
     it('should not retry non-retryable errors (401 Unauthorized)', async () => {
       const mockFn = vi.fn();
       const error = new Error('Unauthorized');
-      error.status = 401;
+      (error as any).status = 401;
       mockFn.mockRejectedValue(error);
 
       await expect(
@@ -220,7 +220,7 @@ describe('retryService', () => {
     it('should not retry validation errors (400 Bad Request)', async () => {
       const mockFn = vi.fn();
       const error = new Error('Invalid input');
-      error.status = 400;
+      (error as any).status = 400;
       mockFn.mockRejectedValue(error);
 
       await expect(
@@ -295,14 +295,14 @@ describe('retryService', () => {
 
     it('should return timeout error message', () => {
       const error = new Error('Request timeout');
-      error.code = ErrorType.TIMEOUT;
+      (error as any).code = ErrorType.TIMEOUT;
       const msg = getErrorMessage(error);
       expect(msg).toContain('tempo');
     });
 
     it('should return rate limit error message', () => {
       const error = new Error('Too many requests');
-      error.code = ErrorType.RATE_LIMIT;
+      (error as any).code = ErrorType.RATE_LIMIT;
       const msg = getErrorMessage(error);
       expect(msg).toContain('requisições');
     });

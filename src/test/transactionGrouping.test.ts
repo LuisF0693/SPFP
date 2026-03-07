@@ -307,12 +307,12 @@ describe('Transaction Grouping and Recurring', () => {
     it('should update all transactions in group', () => {
       const groupId = generators.randomId();
       const group = [
-        createMockTransaction({ groupId, groupIndex: 0, category: 'OLD' }),
-        createMockTransaction({ groupId, groupIndex: 1, category: 'OLD' }),
-        createMockTransaction({ groupId, groupIndex: 2, category: 'OLD' }),
+        createMockTransaction({ groupId, groupIndex: 0, categoryId: 'OLD' }),
+        createMockTransaction({ groupId, groupIndex: 1, categoryId: 'OLD' }),
+        createMockTransaction({ groupId, groupIndex: 2, categoryId: 'OLD' }),
       ];
 
-      const updated = group.map(t => ({ ...t, category: 'NEW' }));
+      const updated = group.map(t => ({ ...t, categoryId: 'NEW' }));
 
       expect(updated.every(t => t.category === 'NEW')).toBe(true);
       expect(updated.every(t => t.groupId === groupId)).toBe(true);

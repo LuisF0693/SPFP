@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { syncService, QueuedOperation, SyncStatus } from '../../services/syncService';
+import { syncService, QueuedOperation, SyncStatus, SyncState } from '../../services/syncService';
 
 describe('STY-035: Sync Error Recovery', () => {
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('STY-035: Sync Error Recovery', () => {
     });
 
     it('should notify listeners when status changes', (done) => {
-      const statuses: SyncStatus[] = [];
+      const statuses: SyncState[] = [];
 
       const unsubscribe = syncService.onStatusChange((status) => {
         statuses.push(status);

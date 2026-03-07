@@ -37,7 +37,7 @@ export const RetirementAdvanced: React.FC = () => {
               label="Resetar"
               icon={<RefreshCw className="w-4 h-4" />}
               onClick={resetSettings}
-              variant="outline"
+              variant="secondary"
             />
             <ActionButton
               label="Calcular"
@@ -118,7 +118,6 @@ export const RetirementAdvanced: React.FC = () => {
           title="Projeção Patrimonial até 100 Anos"
           subtitle="Visualize a evolução do seu patrimônio nas fases de acumulação e retirada"
           icon={<TrendingUp className="w-5 h-5" />}
-          loading={loading}
         >
           <RetirementChart100Years
             settings={settings}

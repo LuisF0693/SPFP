@@ -22,7 +22,8 @@ export enum InvoiceStatus {
   OPEN = 'OPEN',
   PAID = 'PAID',
   PARTIAL = 'PARTIAL',
-  OVERDUE = 'OVERDUE'
+  OVERDUE = 'OVERDUE',
+  PENDING = 'PENDING'
 }
 
 /**
@@ -60,34 +61,41 @@ export enum InvoiceSource {
 export interface CardInvoice {
   // Primary Identifiers
   id: string;
-  userId: string;
+  userId?: string;
   cardId: string;
 
   // Invoice Identifiers
   invoiceNumber: string;
-  invoiceDate: Date;
-  closingDate: Date;
-  dueDate: Date;
+  invoiceDate?: Date | string;
+  closingDate?: Date | string;
+  dueDate: Date | string;
 
   // Amounts
-  totalAmount: number;
+  totalAmount?: number;
   paidAmount: number;
   pendingAmount?: number;
+  amount?: number; // Alias for totalAmount (used by service layer)
+  minimumPayment?: number;
 
   // Status
   status: InvoiceStatus;
-  source: InvoiceSource;
+  source?: InvoiceSource;
 
   // Summary
-  totalInstallments: number;
-  paidInstallments: number;
+  totalInstallments?: number;
+  paidInstallments?: number;
+
+  // Related data
+  installments?: any[];
+  futureInstallments?: any[];
+  statementDate?: string | Date;
 
   // Metadata
-  createdAt: Date;
-  updatedAt: Date;
-  closedAt?: Date;
-  paidAt?: Date;
-  deletedAt?: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  closedAt?: Date | string;
+  paidAt?: Date | string;
+  deletedAt?: Date | string;
 }
 
 /**
@@ -257,7 +265,8 @@ export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
   [InvoiceStatus.OPEN]: '#fbbf24',
   [InvoiceStatus.PAID]: '#10b981',
   [InvoiceStatus.PARTIAL]: '#8b5cf6',
-  [InvoiceStatus.OVERDUE]: '#ef4444'
+  [InvoiceStatus.OVERDUE]: '#ef4444',
+  [InvoiceStatus.PENDING]: '#3b82f6'
 };
 
 export const INSTALLMENT_STATUS_COLORS: Record<InstallmentStatus, string> = {

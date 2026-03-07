@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-// import userEvent from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 
 // Component that throws an error
@@ -194,7 +194,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByTestId('safe-comp')).toBeInTheDocument();
 
     // Error component should show error UI, but not affect safe component
-    const errorMessage = container.querySelectorAll(/Oops! Algo deu errado/i);
+    const errorMessage = screen.getAllByText(/Oops! Algo deu errado/i);
     expect(errorMessage.length).toBeGreaterThan(0);
   });
 });

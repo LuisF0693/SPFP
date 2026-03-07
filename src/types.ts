@@ -114,7 +114,7 @@ export interface Transaction {
   date: string;
   type: TransactionType;
   categoryId: string;
-  paid: boolean; // Se foi pago ou não
+  paid?: boolean; // Se foi pago ou não (false quando undefined)
   spender?: string; // Quem fez a compra (ID ou 'ME'/'SPOUSE')
   sentiment?: string; // Como o usuário se sente (emoji/slug)
   // Campos de agrupamento para parcelados/recorrentes
@@ -145,6 +145,9 @@ export interface Goal {
   imageUrl?: string; // URL da imagem de capa (Supabase Storage)
   status: 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'ARCHIVED';
   deletedAt?: number; // ISO timestamp of soft deletion (null = active, number = deleted)
+  description?: string; // Optional description
+  dueDate?: string; // Alias for deadline (used in some contexts)
+  category?: string; // Optional category tag
 }
 
 export type InvestmentType = 'STOCK' | 'FII' | 'ETF' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
@@ -169,6 +172,7 @@ export interface InvestmentAsset {
   purchasePrice?: number;
   currentValue?: number;
   purchaseValue?: number;
+  costPrice?: number; // Alias for averagePrice/purchasePrice
 }
 
 export type PatrimonyType = 'REAL_ESTATE' | 'VEHICLE' | 'MILES' | 'DEBT' | 'FINANCIAL' | 'OTHER';

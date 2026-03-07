@@ -47,13 +47,13 @@ export interface SidebarContextType {
   getIsDesktop?(): boolean;
 
   // Additional methods from SidebarContext implementation
-  expandSection?(section: SidebarSection | string): void;
-  collapseSection?(section: SidebarSection | string): void;
-  toggleDrawer?(): void;
-  openDrawer?(): void;
-  closeDrawer?(): void;
-  resetToDefaults?(): void;
-  setAllSections?(expanded: boolean): void;
+  expandSection(section: SidebarSection | string): void;
+  collapseSection(section: SidebarSection | string): void;
+  toggleDrawer(): void;
+  openDrawer(): void;
+  closeDrawer(): void;
+  resetToDefaults(): void;
+  setAllSections(expanded: boolean): void;
 }
 
 /**

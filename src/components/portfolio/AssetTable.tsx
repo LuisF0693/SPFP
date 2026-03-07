@@ -32,7 +32,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       header: 'Ativo',
       sortable: true,
       render: (item) => {
-        const marketData = marketPrices[item.ticker];
+        const marketData = item.ticker ? marketPrices[item.ticker] : undefined;
         const hasLogo = marketData?.logourl;
 
         return (
@@ -92,7 +92,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       sortable: true,
       align: 'right',
       render: (item) => {
-        const marketData = marketPrices[item.ticker];
+        const marketData = item.ticker ? marketPrices[item.ticker] : undefined;
         const marketPrice = marketData?.regularMarketPrice;
         const displayPrice = marketPrice || item.current_price;
 

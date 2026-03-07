@@ -12,10 +12,12 @@ import { useCorporateStore } from '@/stores/corporateStore';
 export function setupPhaserBridge() {
   const store = useCorporateStore.getState();
 
+  const subscribe = useCorporateStore.subscribe as any;
+
   // Listen mudanças no selectedDepartment
-  useCorporateStore.subscribe(
-    (state) => state.selectedDepartment,
-    (selectedDept) => {
+  subscribe(
+    (state: any) => state.selectedDepartment,
+    (selectedDept: any) => {
       if (selectedDept) {
         // Aqui poderia disparar evento para Phaser se necessário
         console.log('[PhaserBridge] selectedDepartment:', selectedDept);
@@ -24,18 +26,18 @@ export function setupPhaserBridge() {
   );
 
   // Listen mudanças nas atividades (ActivityFeed realtime)
-  useCorporateStore.subscribe(
-    (state) => state.activities,
-    (activities) => {
+  subscribe(
+    (state: any) => state.activities,
+    (activities: any) => {
       // Atualizar visual badges ou status no mapa se necessário
       console.log('[PhaserBridge] activities updated:', activities.length);
     }
   );
 
   // Listen conexão realtime
-  useCorporateStore.subscribe(
-    (state) => state.isRealtimeConnected,
-    (isConnected) => {
+  subscribe(
+    (state: any) => state.isRealtimeConnected,
+    (isConnected: any) => {
       console.log('[PhaserBridge] realtime status:', isConnected ? 'CONECTADO' : 'OFFLINE');
     }
   );

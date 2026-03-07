@@ -211,9 +211,9 @@ describe('Currency Amount Validation', () => {
     const nullValue = null;
     const undefinedValue = undefined;
 
-    expect(validateAmount(stringValue as number)).toBe(false);
-    expect(validateAmount(nullValue as number)).toBe(false);
-    expect(validateAmount(undefinedValue as number)).toBe(false);
+    expect(validateAmount(stringValue as unknown as number)).toBe(false);
+    expect(validateAmount(nullValue as unknown as number)).toBe(false);
+    expect(validateAmount(undefinedValue as unknown as number)).toBe(false);
   });
 
   it('should accept zero', () => {

@@ -59,7 +59,7 @@ export const InvestmentMetricsWidget: React.FC = () => {
     }, 0);
 
     const currentValue = safeInvestments.reduce((sum, inv) => {
-      return sum + (inv.totalValue);
+      return sum + (inv.totalValue ?? 0);
     }, 0);
 
     const gain = currentValue - totalInvested;
@@ -74,7 +74,7 @@ export const InvestmentMetricsWidget: React.FC = () => {
     const assetMap: Record<string, number> = {};
     safeInvestments.forEach((inv) => {
       const assetType = inv.assetType || 'Outro';
-      assetMap[assetType] = (assetMap[assetType] || 0) + (inv.totalValue);
+      assetMap[assetType] = (assetMap[assetType] || 0) + (inv.totalValue ?? 0);
     });
 
     const assetDistribution: AssetTypeData[] = Object.entries(assetMap)
@@ -214,7 +214,7 @@ export const InvestmentMetricsWidget: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percentage }) => `${name} ${percentage.toFixed(0)}%`}
+                label={({ name, percentage }: any) => `${name} ${(percentage ?? 0).toFixed(0)}%`}
                 outerRadius={60}
                 fill="#8884d8"
                 dataKey="value"

@@ -136,7 +136,7 @@ export const PartnershipsPage: React.FC = () => {
             <ActionButton
               label="Novo Parceiro"
               icon={<Users className="w-4 h-4" />}
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setEditingPartner(null);
                 setShowPartnerForm(true);
@@ -204,7 +204,6 @@ export const PartnershipsPage: React.FC = () => {
           title="Receita Mensal"
           subtitle="Suas comissões nos últimos 12 meses"
           icon={<TrendingUp className="w-5 h-5" />}
-          loading={loading}
         >
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -233,7 +232,7 @@ export const PartnershipsPage: React.FC = () => {
                     borderRadius: '12px',
                   }}
                   labelStyle={{ color: '#92a4c9' }}
-                  formatter={(value: number) => [formatCurrency(value), 'Comissão']}
+                  formatter={((value: number) => [formatCurrency(value), 'Comissão']) as any}
                 />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                   {chartData.map((_, index) => (
@@ -318,7 +317,7 @@ export const PartnershipsPage: React.FC = () => {
         ) : (
           <ClientTable
             clients={selectedPartnerId ? getClientsByPartner(selectedPartnerId) : clients}
-            onStatusChange={(id, status) => updateClient(id, { status })}
+            onStatusChange={(id, status) => updateClient(id, { status: status as any })}
             loading={loading}
           />
         )}

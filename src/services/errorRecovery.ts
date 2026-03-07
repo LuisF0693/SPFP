@@ -330,7 +330,7 @@ export const errorRecovery = {
       context: {
         ...log.context,
         // Don't export full state snapshot to minimize data
-        stateSnapshot: log.context.stateSnapshot ? '[REDACTED]' : undefined
+        stateSnapshot: log.context.stateSnapshot ? { _redacted: true } : undefined
       }
     }));
   }
@@ -348,9 +348,9 @@ export async function withErrorRecovery<T>(
   return errorRecovery.handleOperation(operation, action, {
     maxRetries: options?.maxRetries ?? 3,
     userId: options?.userId,
-    onRetry: options?.onRetry,
+    onRetry: options?.onRetry as any,
     previousState: options?.rollbackState,
-    onRollback: options?.onRollback
+    onRollback: options?.onRollback as any
   });
 }
 

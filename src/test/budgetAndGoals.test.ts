@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Goal, CategoryBudget } from '../types';
+import { Goal } from '../types';
+
+// Local budget shape used in these tests (different from CategoryBudget API type)
+interface LocalBudget {
+  category: string;
+  budgetAmount: number;
+  spent: number;
+}
 import { createMockGoal, generators } from './test-utils';
 import { expectMoneyEqual } from './test-helpers';
 
@@ -296,7 +303,7 @@ describe('Goal Tracking and Progress', () => {
 });
 
 describe('Budget Calculations and Tracking', () => {
-  let budgets: CategoryBudget[];
+  let budgets: LocalBudget[];
 
   beforeEach(() => {
     budgets = [

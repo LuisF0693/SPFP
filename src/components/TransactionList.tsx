@@ -77,7 +77,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
 
             if (filterType === 'INCOME') matchesType = t.type === 'INCOME';
             if (filterType === 'EXPENSE') matchesType = t.type === 'EXPENSE';
-            if (filterType === 'PAID') matchesType = t.paid;
+            if (filterType === 'PAID') matchesType = !!t.paid;
             if (filterType === 'SCHEDULED') matchesType = !t.paid && txDate >= today;
             if (filterType === 'LATE') matchesType = !t.paid && txDate < today;
 
@@ -365,7 +365,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                                     filteredTransactions.map(tx => {
                                     const cat = categories.find(c => c.id === tx.categoryId);
                                     const acc = accounts.find(a => a.id === tx.accountId);
-                                    const status = getStatus(tx.date, tx.paid);
+                                    const status = getStatus(tx.date, tx.paid ?? false);
                                     const StatusIcon = status.icon;
                                     const spender = getSpenderInfo(tx.spender);
 
@@ -474,7 +474,7 @@ export const TransactionList: React.FC<TransactionListProps> = memo(({ onEdit })
                         paginatedTransactions.map(tx => {
                             const cat = categories.find(c => c.id === tx.categoryId);
                             const acc = accounts.find(a => a.id === tx.accountId);
-                            const status = getStatus(tx.date, tx.paid);
+                            const status = getStatus(tx.date, tx.paid ?? false);
                             const StatusIcon = status.icon;
                             const spender = getSpenderInfo(tx.spender);
 

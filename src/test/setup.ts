@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { expect, afterEach, beforeEach } from 'vitest';
+import { expect, afterEach, beforeEach, beforeAll, afterAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Mock localStorage with clear() method

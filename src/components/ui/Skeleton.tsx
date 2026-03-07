@@ -3,10 +3,10 @@ import React from 'react';
 interface SkeletonProps {
   className?: string;
   count?: number;
-  height?: string;
-  width?: string;
+  height?: string | number;
+  width?: string | number;
   circle?: boolean;
-  variant?: 'card' | 'text' | 'avatar' | 'line' | 'chart' | 'table-row';
+  variant?: 'card' | 'text' | 'avatar' | 'line' | 'chart' | 'table-row' | 'button';
 }
 
 /**
@@ -30,6 +30,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     line: `rounded-md ${height} ${width}`,
     chart: 'rounded-2xl min-h-48 w-full',
     'table-row': `rounded-md h-10 ${width}`,
+    button: `rounded-lg h-10 ${width}`,
   };
 
   const circleClasses = circle ? 'rounded-full' : '';

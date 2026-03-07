@@ -26,7 +26,7 @@ export const Patrimony: React.FC = () => {
     // Handle Asset Save
     const handleAssetSave = (asset: Asset) => {
         if (editingAsset) {
-            updateAsset?.(asset);
+            updateAsset?.(asset.id, asset);
         } else {
             addAsset?.(asset);
         }
@@ -232,7 +232,7 @@ export const Patrimony: React.FC = () => {
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                                     formatter={((value: number) => formatCurrency(value)) as any}
                                 />
-                                <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fillUrl="#colorNetWorth" />
+                                <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fill="url(#colorNetWorth)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -406,11 +406,11 @@ export const Patrimony: React.FC = () => {
                     <h2 className="text-xl font-bold text-white mb-4">Visão Consolidada de Patrimônio</h2>
                     <PatrimonyListEnhanced
                         accounts={Array.isArray(accounts) ? accounts : []}
-                        investments={Array.isArray(investments) ? investments : []}
+                        investments={Array.isArray(investments) ? investments as any : []}
                         assets={Array.isArray(globalAssets) ? globalAssets : []}
                         patrimonyItems={Array.isArray(patrimonyItems) ? patrimonyItems : []}
                         onEdit={(item) => {
-                            if (item.type === 'patrimony') {
+                            if ((item as any).type === 'patrimony') {
                                 setEditingItem(item as unknown as PatrimonyItem);
                                 setIsFormOpen(true);
                             }

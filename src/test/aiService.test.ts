@@ -30,12 +30,12 @@ describe('aiService', () => {
     });
 
     it.skip('should call Gemini AI when provider is google', async () => {
-        const response = await chatWithAI('Hello', [], mockConfig);
+        const response = await chatWithAI('Hello', [] as any, mockConfig);
         expect(response).toBe('Mocked AI Response');
     });
 
     it.skip('should throw error if apiKey is missing', async () => {
-        await expect(chatWithAI('Hello', [], { ...mockConfig, apiKey: '' }))
+        await expect(chatWithAI('Hello', [] as any, { ...mockConfig, apiKey: '' }))
             .rejects.toThrow('API Key não configurada');
     });
 });

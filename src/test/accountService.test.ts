@@ -18,9 +18,9 @@ import { Account, Transaction, Category, AccountOwner } from '../types';
 const mockToday = new Date('2026-02-02');
 
 const mockCategories: Category[] = [
-  { id: '1', name: 'Alimentação', icon: 'fork', color: '#ef4444' },
-  { id: '2', name: 'Transporte', icon: 'car', color: '#3b82f6' },
-  { id: '3', name: 'Transferências', icon: 'send', color: '#10b981' },
+  { id: '1', name: 'Alimentação', icon: 'fork', color: '#ef4444', group: 'VARIABLE' },
+  { id: '2', name: 'Transporte', icon: 'car', color: '#3b82f6', group: 'VARIABLE' },
+  { id: '3', name: 'Transferências', icon: 'send', color: '#10b981', group: 'VARIABLE' },
 ];
 
 const mockCreditCards: Account[] = [

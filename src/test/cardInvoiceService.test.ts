@@ -151,7 +151,7 @@ describe('cardInvoiceService', () => {
       expect(totalOwed).toBeGreaterThanOrEqual(0);
 
       // Verify calculation
-      const expectedTotal = invoices.reduce((sum, inv) => sum + (inv.amount - inv.paidAmount), 0);
+      const expectedTotal = invoices.reduce((sum, inv) => sum + ((inv.amount ?? 0) - inv.paidAmount), 0);
       expect(totalOwed).toBe(expectedTotal);
     });
 
@@ -192,7 +192,7 @@ describe('cardInvoiceService', () => {
 
       const totalOwed = cardInvoiceService.calculateTotalOwed(invoices);
       const manualSum = invoices.reduce((sum, inv) => {
-        return sum + (inv.amount - inv.paidAmount);
+        return sum + ((inv.amount ?? 0) - inv.paidAmount);
       }, 0);
 
       expect(totalOwed).toBe(manualSum);
@@ -265,8 +265,8 @@ describe('cardInvoiceService', () => {
       const invoices = await cardInvoiceService.fetchCardInvoices({ cardId, months: 12 });
 
       for (let i = 0; i < invoices.length - 1; i++) {
-        const date1 = new Date(invoices[i].statementDate);
-        const date2 = new Date(invoices[i + 1].statementDate);
+        const date1 = new Date(invoices[i].statementDate as string);
+        const date2 = new Date(invoices[i + 1].statementDate as string);
         expect(date1.getTime()).toBeGreaterThanOrEqual(date2.getTime());
       }
     });

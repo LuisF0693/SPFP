@@ -27,9 +27,12 @@ describe('CategoryModal Integration Tests', () => {
     icon: '🛒'
   };
 
-  let mockUpdateCategory: ReturnType<typeof vi.fn>;
-  let mockOnCategoryUpdated: ReturnType<typeof vi.fn>;
-  let mockOnClose: ReturnType<typeof vi.fn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockUpdateCategory: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockOnCategoryUpdated: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockOnClose: any;
 
   beforeEach(() => {
     vi.clearAllMocks();

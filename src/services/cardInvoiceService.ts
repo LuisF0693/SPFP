@@ -336,7 +336,7 @@ export const cardInvoiceService = {
    */
   calculateTotalOwed: (invoices: CardInvoice[]): number => {
     return invoices.reduce((total, invoice) => {
-      return total + (invoice.amount - invoice.paidAmount);
+      return total + ((invoice.amount ?? invoice.totalAmount ?? 0) - invoice.paidAmount);
     }, 0);
   },
 

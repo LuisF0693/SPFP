@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Transaction, Account, Goal, Category, CategoryBudget } from '../types';
+import { Transaction, Account, Goal, Category } from '../types';
+
+// Local budget shape used in these tests
+interface LocalBudget {
+  category: string;
+  budgetAmount: number;
+  spent: number;
+}
 import { createMockTransaction, createMockAccount, createMockGoal, generators } from './test-utils';
 import { expectMoneyEqual, MockLocalStorage, installMockLocalStorage } from './test-helpers';
 
@@ -430,7 +437,7 @@ describe('Category Management', () => {
 });
 
 describe('Budget and Goal Management', () => {
-  let budgets: CategoryBudget[];
+  let budgets: LocalBudget[];
   let goals: Goal[];
 
   beforeEach(() => {

@@ -150,9 +150,9 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
 
       contexts.forEach(({ hook, provider, names }) => {
         const wrapper = ({ children }: any) => React.createElement(provider, { children });
-        const { result } = renderHook(hook, { wrapper });
+        const { result } = renderHook(hook as any, { wrapper });
         names.forEach(name => {
-          expect(typeof result.current[name as keyof any]).toBe('function');
+          expect(typeof (result.current as any)[name]).toBe('function');
         });
       });
     });
@@ -378,7 +378,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
     it('addCategory() works', () => {
       const wrapper = ({ children }: any) => React.createElement(AccountsProvider, { children });
       const { result } = renderHook(() => useAccounts(), { wrapper });
-      let catId: string;
+      let catId: string = '';
       act(() => {
         catId = result.current.addCategory({ name: 'New', color: '#FF0000', group: 'FIXED' });
       });
@@ -422,7 +422,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       expect(result.current.goals.length).toBe(initialLen + 1);
     });
@@ -438,7 +438,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       const goal = result.current.goals[0];
       const updated: Goal = { ...goal, currentAmount: 500 };
@@ -460,7 +460,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       const id = result.current.goals[0].id;
       act(() => {
@@ -484,7 +484,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 120,
           accountId: 'test'
-        });
+        } as any);
       });
       expect(result.current.investments.length).toBe(initialLen + 1);
     });
@@ -500,7 +500,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 120,
           accountId: 'test'
-        });
+        } as any);
       });
       const inv = result.current.investments[0];
       const updated: InvestmentAsset = { ...inv, currentPrice: 150 };
@@ -522,7 +522,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 100,
           accountId: 'test'
-        });
+        } as any);
       });
       const id = result.current.investments[0].id;
       act(() => {
@@ -541,7 +541,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -555,7 +555,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -575,7 +575,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -646,7 +646,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       const id = result.current.goals[0].id;
       act(() => {
@@ -666,7 +666,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       const id = result.current.goals[0].id;
       act(() => {
@@ -687,7 +687,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 100,
           accountId: 'test'
-        });
+        } as any);
       });
       const id = result.current.investments[0].id;
       act(() => {
@@ -707,7 +707,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 100,
           accountId: 'test'
-        });
+        } as any);
       });
       const id = result.current.investments[0].id;
       act(() => {
@@ -723,7 +723,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -741,7 +741,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -816,7 +816,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           currentAmount: 0,
           dueDate: new Date().toISOString(),
           category: 'SAVINGS'
-        });
+        } as any);
       });
       const stored = localStorage.getItem('visao360_v2_goals_test-user');
       expect(stored).toBeDefined();
@@ -833,7 +833,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
           costPrice: 100,
           currentPrice: 100,
           accountId: 'test'
-        });
+        } as any);
       });
       const stored = localStorage.getItem('visao360_v2_investments_test-user');
       expect(stored).toBeDefined();
@@ -845,7 +845,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       act(() => {
         result.current.addPatrimonyItem({
           name: 'Test',
-          type: 'PROPERTY',
+          type: 'REAL_ESTATE',
           value: 1000,
           description: 'Test'
         });
@@ -1343,7 +1343,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
 
       contexts.forEach(({ hook, provider, methods }) => {
         const wrapper = ({ children }: any) => React.createElement(provider, { children });
-        const { result } = renderHook(hook, { wrapper });
+        const { result } = renderHook(hook as any, { wrapper });
         methods.forEach(method => {
           expect(typeof result.current[method as keyof any]).toBe('function');
         });
@@ -1403,7 +1403,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       contexts.forEach(({ hook, provider }) => {
         expect(() => {
           const wrapper = ({ children }: any) => React.createElement(provider, { children });
-          renderHook(hook, { wrapper });
+          renderHook(hook as any, { wrapper });
         }).not.toThrow();
       });
     });

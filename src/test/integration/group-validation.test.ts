@@ -37,12 +37,12 @@ describe('STY-038: Transaction Group Validation', () => {
           id: 'tx-1',
           group_id: 'valid-group',
           user_id: testUserId
-        } as Transaction,
+        } as unknown as Transaction,
         {
           id: 'tx-2',
           group_id: 'invalid-group',
           user_id: testUserId
-        } as Transaction,
+        } as unknown as Transaction,
         {
           id: 'tx-3',
           group_id: null,
@@ -207,7 +207,7 @@ describe('STY-038: Transaction Group Validation', () => {
 
       // Should be sorted by group_index
       for (let i = 0; i < transactions.length - 1; i++) {
-        const idx1 = transactions[i].group_index || 0;
+        const idx1 = (transactions[i] as any).group_index || 0;
         const idx2 = transactions[i + 1].group_index || 0;
         expect(idx1).toBeLessThanOrEqual(idx2);
       }

@@ -34,8 +34,8 @@ const mockAccounts: Account[] = [
 ];
 
 const mockCategories: Category[] = [
-  { id: 'cat-1', name: 'Alimentação', icon: 'fork', color: '#ef4444' },
-  { id: 'cat-2', name: 'Transporte', icon: 'car', color: '#3b82f6' },
+  { id: 'cat-1', name: 'Alimentação', icon: 'fork', color: '#ef4444', group: 'VARIABLE' },
+  { id: 'cat-2', name: 'Transporte', icon: 'car', color: '#3b82f6', group: 'VARIABLE' },
 ];
 
 const validTransaction: Partial<Transaction> = {
@@ -92,7 +92,7 @@ describe('validationService', () => {
     it('should fail with invalid type', () => {
       type PartialTransactionWithInvalidType = Omit<typeof validTransaction, 'type'> & { type: string };
       const tx: PartialTransactionWithInvalidType = { ...validTransaction, type: 'INVALID' };
-      const result = validateRequiredFields(tx);
+      const result = validateRequiredFields(tx as any);
       expect(result).toContain('Tipo de transação inválido (INCOME ou EXPENSE)');
     });
 
