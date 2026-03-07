@@ -87,7 +87,7 @@ export const RevenueChart: React.FC<Props> = ({ revenues, view }) => {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} />
             <YAxis tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} axisLine={false} />
-            <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+            <Tooltip formatter={((v: number) => fmt(v)) as any} contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Line type="monotone" dataKey="stripe" name="Stripe" stroke={COLORS.stripe} strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="hotmart" name="Hotmart" stroke={COLORS.hotmart} strokeWidth={2} dot={false} />
@@ -97,7 +97,7 @@ export const RevenueChart: React.FC<Props> = ({ revenues, view }) => {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} />
             <YAxis tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} axisLine={false} />
-            <Tooltip formatter={(v: number) => fmt(v)} contentStyle={tooltipStyle} />
+            <Tooltip formatter={((v: number) => fmt(v)) as any} contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Bar dataKey="stripe" name="Stripe" fill={COLORS.stripe} radius={[4, 4, 0, 0]} />
             <Bar dataKey="hotmart" name="Hotmart" fill={COLORS.hotmart} radius={[4, 4, 0, 0]} />

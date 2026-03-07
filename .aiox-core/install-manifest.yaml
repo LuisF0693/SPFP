@@ -1,5 +1,5 @@
-version: 5.0.0
-installed_at: '2026-03-05T21:41:37.165Z'
+version: 5.0.3
+installed_at: '2026-03-07T01:40:23.717Z'
 install_type: full
 files:
   - core\code-intel-client.js
@@ -937,6 +937,7 @@ files:
   - data\learned-patterns.yaml
   - data\mcp-discipline.js
   - data\mcp-tool-examples.yaml
+  - data\registry-update-log.jsonl
   - data\csharp.md
   - data\go.md
   - data\java.md

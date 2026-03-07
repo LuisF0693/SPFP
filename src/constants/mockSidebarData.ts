@@ -3,7 +3,7 @@
  * Used for testing and development
  */
 
-import { ChefHat, Bus, Heart, ShoppingCart, Wifi, Gas, Clapperboard, UtensilsCrossed } from 'lucide-react';
+import { ChefHat, Bus, Heart, ShoppingCart, Wifi, Fuel, Clapperboard, UtensilsCrossed } from 'lucide-react';
 
 export interface MockBudgetCategory {
   id: string;

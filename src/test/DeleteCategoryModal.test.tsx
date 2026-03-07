@@ -463,7 +463,7 @@ describe('DeleteCategoryModal', () => {
         <DeleteCategoryModal
           isOpen={true}
           onClose={mockOnClose}
-          onConfirm={asyncOnConfirm}
+          onConfirm={asyncOnConfirm as any}
           category={mockCategory}
           transactionCount={0}
         />

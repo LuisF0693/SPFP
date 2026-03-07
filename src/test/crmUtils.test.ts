@@ -161,7 +161,7 @@ describe('calculateHealthScore', () => {
     it('should handle null content gracefully', () => {
       const clientWithNullContent = {
         ...mockClient,
-        content: null as Record<string, unknown>,
+        content: null as unknown as Record<string, unknown>,
       };
       const score = calculateHealthScore(clientWithNullContent);
       expect(score).toBe(100);

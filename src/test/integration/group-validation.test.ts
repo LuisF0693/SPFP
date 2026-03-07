@@ -47,7 +47,7 @@ describe('STY-038: Transaction Group Validation', () => {
           id: 'tx-3',
           group_id: null,
           user_id: testUserId
-        } as Transaction
+        } as unknown as Transaction
       ];
 
       const mockGroups = [{ id: 'valid-group' }];
@@ -208,7 +208,7 @@ describe('STY-038: Transaction Group Validation', () => {
       // Should be sorted by group_index
       for (let i = 0; i < transactions.length - 1; i++) {
         const idx1 = (transactions[i] as any).group_index || 0;
-        const idx2 = transactions[i + 1].group_index || 0;
+        const idx2 = (transactions[i + 1] as any).group_index || 0;
         expect(idx1).toBeLessThanOrEqual(idx2);
       }
     });

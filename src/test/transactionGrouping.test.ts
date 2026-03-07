@@ -314,7 +314,7 @@ describe('Transaction Grouping and Recurring', () => {
 
       const updated = group.map(t => ({ ...t, categoryId: 'NEW' }));
 
-      expect(updated.every(t => t.category === 'NEW')).toBe(true);
+      expect(updated.every(t => t.categoryId === 'NEW')).toBe(true);
       expect(updated.every(t => t.groupId === groupId)).toBe(true);
     });
 

@@ -297,7 +297,7 @@ describe('Keyboard Navigation', () => {
     );
     const input = screen.getByRole('textbox', { name: /test input/i });
     await user.tab();
-    expect(input).toBeFocused();
+    expect(input).toHaveFocus();
   });
 
   it('FormField input has visible focus indicator', () => {

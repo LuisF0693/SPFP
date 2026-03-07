@@ -407,7 +407,7 @@ describe('Soft Delete - Cross-entity Scenarios', () => {
     let goalList = [{ ...goals[0], deletedAt: now }];
 
     // Recover only transactions
-    txList = txList.map(t => ({ ...t, deletedAt: undefined }));
+    txList = txList.map(t => ({ ...t, deletedAt: undefined })) as any;
 
     const activeTx = txList.filter(t => !t.deletedAt);
     const activeAcc = accList.filter(a => !a.deletedAt);

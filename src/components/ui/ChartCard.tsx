@@ -5,6 +5,7 @@ export type PeriodFilter = '1S' | '1M' | '3M' | '6M' | '1A' | 'ALL';
 export interface ChartCardProps {
   title: string;
   subtitle?: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   filters?: PeriodFilter[];
   defaultFilter?: PeriodFilter;

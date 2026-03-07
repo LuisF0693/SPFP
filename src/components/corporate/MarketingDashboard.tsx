@@ -286,7 +286,7 @@ export function MarketingDashboard() {
 
   const daysInMonth = getDaysInMonth(currentDate);
   const firstDay = getFirstDayOfMonth(currentDate);
-  const days: (number | null)[] = [...Array(firstDay).fill(null), ...Array(daysInMonth).keys().map(i => i + 1)];
+  const days: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from(Array(daysInMonth).keys()).map(i => i + 1)];
 
   const getPostsForDate = (day: number | null): MarketingPost[] => {
     if (!day) return [];

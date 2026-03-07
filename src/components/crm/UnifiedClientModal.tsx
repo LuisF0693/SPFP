@@ -40,7 +40,7 @@ export const UnifiedClientModal: React.FC<UnifiedClientModalProps> = ({
   const accounts = clientEntry?.content?.accounts || [];
   const transactions = clientEntry?.content?.transactions || [];
   const healthScore = clientEntry ? calculateHealthScore(clientEntry) : 0;
-  const patrimony = accounts.reduce((sum, acc: any) => sum + (acc.balance || 0), 0);
+  const patrimony = accounts.reduce((sum: number, acc: any) => sum + (acc.balance || 0), 0);
 
   // Tentar encontrar o Cliente CRM correspondente por userId
   useEffect(() => {

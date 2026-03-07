@@ -19,7 +19,7 @@ describe('ErrorRecoveryService', () => {
   describe('captureContext', () => {
     it('should capture error context with all details', () => {
       const error = new Error('Test error');
-      error.code = 'ECONNREFUSED';
+      (error as any).code = 'ECONNREFUSED';
 
       const context = errorRecovery.captureContext(error, 'Test Action', {
         userId: 'user123',

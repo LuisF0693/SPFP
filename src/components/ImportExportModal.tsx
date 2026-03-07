@@ -375,7 +375,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({ isOpen, on
                             </button>
 
                             <button
-                                onClick={() => generatePDFReport(transactions, categories, 'Mês Atual')}
+                                onClick={() => generatePDFReport(transactions, categories, 'Mês Atual', { totalIncome: 0, totalExpense: 0, balance: 0 } as any)}
                                 aria-label="Gerar relatório em PDF"
                                 className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all flex items-center gap-4 group"
                             >

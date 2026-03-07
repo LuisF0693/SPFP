@@ -74,7 +74,7 @@ export const GoalsAdvanced: React.FC = () => {
       deadline: suggestion.deadline,
       color: suggestion.color,
       icon: suggestion.icon,
-      status: 'ACTIVE' as const,
+      status: 'IN_PROGRESS' as const,
     };
     addGoal(newGoal);
     setShowSuggestions(false);
@@ -82,7 +82,7 @@ export const GoalsAdvanced: React.FC = () => {
 
   // Handle goal update from carousel
   const handleUpdateGoal = (id: string, updates: Partial<Goal>) => {
-    updateGoal(id, updates);
+    updateGoal({ id, ...updates } as Goal);
   };
 
   return (

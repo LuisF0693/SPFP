@@ -2,6 +2,10 @@
 
 Este arquivo define as instrucoes do projeto para o Codex CLI.
 
+
+
+
+
 <!-- AIOX-MANAGED-START: core -->
 ## Core Rules
 
