@@ -32,19 +32,17 @@ describe('STY-035: Sync Error Recovery', () => {
       expect(status.isOnline).toBe(true);
     });
 
-    it('should notify listeners when status changes', (done) => {
+    it('should notify listeners when status changes', async () => {
       const statuses: SyncState[] = [];
 
-      const unsubscribe = syncService.onStatusChange((status) => {
+      const unsubscribe: () => void = syncService.onStatusChange((status) => {
         statuses.push(status);
       });
 
       // Simulate sync operation (status changes)
-      setTimeout(() => {
-        unsubscribe();
-        expect(statuses.length).toBeGreaterThan(0);
-        done();
-      }, 100);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      unsubscribe();
+      expect(statuses.length).toBeGreaterThan(0);
     });
 
     it('should update pending count when operations queued', async () => {

@@ -18,6 +18,8 @@ import {
 interface Props {
   /** Callback chamado quando uma imagem é exportada com sucesso */
   onImageGenerated?: (url: string) => void;
+  contentTitle?: string;
+  contentCaption?: string;
 }
 
 const CanvaConnect: React.FC<Props> = ({ onImageGenerated }) => {

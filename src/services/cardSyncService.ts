@@ -77,10 +77,11 @@ const convertInstallmentsToTransactions = (
         id: generateId(),
         date: installment.dueDate,
         description: `Fatura ${invoice.invoiceNumber} - Parcela ${installment.installmentNumber}/${installment.totalInstallments}`,
+        value: installment.amount,
+        type: 'EXPENSE' as const,
         amount: installment.amount,
         categoryId,
         accountId: creditCardAccountId,
-        confirmed: invoice.status === 'paid',
         source: 'credit_card' as const,
         externalId, // For deduplication
         groupId, // Link all installments

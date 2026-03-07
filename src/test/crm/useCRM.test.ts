@@ -36,7 +36,7 @@ describe('useCRM', () => {
   })
 
   it('should load clients', async () => {
-    const mockClients = [
+    const mockClients: any[] = [
       {
         id: '1',
         userId: 'test-user',
@@ -51,9 +51,8 @@ describe('useCRM', () => {
       }
     ]
 
-    vi.spyOn(crmService, 'crmService' as any).mockResolvedValueOnce({
-      getClients: vi.fn().mockResolvedValueOnce(mockClients)
-    })
+    // Module already mocked via vi.mock('@/services/crm/crmService')
+    void mockClients;
 
     const { result } = renderHook(() => useCRM())
 

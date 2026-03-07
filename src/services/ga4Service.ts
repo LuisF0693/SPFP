@@ -387,10 +387,7 @@ export const ga4Service = {
   setUserProperties: (properties: Record<string, string | number>) => {
     if (!window.gtag) return;
 
-    window.gtag('config', {
-      user_id: undefined, // Don't set User-ID unless explicitly provided
-      custom_map: properties,
-    });
+    window.gtag('set', 'user_properties', properties);
   },
 
   /**

@@ -149,7 +149,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       ];
 
       contexts.forEach(({ hook, provider, names }) => {
-        const wrapper = ({ children }: any) => React.createElement(provider, { children });
+        const wrapper = ({ children }: any) => React.createElement(provider as any, { children });
         const { result } = renderHook(hook as any, { wrapper });
         names.forEach(name => {
           expect(typeof (result.current as any)[name]).toBe('function');
@@ -1342,10 +1342,10 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
       ];
 
       contexts.forEach(({ hook, provider, methods }) => {
-        const wrapper = ({ children }: any) => React.createElement(provider, { children });
+        const wrapper = ({ children }: any) => React.createElement(provider as any, { children });
         const { result } = renderHook(hook as any, { wrapper });
         methods.forEach(method => {
-          expect(typeof result.current[method as keyof any]).toBe('function');
+          expect(typeof (result.current as any)[method]).toBe('function');
         });
       });
     });
@@ -1402,7 +1402,7 @@ describe('STY-010: Finance Context Split - 70+ Comprehensive Tests', () => {
 
       contexts.forEach(({ hook, provider }) => {
         expect(() => {
-          const wrapper = ({ children }: any) => React.createElement(provider, { children });
+          const wrapper = ({ children }: any) => React.createElement(provider as any, { children });
           renderHook(hook as any, { wrapper });
         }).not.toThrow();
       });

@@ -87,7 +87,7 @@ export const GoalLinkingModal: React.FC<GoalLinkingModalProps> = ({
             <div className="text-right">
               <p className="text-xs text-[#92a4c9] uppercase tracking-wider mb-1">Valor</p>
               <p className="text-xl font-bold text-emerald-400">
-                {formatCurrency(investmentValue, investment.currency)}
+                {formatCurrency(investmentValue)}
               </p>
             </div>
           </div>

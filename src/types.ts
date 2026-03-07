@@ -126,6 +126,8 @@ export interface Transaction {
   // Extended fields for credit card sync
   externalId?: string; // External reference ID (e.g., credit card transaction ID)
   amount?: number; // Alternative amount field (some services use amount instead of value)
+  source?: string; // Source of the transaction (e.g., 'credit_card', 'manual')
+  notes?: string; // Free-text notes for the transaction
   // Extended fields for validation service
   recurrence?: string; // Recurrence pattern (e.g., 'monthly', 'weekly')
   installments?: number; // Number of installments

@@ -75,7 +75,7 @@ export const InvestmentPortfolioSimple: React.FC = () => {
     if (!formData || !formData.name) return;
 
     if (editingId) {
-      updateInvestment(formData as InvestmentAsset);
+      updateInvestment(formData as any);
     } else {
       const now = new Date().toISOString();
       addInvestment({
@@ -89,7 +89,7 @@ export const InvestmentPortfolioSimple: React.FC = () => {
         dateAdded: now,
         lastUpdated: now,
         notes: formData.notes
-      });
+      } as any);
     }
 
     setShowForm(false);
