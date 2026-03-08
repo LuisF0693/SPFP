@@ -716,6 +716,13 @@ const DEFAULT_TASKS_BY_BOARD: Record<string, DefaultTask[]> = {
       assignee_name: 'Luis',
     },
     {
+      title: '⚠️ PENDENTE — Escrever e configurar sequência de 7 emails no MailerLite',
+      description: 'Configurar automação completa pós-consulta no MailerLite.\n\nTrigger: tag CONSULTA_REALIZADA (Luis adiciona manualmente após cada consulta)\n\nEmails a escrever:\n- D+1: Resumo personalizado da consulta (Luis preenche 3 pontos manualmente)\n- D+3: Case real "Rafael" — R$890/mês em assinaturas descobertas\n- D+5: Finn vs apps gratuitos (quebrar objeção "já usei app")\n- D+7: ROI — R$99 vs R$300-600 descobertos (quebrar objeção preço)\n- D+10: Vagas abertas — urgência real (não inventar escassez)\n- D+14: Último contato — saída limpa\n- D+30: Reengajamento com novidade real\n\nComo configurar:\n1. MailerLite → Automations → Create automation\n2. Trigger: "Subscriber is assigned a tag" → CONSULTA_REALIZADA\n3. Adicionar cada email com delay correto\n4. Publicar automação\n\nReferência completa: docs/marketing/SEQUENCIA-EMAIL-NURTURING.md',
+      priority: 'URGENT',
+      tags: ['email', 'pendente', 'nurturing', 'automação'],
+      assignee_name: 'Luis',
+    },
+    {
       title: '✅ Testar e publicar automação completa',
       description: 'Antes de ligar para o público:\n1. Testar sequência pós-consulta com email de teste (Luis → Luis)\n2. Verificar delay de dias (D+1, D+3, D+5, D+7, D+10, D+14, D+30)\n3. Verificar todos os links em todos os emails\n4. Testar integração Calendly → MailerLite (agendar consulta teste)\n5. Publicar automação — status: ACTIVE\n\nMétricas meta: Abertura >40% | Clique >5% | Conversão >15%',
       priority: 'URGENT',
