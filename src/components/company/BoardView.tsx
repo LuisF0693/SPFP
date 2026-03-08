@@ -9,6 +9,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
@@ -43,6 +44,18 @@ const PRIORITY_FILTERS: { value: TaskPriority | 'ALL'; label: string }[] = [
   { value: 'MEDIUM', label: '🟡 Média' },
   { value: 'LOW',    label: '🟢 Baixa' },
 ];
+
+const DroppableColumn: React.FC<{ id: TaskStatus; children: React.ReactNode }> = ({ id, children }) => {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex-1 px-2 pb-2 space-y-2 min-h-[60px] rounded-xl transition-colors ${isOver ? 'bg-white/5' : ''}`}
+    >
+      {children}
+    </div>
+  );
+};
 
 interface BoardViewProps {
   board: CompanyBoard;
@@ -268,12 +281,9 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
 
                     {/* Tasks */}
                     <SortableContext items={colTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-                      <div className="flex-1 px-2 pb-2 space-y-2 min-h-[60px]">
+                      <DroppableColumn id={col.id}>
                         {colTasks.length === 0 ? (
-                          <div
-                            id={col.id}
-                            className="flex items-center justify-center py-6 text-gray-700 text-xs border-2 border-dashed border-white/5 rounded-xl cursor-default"
-                          >
+                          <div className="flex items-center justify-center py-6 text-gray-700 text-xs border-2 border-dashed border-white/5 rounded-xl cursor-default">
                             Solte aqui
                           </div>
                         ) : (
@@ -285,7 +295,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
                             />
                           ))
                         )}
-                      </div>
+                      </DroppableColumn>
                     </SortableContext>
 
                     {/* Add task button at bottom */}
