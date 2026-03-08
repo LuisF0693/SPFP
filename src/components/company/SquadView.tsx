@@ -5,6 +5,7 @@ import { CompanySquad, CompanyBoard } from '../../types/company';
 import { BoardForm } from './forms/BoardForm';
 import { BoardView } from './BoardView';
 import { MarketingHub } from './marketing/MarketingHub';
+import { MarketingProvider } from '../../context/MarketingContext';
 
 interface SquadViewProps {
   squad: CompanySquad;
@@ -35,6 +36,7 @@ export const SquadView: React.FC<SquadViewProps> = ({ squad, onEditSquad }) => {
   // Marketing squad: toggle entre Marketing Hub e Boards & Tasks
   if (squad.name === 'Marketing') {
     return (
+      <MarketingProvider>
       <div className="flex flex-col h-full">
         {/* Toggle Hub / Boards */}
         <div className="flex items-center gap-2 px-6 pt-5 pb-0 border-b border-white/5">
@@ -95,6 +97,7 @@ export const SquadView: React.FC<SquadViewProps> = ({ squad, onEditSquad }) => {
           />
         )}
       </div>
+      </MarketingProvider>
     );
   }
 

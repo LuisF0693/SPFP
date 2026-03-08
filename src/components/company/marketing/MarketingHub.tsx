@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Loader2, LayoutGrid, Calendar, List, Settings2, Filter, Search } from 'lucide-react';
-import { MarketingProvider, useMarketing, MarketingContent } from '../../../context/MarketingContext';
+import { useMarketing, MarketingContent } from '../../../context/MarketingContext';
 import { ContentCard } from './ContentCard';
 import { ContentForm } from './ContentForm';
 import { ContentCalendar } from './ContentCalendar';
@@ -19,7 +19,9 @@ const STATUS_TABS = [
 ];
 
 const MarketingHubInner: React.FC = () => {
-  const { contents, loading, loadContents, addContent, updateContent, deleteContent } = useMarketing();
+  const marketing = useMarketing();
+  if (!marketing) return null;
+  const { contents, loading, loadContents, addContent, updateContent, deleteContent } = marketing;
   const [activeTab, setActiveTab] = useState<Tab>('biblioteca');
   const [showForm, setShowForm] = useState(false);
   const [editingContent, setEditingContent] = useState<MarketingContent | null>(null);
@@ -177,8 +179,4 @@ const MarketingHubInner: React.FC = () => {
   );
 };
 
-export const MarketingHub: React.FC = () => (
-  <MarketingProvider>
-    <MarketingHubInner />
-  </MarketingProvider>
-);
+export const MarketingHub: React.FC = () => <MarketingHubInner />;

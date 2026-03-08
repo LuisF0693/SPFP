@@ -7,23 +7,27 @@ const PLATFORM_ICONS: Record<string, React.FC<{ size?: number; className?: strin
 };
 
 export const PublishQueue: React.FC<{ onSelectContent: (c: MarketingContent) => void }> = ({ onSelectContent }) => {
-  const { contents, updateContent } = useMarketing();
+  const marketing = useMarketing();
+  const contents = marketing?.contents ?? [];
+  const updateContent = marketing?.updateContent;
   const [publishing, setPublishing] = useState<string | null>(null);
 
   const queueItems = contents.filter((c) => c.status === 'ready' || c.status === 'scheduled');
 
   const handleApprove = async (content: MarketingContent) => {
+    if (!updateContent) return;
     await updateContent(content.id, { status: 'scheduled' });
   };
 
   const handlePublishNow = async (content: MarketingContent) => {
+    if (!updateContent) return;
     setPublishing(content.id);
     try {
       // Chama publishService — integração real nas Stories 11.3/11.4
       await updateContent(content.id, { status: 'publishing' });
       // Simulação: em produção, chamar supabase.functions.invoke('publish-meta', ...)
       setTimeout(async () => {
-        await updateContent(content.id, { status: 'published', published_at: new Date().toISOString() });
+        await updateContent!(content.id, { status: 'published', published_at: new Date().toISOString() });
         setPublishing(null);
       }, 2000);
     } catch (err) {

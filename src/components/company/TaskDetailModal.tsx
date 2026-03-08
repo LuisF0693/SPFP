@@ -4,6 +4,8 @@ import { CompanyTask } from '../../types/company';
 import { PRIORITY_CONFIG } from './TaskCard';
 import { TaskForm } from './forms/TaskForm';
 import { useCompany } from '../../context/CompanyContext';
+import { useMarketing } from '../../context/MarketingContext';
+import { parseCalendarTask } from '../../utils/calendarContentParser';
 
 interface TaskDetailModalProps {
   task: CompanyTask;
@@ -11,7 +13,8 @@ interface TaskDetailModalProps {
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
-  const { updateTask, deleteTask } = useCompany();
+  const { updateTask, deleteTask, boards } = useCompany();
+  const marketing = useMarketing();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -24,6 +27,25 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose 
 
   const handleUpdateSubmit = async (data: Omit<CompanyTask, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     await updateTask(task.id, data);
+
+    // Sync → Marketing Hub quando task entra em IN_PROGRESS no Calendário 90 Dias
+    if (marketing && data.status === 'IN_PROGRESS' && task.status !== 'IN_PROGRESS') {
+      const board = boards.find((b) => b.id === task.board_id);
+      if (board?.name === 'Calendário 90 Dias') {
+        const alreadyExists = marketing.contents.find(
+          (c) => c.created_by_agent === `task:${task.id}`
+        );
+        if (!alreadyExists) {
+          try {
+            const updatedTask = { ...task, ...data };
+            await marketing.addContent(parseCalendarTask(updatedTask));
+          } catch (err) {
+            console.error('[TaskDetailModal] Sync → MarketingHub falhou:', err);
+          }
+        }
+      }
+    }
+
     setEditing(false);
   };
 

@@ -25,7 +25,8 @@ interface ContentFormProps {
 }
 
 export const ContentForm: React.FC<ContentFormProps> = ({ initial, onSubmit, onClose }) => {
-  const { uploadMedia } = useMarketing();
+  const marketing = useMarketing();
+  const uploadMedia = marketing?.uploadMedia;
   const [title, setTitle] = useState(initial?.title || '');
   const [contentType, setContentType] = useState<ContentType>(initial?.content_type || 'post');
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initial?.platform || ['instagram']);
@@ -50,7 +51,7 @@ export const ContentForm: React.FC<ContentFormProps> = ({ initial, onSubmit, onC
     setUploading(true);
     try {
       // Use a temp ID for upload before actual content is created
-      const url = await uploadMedia(file, `temp-${Date.now()}`);
+      const url = uploadMedia ? await uploadMedia(file, `temp-${Date.now()}`) : '';
       setMediaUrls((prev) => [...prev, url]);
     } catch {
       // Fallback to local preview

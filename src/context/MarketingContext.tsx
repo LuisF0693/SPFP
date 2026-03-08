@@ -138,9 +138,7 @@ interface MarketingContextValue {
 const MarketingContext = createContext<MarketingContextValue | null>(null);
 
 export const useMarketing = () => {
-  const ctx = useContext(MarketingContext);
-  if (!ctx) throw new Error('useMarketing must be used inside MarketingProvider');
-  return ctx;
+  return useContext(MarketingContext); // retorna null quando fora do MarketingProvider
 };
 
 export const MarketingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

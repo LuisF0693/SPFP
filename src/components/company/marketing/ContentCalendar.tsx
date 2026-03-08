@@ -12,7 +12,8 @@ const PLATFORM_ICONS: Record<string, React.FC<{ size?: number; className?: strin
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 export const ContentCalendar: React.FC<{ onSelectContent: (c: MarketingContent) => void }> = ({ onSelectContent }) => {
-  const { contents } = useMarketing();
+  const marketing = useMarketing();
+  const contents = marketing?.contents ?? [];
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const { year, month } = { year: currentDate.getFullYear(), month: currentDate.getMonth() };

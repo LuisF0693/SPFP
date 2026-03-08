@@ -14,6 +14,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { createPortal } from 'react-dom';
 import { ArrowLeft, Plus, Filter, Loader2 } from 'lucide-react';
 import { useCompany } from '../../context/CompanyContext';
+import { useMarketing } from '../../context/MarketingContext';
+import { parseCalendarTask } from '../../utils/calendarContentParser';
 import { CompanyBoard, CompanyTask, TaskStatus, TaskPriority } from '../../types/company';
 import { TaskCard, PRIORITY_CONFIG } from './TaskCard';
 import { TaskDetailModal } from './TaskDetailModal';
@@ -49,6 +51,7 @@ interface BoardViewProps {
 
 export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
   const { tasks, tasksLoading, loadTasks, addTask, updateTask } = useCompany();
+  const marketing = useMarketing();
   const [selectedTask, setSelectedTask] = useState<CompanyTask | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [defaultFormStatus, setDefaultFormStatus] = useState<TaskStatus>('TODO');
@@ -120,6 +123,20 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack }) => {
 
     // Optimistic update
     await updateTask(taskId, { status: newStatus });
+
+    // Sync → Marketing Hub quando task entra em IN_PROGRESS no Calendário 90 Dias
+    if (marketing && board.name === 'Calendário 90 Dias' && newStatus === 'IN_PROGRESS') {
+      const alreadyExists = marketing.contents.find(
+        (c) => c.created_by_agent === `task:${task.id}`
+      );
+      if (!alreadyExists) {
+        try {
+          await marketing.addContent(parseCalendarTask(task));
+        } catch (err) {
+          console.error('[BoardView] Sync → MarketingHub falhou:', err);
+        }
+      }
+    }
   };
 
   const handleAddTask = (columnId: TaskStatus) => {
