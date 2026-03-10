@@ -40,6 +40,7 @@ const GoalsAdvanced = React.lazy(() => import('./components/goals/index').then(m
 const RetirementAdvanced = React.lazy(() => import('./components/retirement/index').then(m => ({ default: m.RetirementAdvanced })));
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
 const AutomationDashboard = React.lazy(() => import('./components/automation').then(m => ({ default: m.AutomationDashboard })));
+const AutomationHub = React.lazy(() => import('./components/AutomationHub'));
 const CheckoutSuccess = React.lazy(() => import('./components/pages/CheckoutSuccess').then(m => ({ default: m.CheckoutSuccess })));
 const CheckoutCancel = React.lazy(() => import('./components/pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
 const CanvaOAuthCallback = React.lazy(() => import('./components/CanvaOAuthCallback'));
@@ -291,6 +292,13 @@ const AppContent: React.FC = () => {
               <AutomationDashboard />
             </Layout>
           </PrivateRoute>
+        } />
+        <Route path="/hub" element={
+          <AdminRoute>
+            <Layout mode="crm">
+              <AutomationHub />
+            </Layout>
+          </AdminRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
