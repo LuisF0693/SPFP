@@ -14,6 +14,30 @@ import {
   handleDealWon,
   handleNewTicket,
 } from './handlers/pipeline.mjs';
+import {
+  handleOnboardingCreated,
+  handleOnboardingProgress,
+  handleRetencaoHealthCheck,
+  handleRetencaoRisk,
+} from './handlers/cs.mjs';
+import {
+  handleOpsQATask,
+  handleOpsQAApproved,
+  handleAutomationRequest,
+  handleProcessMappingTask,
+} from './handlers/ops.mjs';
+import {
+  handleNewFeatureRequest,
+  handleFeatureInDev,
+  handleBugReport,
+  handleFeatureReview,
+} from './handlers/products.mjs';
+import {
+  handleFinancialTask,
+  handleFinancialDueDate,
+  handleHRRecruitment,
+  handleHROnboarding,
+} from './handlers/admin.mjs';
 
 const app = express();
 
@@ -128,6 +152,165 @@ async function routeEvent({ event, task_id, history_items }) {
       logEvent({ type: 'new_ticket', taskId: task_id, listId, agent: 'CS_SUPORTE', result: 'Triagem N1 realizada — ticket classificado' });
     } catch (err) {
       logEvent({ type: 'new_ticket', taskId: task_id, listId, agent: 'CS_SUPORTE', error: err.message });
+    }
+    return;
+  }
+
+  // ── CS Onboarding ─────────────────────────────────────────────────────────
+  if (listId === CLICKUP.LISTS.CS_ONBOARDING) {
+    if (event === 'taskCreated') {
+      try {
+        await handleOnboardingCreated(task_id);
+        logEvent({ type: 'onboarding_created', taskId: task_id, listId, agent: 'CS_ONBOARDING', result: 'Plano de ativação gerado' });
+      } catch (err) {
+        logEvent({ type: 'onboarding_created', taskId: task_id, listId, agent: 'CS_ONBOARDING', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated') {
+      try {
+        await handleOnboardingProgress(task_id, newStatus);
+        logEvent({ type: 'onboarding_progress', taskId: task_id, listId, agent: 'CS_ONBOARDING', result: `Status: ${newStatus}` });
+      } catch (err) {
+        logEvent({ type: 'onboarding_progress', taskId: task_id, listId, agent: 'CS_ONBOARDING', error: err.message });
+      }
+    }
+    return;
+  }
+
+  // ── CS Retenção ───────────────────────────────────────────────────────────
+  if (listId === CLICKUP.LISTS.CS_RETENCAO) {
+    if (event === 'taskCreated') {
+      try {
+        await handleRetencaoHealthCheck(task_id);
+        logEvent({ type: 'retencao_health', taskId: task_id, listId, agent: 'CS_RETENCAO', result: 'Health check realizado' });
+      } catch (err) {
+        logEvent({ type: 'retencao_health', taskId: task_id, listId, agent: 'CS_RETENCAO', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated' && ['risco', 'churn', 'cancelamento'].some(s => newStatus.includes(s))) {
+      try {
+        await handleRetencaoRisk(task_id, newStatus);
+        logEvent({ type: 'retencao_risk', taskId: task_id, listId, agent: 'CS_RETENCAO', result: 'Plano de resgate gerado' });
+      } catch (err) {
+        logEvent({ type: 'retencao_risk', taskId: task_id, listId, agent: 'CS_RETENCAO', error: err.message });
+      }
+    }
+    return;
+  }
+
+  // ── OPS QA ────────────────────────────────────────────────────────────────
+  if (listId === CLICKUP.LISTS.OPS_QA) {
+    if (event === 'taskCreated') {
+      try {
+        await handleOpsQATask(task_id);
+        logEvent({ type: 'ops_qa', taskId: task_id, listId, agent: 'OPS_ARCHITECT', result: 'Critérios de QA definidos' });
+      } catch (err) {
+        logEvent({ type: 'ops_qa', taskId: task_id, listId, agent: 'OPS_ARCHITECT', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated' && ['aprovado', 'approved'].includes(newStatus)) {
+      try {
+        await handleOpsQAApproved(task_id);
+        logEvent({ type: 'ops_qa_approved', taskId: task_id, listId, agent: 'OPS_ARCHITECT', result: 'Processo aprovado' });
+      } catch (err) {
+        logEvent({ type: 'ops_qa_approved', taskId: task_id, listId, agent: 'OPS_ARCHITECT', error: err.message });
+      }
+    }
+    return;
+  }
+
+  // ── OPS Automações (list ID pendente) ─────────────────────────────────────
+  if (CLICKUP.LISTS.OPS_AUTOMACOES !== 'TODO' && listId === CLICKUP.LISTS.OPS_AUTOMACOES && event === 'taskCreated') {
+    try {
+      await handleAutomationRequest(task_id);
+      logEvent({ type: 'ops_automation', taskId: task_id, listId, agent: 'OPS_AUTOMATION', result: 'Spec de automação gerada' });
+    } catch (err) {
+      logEvent({ type: 'ops_automation', taskId: task_id, listId, agent: 'OPS_AUTOMATION', error: err.message });
+    }
+    return;
+  }
+
+  // ── OPS Processos (list ID pendente) ──────────────────────────────────────
+  if (CLICKUP.LISTS.OPS_PROCESSOS !== 'TODO' && listId === CLICKUP.LISTS.OPS_PROCESSOS && event === 'taskCreated') {
+    try {
+      await handleProcessMappingTask(task_id);
+      logEvent({ type: 'ops_process', taskId: task_id, listId, agent: 'OPS_ARCHITECT', result: 'Mapeamento de processo gerado' });
+    } catch (err) {
+      logEvent({ type: 'ops_process', taskId: task_id, listId, agent: 'OPS_ARCHITECT', error: err.message });
+    }
+    return;
+  }
+
+  // ── Produtos Backlog (list ID pendente) ───────────────────────────────────
+  if (CLICKUP.LISTS.PRODUTOS_BACKLOG !== 'TODO' && listId === CLICKUP.LISTS.PRODUTOS_BACKLOG) {
+    if (event === 'taskCreated') {
+      try {
+        await handleNewFeatureRequest(task_id);
+        logEvent({ type: 'product_feature', taskId: task_id, listId, agent: 'PRODUTOS_PM', result: 'Feature analisada e priorizada' });
+      } catch (err) {
+        logEvent({ type: 'product_feature', taskId: task_id, listId, agent: 'PRODUTOS_PM', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated' && newStatus.includes('desenvolvimento')) {
+      try {
+        await handleFeatureInDev(task_id);
+        logEvent({ type: 'product_in_dev', taskId: task_id, listId, agent: 'PRODUTOS_QA', result: 'Plano de testes gerado' });
+      } catch (err) {
+        logEvent({ type: 'product_in_dev', taskId: task_id, listId, agent: 'PRODUTOS_QA', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated' && ['review', 'revisão'].some(s => newStatus.includes(s))) {
+      try {
+        await handleFeatureReview(task_id);
+        logEvent({ type: 'product_review', taskId: task_id, listId, agent: 'PRODUTOS_QA', result: 'Review final realizado' });
+      } catch (err) {
+        logEvent({ type: 'product_review', taskId: task_id, listId, agent: 'PRODUTOS_QA', error: err.message });
+      }
+    }
+    return;
+  }
+
+  // ── Produtos Bugs (list ID pendente) ──────────────────────────────────────
+  if (CLICKUP.LISTS.PRODUTOS_BUGS !== 'TODO' && listId === CLICKUP.LISTS.PRODUTOS_BUGS && event === 'taskCreated') {
+    try {
+      await handleBugReport(task_id);
+      logEvent({ type: 'product_bug', taskId: task_id, listId, agent: 'PRODUTOS_PM', result: 'Bug triado por PM + QA' });
+    } catch (err) {
+      logEvent({ type: 'product_bug', taskId: task_id, listId, agent: 'PRODUTOS_PM', error: err.message });
+    }
+    return;
+  }
+
+  // ── Admin Financeiro (list ID pendente) ───────────────────────────────────
+  if (CLICKUP.LISTS.ADMIN_FINANCEIRO !== 'TODO' && listId === CLICKUP.LISTS.ADMIN_FINANCEIRO) {
+    if (event === 'taskCreated') {
+      try {
+        await handleFinancialTask(task_id);
+        logEvent({ type: 'admin_finance', taskId: task_id, listId, agent: 'ADMIN_FINANCEIRO', result: 'Análise financeira gerada' });
+      } catch (err) {
+        logEvent({ type: 'admin_finance', taskId: task_id, listId, agent: 'ADMIN_FINANCEIRO', error: err.message });
+      }
+    } else if (event === 'taskStatusUpdated' && newStatus.includes('vencendo')) {
+      try {
+        await handleFinancialDueDate(task_id);
+        logEvent({ type: 'admin_finance_due', taskId: task_id, listId, agent: 'ADMIN_FINANCEIRO', result: 'Alerta de vencimento gerado' });
+      } catch (err) {
+        logEvent({ type: 'admin_finance_due', taskId: task_id, listId, agent: 'ADMIN_FINANCEIRO', error: err.message });
+      }
+    }
+    return;
+  }
+
+  // ── Admin RH (list ID pendente) ───────────────────────────────────────────
+  if (CLICKUP.LISTS.ADMIN_RH !== 'TODO' && listId === CLICKUP.LISTS.ADMIN_RH) {
+    if (event === 'taskCreated') {
+      const isOnboarding = task_id && newStatus.includes('onboard');
+      try {
+        if (isOnboarding) {
+          await handleHROnboarding(task_id);
+          logEvent({ type: 'admin_hr_onboarding', taskId: task_id, listId, agent: 'ADMIN_RH', result: 'Plano de onboarding interno gerado' });
+        } else {
+          await handleHRRecruitment(task_id);
+          logEvent({ type: 'admin_hr_recruitment', taskId: task_id, listId, agent: 'ADMIN_RH', result: 'Briefing de recrutamento gerado' });
+        }
+      } catch (err) {
+        logEvent({ type: 'admin_hr', taskId: task_id, listId, agent: 'ADMIN_RH', error: err.message });
+      }
     }
     return;
   }

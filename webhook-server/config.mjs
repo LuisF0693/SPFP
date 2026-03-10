@@ -4,15 +4,28 @@ export const CLICKUP = {
   API_TOKEN: process.env.CLICKUP_API_TOKEN,
   WEBHOOK_SECRET: process.env.CLICKUP_WEBHOOK_SECRET,
 
-  // List IDs
+  // List IDs — atualize os que estão como 'TODO' com os IDs reais do ClickUp
   LISTS: {
-    EDITORIAL:      '901326289280',
-    PIPELINE_SDR:   '901326289260',
-    PIPELINE_CLOSER:'901326289267',
-    CS_ONBOARDING:  '901326289234',
-    CS_SUPORTE:     '901326289240',
-    CS_RETENCAO:    '901326289246',
-    OPS_QA:         '901326289395',
+    // Vendas
+    PIPELINE_SDR:     '901326289260',
+    PIPELINE_CLOSER:  '901326289267',
+    // CS
+    CS_ONBOARDING:    '901326289234',
+    CS_SUPORTE:       '901326289240',
+    CS_RETENCAO:      '901326289246',
+    // Marketing
+    EDITORIAL:        '901326289280',
+    MARKETING_SOCIAL: 'TODO', // pegar ID no ClickUp
+    // Produtos
+    PRODUTOS_BACKLOG: 'TODO', // pegar ID no ClickUp
+    PRODUTOS_BUGS:    'TODO', // pegar ID no ClickUp
+    // OPS
+    OPS_QA:           '901326289395',
+    OPS_AUTOMACOES:   'TODO', // pegar ID no ClickUp
+    OPS_PROCESSOS:    'TODO', // pegar ID no ClickUp
+    // Admin
+    ADMIN_FINANCEIRO: 'TODO', // pegar ID no ClickUp
+    ADMIN_RH:         'TODO', // pegar ID no ClickUp
   },
 
   // Custom field IDs (Calendário Editorial)
