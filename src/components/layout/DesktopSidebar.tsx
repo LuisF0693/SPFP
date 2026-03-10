@@ -4,7 +4,7 @@ import {
   Home, CreditCard, History, PieChart, Lightbulb, LogOut, Settings,
   Check, RefreshCw, Target, TrendingUp, Wallet, ShieldCheck,
   Users, ArrowLeftRight, Calculator, ChevronDown, Umbrella,
-  Building, Building2, Palette
+  Building, Palette
 } from 'lucide-react';
 import { Logo } from '../Logo';
 
@@ -79,7 +79,6 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   const crmNavItems: NavItem[] = [
     { id: 'dashboard', path: '/admin', icon: Users, label: 'Gerenciar Clientes' },
-    { id: 'corporate', path: '/corporate', icon: Building2, label: 'Corporate HQ', emoji: '🏢' },
     { id: 'partnerships', path: '/partnerships', icon: ArrowLeftRight, label: 'Parcerias' },
     { id: 'branding', path: '/branding', icon: Palette, label: 'Branding', emoji: '🎨' },
   ];
