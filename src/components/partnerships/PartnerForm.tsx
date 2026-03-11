@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, Mail, Phone, Percent, Save } from 'lucide-react';
+import { X, Users, Mail, Phone, Percent, Save, RefreshCw, Calendar, DollarSign } from 'lucide-react';
 import { Partner } from '../../types/investments';
 import { ActionButton } from '../ui/ActionButton';
+
+type PaymentType = 'unico' | 'recorrente';
+type RecurrenceFrequency = 'mensal' | 'trimestral' | 'anual';
 
 interface PartnerFormProps {
   partner?: Partner | null;
@@ -20,6 +23,15 @@ export const PartnerForm: React.FC<PartnerFormProps> = ({
     phone: '',
     default_commission_rate: 50,
   });
+
+  // ── STY-012: Campos de pagamento recorrente ──────────────────────────────
+  const [paymentType, setPaymentType] = useState<PaymentType>('unico');
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<RecurrenceFrequency>('mensal');
+  const [recurrenceValue, setRecurrenceValue] = useState<number>(0);
+  const [recurrenceStartDate, setRecurrenceStartDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -192,6 +204,107 @@ export const PartnerForm: React.FC<PartnerFormProps> = ({
               A comissão será dividida 50/50 entre você e o parceiro
             </p>
           </div>
+
+          {/* STY-012: Toggle Tipo de Pagamento */}
+          <div>
+            <label className="block text-sm font-medium text-[#92a4c9] mb-2">
+              Tipo de Pagamento
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPaymentType('unico')}
+                className={`flex-1 px-4 py-2.5 rounded-xl border font-medium text-sm transition-colors ${
+                  paymentType === 'unico'
+                    ? 'bg-[#135bec]/20 border-[#135bec]/50 text-[#135bec]'
+                    : 'border-[#2e374a] text-[#92a4c9] hover:border-[#135bec] hover:text-white'
+                }`}
+              >
+                Único
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentType('recorrente')}
+                className={`flex-1 px-4 py-2.5 rounded-xl border font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  paymentType === 'recorrente'
+                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                    : 'border-[#2e374a] text-[#92a4c9] hover:border-emerald-500/50 hover:text-white'
+                }`}
+              >
+                <RefreshCw className="w-4 h-4" />
+                Recorrente
+              </button>
+            </div>
+          </div>
+
+          {/* STY-012: Campos de recorrência (exibidos apenas quando Recorrente) */}
+          {paymentType === 'recorrente' && (
+            <div className="space-y-4 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+              <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <RefreshCw className="w-3.5 h-3.5" />
+                Configuração Recorrente
+              </p>
+
+              {/* Frequência */}
+              <div>
+                <label className="block text-xs font-medium text-[#92a4c9] mb-1.5">
+                  Frequência
+                </label>
+                <select
+                  value={recurrenceFrequency}
+                  onChange={(e) => setRecurrenceFrequency(e.target.value as RecurrenceFrequency)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#101622] border border-[#2e374a] text-white focus:border-emerald-500 outline-none transition-colors text-sm"
+                >
+                  <option value="mensal">Mensal</option>
+                  <option value="trimestral">Trimestral</option>
+                  <option value="anual">Anual</option>
+                </select>
+              </div>
+
+              {/* Valor da Recorrência */}
+              <div>
+                <label className="block text-xs font-medium text-[#92a4c9] mb-1.5">
+                  Valor por Período (R$)
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e85a3]" />
+                  <input
+                    type="number"
+                    value={recurrenceValue}
+                    onChange={(e) => setRecurrenceValue(parseFloat(e.target.value) || 0)}
+                    min={0}
+                    step={100}
+                    placeholder="0.00"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#101622] border border-[#2e374a] text-white focus:border-emerald-500 outline-none transition-colors text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Data de Início */}
+              <div>
+                <label className="block text-xs font-medium text-[#92a4c9] mb-1.5">
+                  Data de Início
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e85a3]" />
+                  <input
+                    type="date"
+                    value={recurrenceStartDate}
+                    onChange={(e) => setRecurrenceStartDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#101622] border border-[#2e374a] text-white focus:border-emerald-500 outline-none transition-colors text-sm [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
+              {recurrenceValue > 0 && (
+                <p className="text-xs text-emerald-400/70">
+                  Receita recorrente: <strong className="text-emerald-400">R$ {recurrenceValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>{' '}
+                  ({recurrenceFrequency}) a partir de{' '}
+                  {recurrenceStartDate ? new Date(recurrenceStartDate + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Preview */}
           <div className="p-4 rounded-xl bg-[#101622]/50 border border-[#2e374a]">

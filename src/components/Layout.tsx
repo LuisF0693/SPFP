@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { PWAStatusBar } from './PWAStatusBar';
 import { DesktopSidebar } from './layout/DesktopSidebar';
+import { FinnWidget } from './ui/FinnWidget';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -122,6 +123,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, mode = 'personal' }) =
         </nav>
       </div>
 
+      <FinnWidget />
       <PWAStatusBar show={true} />
     </div>
   );

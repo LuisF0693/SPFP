@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, Check, Clock, XCircle, ChevronDown } from 'lucide-react';
+import { Search, Download, Check, Clock, XCircle, ChevronDown, Edit2 } from 'lucide-react';
 import { PartnershipClient } from '../../types/investments';
 import { formatCurrency } from '../../utils';
 
 interface ClientTableProps {
   clients: PartnershipClient[];
   onStatusChange?: (id: string, status: 'pending' | 'paid' | 'cancelled') => void;
+  onEdit?: (client: PartnershipClient) => void;
   loading?: boolean;
 }
 
 export const ClientTable: React.FC<ClientTableProps> = ({
   clients,
   onStatusChange,
+  onEdit,
   loading = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -173,6 +175,11 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                   {sortBy === 'date' && <ChevronDown className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />}
                 </button>
               </th>
+              {onEdit && (
+                <th className="text-center p-4 text-xs text-[#92a4c9] uppercase tracking-wider font-medium">
+                  Ações
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -218,6 +225,18 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                       {new Date(client.closed_at).toLocaleDateString('pt-BR')}
                     </span>
                   </td>
+                  {onEdit && (
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() => onEdit(client)}
+                        className="p-1.5 rounded-lg text-[#92a4c9] hover:text-white hover:bg-[#135bec]/20 transition-colors"
+                        aria-label={`Editar cliente ${client.client_name}`}
+                        title="Editar cliente"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -237,7 +256,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                 <td className="p-4 text-right">
                   <span className="text-[#92a4c9] font-bold">{formatCurrency(totals.partnerShare)}</span>
                 </td>
-                <td colSpan={2} />
+                <td colSpan={onEdit ? 3 : 2} />
               </tr>
             </tfoot>
           )}

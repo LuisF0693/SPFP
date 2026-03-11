@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSafeFinance } from '../hooks/useSafeFinance';
+import { useAuth } from '../context/AuthContext';
 import { Transaction } from '../types';
 import { generateId } from '../utils';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Bot, Check, X } from 'lucide-react';
 import { TransactionBasicForm } from './transaction/TransactionBasicForm';
 import { TransactionRecurrenceForm, RecurrenceType } from './transaction/TransactionRecurrenceForm';
 import { TransactionMetadata } from './transaction/TransactionMetadata';
@@ -13,6 +14,7 @@ import {
   validateRecurrence,
 } from '../services/transactionService';
 import { validateTransaction } from '../services/validationService';
+import { suggestCategory, learnCategoryRule } from '../services/categoryRulesService';
 
 interface TransactionFormProps {
   onClose: () => void;
@@ -26,8 +28,16 @@ interface TransactionFormProps {
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initialData }) => {
   const { accounts, categories, addTransaction, addManyTransactions, updateTransaction, addCategory, userProfile } =
     useSafeFinance();
+  const { user } = useAuth();
 
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // ── STY-011: Auto-categorização inteligente ──────────────────────────────
+  const [categorySuggestion, setCategorySuggestion] = useState<{
+    categoryId: string;
+    confidence: number;
+  } | null>(null);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
 
   const {
     state,
@@ -71,6 +81,33 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
   const selectedCategory = categories.find((c: any) => c.id === state.categoryId);
   const selectedAccount = accounts.find((a: any) => a.id === state.accountId);
   const isCreditCardExpense = selectedAccount?.type === 'CREDIT_CARD' && state.type === 'EXPENSE';
+
+  // ── STY-011: Busca sugestão de categoria ao sair do campo descrição ──────
+  const handleDescriptionBlur = useCallback(async () => {
+    if (!user?.id || !state.description || state.description.trim().length < 2) return;
+    if (suggestionDismissed) return;
+    // Só sugere se o usuário ainda não escolheu manualmente
+    if (state.userManuallyChangedCategory) return;
+
+    const suggestion = await suggestCategory(user.id, state.description);
+    if (suggestion && suggestion.categoryId !== state.categoryId) {
+      setCategorySuggestion(suggestion);
+      setSuggestionDismissed(false);
+    }
+  }, [user?.id, state.description, state.userManuallyChangedCategory, state.categoryId, suggestionDismissed]);
+
+  const handleAcceptSuggestion = () => {
+    if (categorySuggestion) {
+      setCategoryId(categorySuggestion.categoryId);
+      setCategorySuggestion(null);
+      setSuggestionDismissed(true);
+    }
+  };
+
+  const handleDismissSuggestion = () => {
+    setCategorySuggestion(null);
+    setSuggestionDismissed(true);
+  };
 
   const getTargetDate = (baseDateStr: string, offset: number) => {
     const d = new Date(baseDateStr + 'T12:00:00');
@@ -174,6 +211,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
       }
     }
 
+    // STY-011: Aprende a regra de categorização para uso futuro
+    if (user?.id && state.description && state.categoryId) {
+      void learnCategoryRule(user.id, state.description, state.categoryId);
+    }
+
     onClose();
   };
 
@@ -213,6 +255,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
         <TransactionBasicForm
           description={state.description}
           onDescriptionChange={setDescription}
+          onDescriptionBlur={handleDescriptionBlur}
           value={state.value}
           onValueChange={setValue}
           type={state.type}
@@ -233,6 +276,41 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, initi
           onCreateCategory={handleCreateCategory}
           userProfile={userProfile}
         />
+
+        {/* STY-011: Chip de sugestão de categoria via regras aprendidas */}
+        {categorySuggestion && !suggestionDismissed && (() => {
+          const suggestedCat = categories.find((c: any) => c.id === categorySuggestion.categoryId);
+          if (!suggestedCat) return null;
+          return (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-sm">
+              <Bot className="w-4 h-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
+              <span className="text-slate-300">
+                Sugestão:{' '}
+                <span className="font-semibold text-white">
+                  {suggestedCat.icon ? `${suggestedCat.icon} ` : ''}{suggestedCat.name}
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={handleAcceptSuggestion}
+                className="ml-auto p-1 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                aria-label="Aceitar sugestão de categoria"
+                title="Aceitar"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissSuggestion}
+                className="p-1 rounded-lg bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors"
+                aria-label="Recusar sugestão de categoria"
+                title="Recusar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Spender and Sentiment */}
         <TransactionMetadata

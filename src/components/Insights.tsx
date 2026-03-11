@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   TrendingUp, RefreshCw, Loader2, CheckCircle2,
   BrainCircuit, Key, Zap, ArrowRight, History, Trash2
@@ -26,12 +27,39 @@ interface Message {
  * Orchestrates FinnWelcomeScreen, FinnMessageList and FinnInputArea.
  * State management and AI calls live here; rendering is delegated.
  */
+/**
+ * Mapeamento de contextos (query string) para textos legíveis em português.
+ * Enviados pelo FinnWidget ao navegar para /insights?context=X
+ */
+const CONTEXT_LABELS: Record<string, string> = {
+  dashboard: 'Visão Geral do Dashboard',
+  aquisicao_financiamento: 'Aquisição e Financiamento',
+  parcelamentos_divida: 'Parcelamentos e Dívidas',
+  metas_financeiras: 'Metas Financeiras',
+  investimentos: 'Investimentos e Portfólio',
+  orcamento: 'Orçamento Mensal',
+  patrimonio: 'Patrimônio',
+  relatorios: 'Relatórios Financeiros',
+  transacoes: 'Lançamentos e Transações',
+  crm_clientes: 'Gestão de Clientes (CRM)',
+  parcerias_receita: 'Parcerias e Receita',
+  aposentadoria: 'Planejamento de Aposentadoria',
+  contas: 'Contas e Cartões',
+  automacao: 'Automação Financeira',
+};
+
 export const Insights: React.FC = () => {
   const {
     transactions, totalBalance, categories, userProfile,
     investments, patrimonyItems, goals, categoryBudgets
   } = useSafeFinance();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Contexto passado pelo FinnWidget via query string ?context=X&source=widget
+  const widgetContext = searchParams.get('context');
+  const widgetSource = searchParams.get('source');
+  const contextLabel = widgetContext ? (CONTEXT_LABELS[widgetContext] ?? widgetContext) : null;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -183,7 +211,11 @@ export const Insights: React.FC = () => {
     setError(null);
     try {
       const context = getFinancialContext();
-      const systemPrompt = `# PERSONA\nVocê é o Finn — o assistente financeiro pessoal do SPFP.\nVocê é um consultor CFP® de elite que acompanha a vida do usuário de forma contínua.\nSua missão é transformar dados frios em insights acionáveis e estratégicos.\nSempre se apresente como "Finn" quando relevante.\n\n# CONTEXTO ATUAL DO USUÁRIO\n- Usuário: ${context.profile.name} (${context.profile.family})\n- Saldo Consolidado: ${formatCurrency(context.summary.balance)}\n- Fluxo Mensal: Entradas ${formatCurrency(context.summary.monthlyIncome)} | Saídas ${formatCurrency(context.summary.monthlyExpense)}\n- Taxa de Poupança: ${context.summary.savingsRate.toFixed(1)}%\n- Gastos por Categoria: ${JSON.stringify(context.categories)}\n- Objetivos: ${JSON.stringify(context.goals)}\n- Ativos/Investimentos: ${JSON.stringify(context.assets)}\n- Dívidas: ${JSON.stringify(context.debts)}\n- Sentimentos em Compras Recentes: ${JSON.stringify(context.sentiments)}\n\n# DIRETRIZES\n- Analise correlação entre sentimentos e gastos.\n- Use tom de parceria: "Nós estamos construindo seu patrimônio".\n- Formate usando MARKDOWN. Use tabelas para dados comparativos.\n- Se for o Diagnóstico Inicial, apresente relatório estruturado de 360 graus.\n- NUNCA use linguagem genérica. Seja específico sobre os números fornecidos.`;
+      // Adiciona instrução de contexto contextual quando o usuário chega via FinnWidget
+      const widgetContextInstruction = contextLabel
+        ? `\n\n# FOCO DA SESSÃO (via widget contextual)\nO usuário está na seção: "${contextLabel}". Responda com foco neste contexto. Priorize insights e análises específicas desta área antes de outros tópicos.`
+        : '';
+      const systemPrompt = `# PERSONA\nVocê é o Finn — o assistente financeiro pessoal do SPFP.\nVocê é um consultor CFP® de elite que acompanha a vida do usuário de forma contínua.\nSua missão é transformar dados frios em insights acionáveis e estratégicos.\nSempre se apresente como "Finn" quando relevante.\n\n# CONTEXTO ATUAL DO USUÁRIO\n- Usuário: ${context.profile.name} (${context.profile.family})\n- Saldo Consolidado: ${formatCurrency(context.summary.balance)}\n- Fluxo Mensal: Entradas ${formatCurrency(context.summary.monthlyIncome)} | Saídas ${formatCurrency(context.summary.monthlyExpense)}\n- Taxa de Poupança: ${context.summary.savingsRate.toFixed(1)}%\n- Gastos por Categoria: ${JSON.stringify(context.categories)}\n- Objetivos: ${JSON.stringify(context.goals)}\n- Ativos/Investimentos: ${JSON.stringify(context.assets)}\n- Dívidas: ${JSON.stringify(context.debts)}\n- Sentimentos em Compras Recentes: ${JSON.stringify(context.sentiments)}\n\n# DIRETRIZES\n- Analise correlação entre sentimentos e gastos.\n- Use tom de parceria: "Nós estamos construindo seu patrimônio".\n- Formate usando MARKDOWN. Use tabelas para dados comparativos.\n- Se for o Diagnóstico Inicial, apresente relatório estruturado de 360 graus.\n- NUNCA use linguagem genérica. Seja específico sobre os números fornecidos.${widgetContextInstruction}`;
       const aiMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }) as ChatMessage),
@@ -256,6 +288,20 @@ export const Insights: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen md:h-[calc(100vh-100px)] max-w-5xl mx-auto animate-fade-in relative px-2 md:px-4">
+      {/* Banner de contexto contextual — exibido quando o usuário chega via FinnWidget */}
+      {contextLabel && widgetSource === 'widget' && (
+        <div className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium">
+          <span className="text-base" aria-hidden="true">✨</span>
+          <span>Finn contextual: <strong className="text-white">{contextLabel}</strong></span>
+          <button
+            onClick={() => setSearchParams({})}
+            className="ml-auto text-blue-400 hover:text-white transition-colors text-[10px] uppercase tracking-wider font-bold"
+            aria-label="Remover contexto contextual"
+          >
+            Remover filtro
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between p-6 glass rounded-t-[2.5rem] shadow-2xl z-10" data-testid="finn-header">
         <div className="flex items-center gap-4">

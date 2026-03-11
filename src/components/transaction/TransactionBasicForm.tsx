@@ -8,6 +8,7 @@ import { CreateCategoryModal } from './CreateCategoryModal';
 interface TransactionBasicFormProps {
   description: string;
   onDescriptionChange: (value: string) => void;
+  onDescriptionBlur?: () => void;
   value: string;
   onValueChange: (value: string) => void;
   type: TransactionType;
@@ -39,6 +40,7 @@ const GROUP_LABELS: Record<CategoryGroup, string> = {
 export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
   description,
   onDescriptionChange,
+  onDescriptionBlur,
   value,
   onValueChange,
   type,
@@ -155,6 +157,7 @@ export const TransactionBasicForm: React.FC<TransactionBasicFormProps> = ({
           required
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
+          onBlur={onDescriptionBlur}
           className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none text-slate-100 placeholder-slate-500"
           placeholder="Ex: iFood, Uber, Aluguel"
         />

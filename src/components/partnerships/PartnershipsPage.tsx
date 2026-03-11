@@ -318,6 +318,10 @@ export const PartnershipsPage: React.FC = () => {
           <ClientTable
             clients={selectedPartnerId ? getClientsByPartner(selectedPartnerId) : clients}
             onStatusChange={(id, status) => updateClient(id, { status: status as any })}
+            onEdit={(client) => {
+              setEditingClient(client);
+              setShowClientForm(true);
+            }}
             loading={loading}
           />
         )}
