@@ -1,15 +1,30 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
+  /* Light mode defaults */
   --primary: #6366f1;
   --accent: #3b82f6;
+  --bg-dark: #f8fafc;
+  --card-dark: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode overrides - aplicado pelo UIContext via html.dark */
+html.dark {
   --bg-dark: #020617;
   --card-dark: #0f172a;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --glass-bg: rgba(15, 23, 42, 0.6);
   --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -20,6 +35,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Premium Animations */
@@ -45,13 +61,13 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--glass-shadow);
 }
 
 @utility glass-accent {
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(59, 130, 246, 0.08);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 @utility card-hover {
@@ -192,15 +208,15 @@ body {
 }
 
 @utility modal-overlay {
-  @apply fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm;
+  @apply fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm;
 }
 
 @utility modal-header {
-  @apply flex items-center justify-between p-6 border-b border-white/10;
+  @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10;
 }
 
 @utility modal-footer {
-  @apply flex gap-3 p-6 border-t border-white/10 bg-black/20;
+  @apply flex gap-3 p-6 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20;
 }
 
 /* Icons & Spacing */
@@ -550,4 +566,68 @@ a:focus-visible,
 
 @utility animate-bubble-pop {
   animation: bubble-pop 0.3s ease-out;
+}
+
+/* ====================================================
+   STY-016: MOBILE RESPONSIVENESS
+   ==================================================== */
+
+/* Modal full-screen em mobile (< 640px)
+   Remove padding do overlay para o modal ocupar 100vw */
+@media (max-width: 639px) {
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important; /* slide-up from bottom on mobile */
+  }
+  .modal-overlay > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 95vh !important;
+    border-radius: 1.5rem 1.5rem 0 0 !important; /* rounded top only */
+    overflow-y: auto;
+  }
+}
+
+/* Touch targets mínimos globais */
+@utility touch-safe {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tabelas com scroll horizontal garantido em mobile */
+@utility table-mobile {
+  @apply w-full overflow-x-auto;
+}
+
+/* Tipografia adaptativa */
+@media (max-width: 390px) {
+  /* iPhone SE / tiny screens */
+  .text-3xl { font-size: 1.5rem !important; }
+  .text-2xl { font-size: 1.25rem !important; }
+  .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .p-6 { padding: 1rem !important; }
+  .gap-6 { gap: 0.75rem !important; }
+
+  /* Nav mobile mais compacta */
+  nav .text-\[10px\] { font-size: 9px !important; }
+}
+
+/* Skip link acessível */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  z-index: 9999;
+  transition: top 0.15s;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  top: 0;
 }
