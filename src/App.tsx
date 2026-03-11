@@ -39,6 +39,7 @@ const Portfolio = React.lazy(() => import('./components/portfolio').then(m => ({
 const GoalsAdvanced = React.lazy(() => import('./components/goals/index').then(m => ({ default: m.GoalsAdvanced })));
 const RetirementAdvanced = React.lazy(() => import('./components/retirement/index').then(m => ({ default: m.RetirementAdvanced })));
 const PartnershipsPage = React.lazy(() => import('./components/partnerships').then(m => ({ default: m.PartnershipsPage })));
+const CRMFinanceiro = React.lazy(() => import('./components/crm/CRMFinanceiro').then(m => ({ default: m.CRMFinanceiro })));
 const AutomationDashboard = React.lazy(() => import('./components/automation').then(m => ({ default: m.AutomationDashboard })));
 const AutomationHub = React.lazy(() => import('./components/AutomationHub'));
 const CheckoutSuccess = React.lazy(() => import('./components/pages/CheckoutSuccess').then(m => ({ default: m.CheckoutSuccess })));
@@ -292,6 +293,13 @@ const AppContent: React.FC = () => {
               <AutomationDashboard />
             </Layout>
           </PrivateRoute>
+        } />
+        <Route path="/crm/financeiro" element={
+          <AdminRoute>
+            <Layout mode="crm">
+              <CRMFinanceiro />
+            </Layout>
+          </AdminRoute>
         } />
         <Route path="/hub" element={
           <AdminRoute>

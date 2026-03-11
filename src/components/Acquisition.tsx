@@ -1,15 +1,10 @@
 /**
- * Acquisition Component
- * STY-054: Tool for comparing acquisition methods (cash, financing, consortium)
- *
- * Features:
- * - Input form for asset value and financing details
- * - Comparison table of 3 scenarios
- * - Bar chart visualization
- * - Recommendation based on total cost
+ * Acquisition Component — STY-014
+ * Simulador comparativo: Financiamento × Consórcio × Investimento
+ * Inclui SELIC via API BACEN e integração com FinnWidget
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatCurrency } from '../utils';
 import {
   BarChart,
@@ -19,478 +14,351 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  Legend,
 } from 'recharts';
-import { Building, Car, Calculator, Check, AlertTriangle, Info } from 'lucide-react';
+import { Building, Car, Calculator, TrendingUp, Landmark, Coins, MessageCircle, RefreshCw, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  simularAquisicao,
+  fetchSELIC,
+  type SimulatorInput,
+  type SimulationResult,
+} from '../services/acquisitionSimulator';
 
 type AssetType = 'REAL_ESTATE' | 'VEHICLE';
 
-interface AcquisitionInput {
-  assetType: AssetType;
-  assetValue: number;
-  availableDownPayment: number;
-  financingRate: number; // annual rate
-  financingTerm: number; // months
-  consortiumAdminRate: number; // total admin rate
-  consortiumTerm: number; // months
-}
-
-interface AcquisitionScenario {
-  type: 'CASH' | 'FINANCING' | 'CONSORTIUM';
-  name: string;
-  totalCost: number;
-  monthlyPayment: number;
-  term: number;
-  savings: number; // compared to most expensive
-  pros: string[];
-  cons: string[];
-}
-
-const COLORS = {
-  CASH: '#10B981',
-  FINANCING: '#EF4444',
-  CONSORTIUM: '#3B82F6',
-};
-
-const DEFAULT_VALUES: Record<AssetType, Partial<AcquisitionInput>> = {
+const ASSET_DEFAULTS: Record<AssetType, Partial<SimulatorInput>> = {
   REAL_ESTATE: {
     assetValue: 500000,
-    availableDownPayment: 100000,
-    financingRate: 12,
-    financingTerm: 360,
-    consortiumAdminRate: 18,
-    consortiumTerm: 200,
+    downPayment: 20,
+    term: 360,
+    interestRate: 12,
+    adminRate: 18,
+    system: 'PRICE',
   },
   VEHICLE: {
     assetValue: 80000,
-    availableDownPayment: 20000,
-    financingRate: 24,
-    financingTerm: 48,
-    consortiumAdminRate: 15,
-    consortiumTerm: 72,
+    downPayment: 30,
+    term: 48,
+    interestRate: 24,
+    adminRate: 15,
+    system: 'PRICE',
   },
 };
 
+const TYPE_CONFIG: Record<SimulationResult['type'], { color: string; bg: string; icon: React.ElementType }> = {
+  financiamento: { color: '#EF4444', bg: 'from-red-500/10',    icon: Landmark },
+  consorcio:     { color: '#3B82F6', bg: 'from-blue-500/10',   icon: Coins },
+  investimento:  { color: '#10B981', bg: 'from-green-500/10',  icon: TrendingUp },
+};
+
 export const Acquisition: React.FC = () => {
-  const [input, setInput] = useState<AcquisitionInput>({
-    assetType: 'REAL_ESTATE',
-    assetValue: 500000,
-    availableDownPayment: 100000,
-    financingRate: 12,
-    financingTerm: 360,
-    consortiumAdminRate: 18,
-    consortiumTerm: 200,
-  });
+  const navigate = useNavigate();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Handle asset type change
+  const [assetType, setAssetType] = useState<AssetType>('REAL_ESTATE');
+  const [selic, setSelic] = useState<number>(10.5);
+  const [selicLoading, setSelicLoading] = useState(false);
+  const [selicSource, setSelicSource] = useState<'api' | 'fallback'>('fallback');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const [input, setInput] = useState<SimulatorInput>({
+    ...ASSET_DEFAULTS.REAL_ESTATE,
+    returnRate: 10.5,
+  } as SimulatorInput);
+
+  const [results, setResults] = useState<SimulationResult[]>([]);
+
+  // Busca SELIC no mount
+  useEffect(() => {
+    setSelicLoading(true);
+    fetchSELIC().then(rate => {
+      setSelic(rate);
+      setInput(prev => ({ ...prev, returnRate: rate }));
+      setSelicSource('api');
+    }).catch(() => {
+      setSelicSource('fallback');
+    }).finally(() => setSelicLoading(false));
+  }, []);
+
+  // Recalcula com debounce 300ms
+  const recalculate = useCallback((inp: SimulatorInput) => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setResults(simularAquisicao(inp));
+    }, 300);
+  }, []);
+
+  // Recalcula sempre que input muda
+  useEffect(() => {
+    recalculate(input);
+    return () => clearTimeout(debounceRef.current);
+  }, [input, recalculate]);
+
   const handleAssetTypeChange = (type: AssetType) => {
-    setInput({
-      ...input,
-      assetType: type,
-      ...DEFAULT_VALUES[type],
-    });
+    setAssetType(type);
+    setInput(prev => ({ ...prev, ...ASSET_DEFAULTS[type] }));
   };
 
-  // Calculate scenarios
-  const scenarios = useMemo((): AcquisitionScenario[] => {
-    const results: AcquisitionScenario[] = [];
+  const handleField = (field: keyof SimulatorInput, value: number | string) => {
+    setInput(prev => ({ ...prev, [field]: value }));
+  };
 
-    // 1. Cash (with 10% discount)
-    const cashDiscount = 0.10;
-    const cashTotal = input.assetValue * (1 - cashDiscount);
-    results.push({
-      type: 'CASH',
-      name: 'À Vista',
-      totalCost: cashTotal,
-      monthlyPayment: 0,
-      term: 0,
-      savings: 0,
-      pros: ['Sem juros', 'Desconto de 10%', 'Propriedade imediata', 'Poder de negociação'],
-      cons: ['Imobiliza capital', 'Perde rendimentos do dinheiro'],
-    });
-
-    // 2. Financing (PRICE system)
-    const pv = input.assetValue - input.availableDownPayment; // Principal
-    const monthlyRate = input.financingRate / 100 / 12;
-    const n = input.financingTerm;
-
-    // PMT = PV * [r(1+r)^n] / [(1+r)^n - 1]
-    const pmt = pv > 0 && monthlyRate > 0
-      ? pv * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1)
-      : pv / n;
-
-    const financingTotal = input.availableDownPayment + (pmt * n);
-
-    results.push({
-      type: 'FINANCING',
-      name: 'Financiamento',
-      totalCost: financingTotal,
-      monthlyPayment: pmt,
-      term: n,
-      savings: 0,
-      pros: ['Possui o bem imediatamente', 'Parcelas fixas', 'Pode usar FGTS (imóveis)'],
-      cons: ['Juros altos', 'Risco de inadimplência', 'Bem como garantia'],
-    });
-
-    // 3. Consortium
-    const consortiumTotal = input.assetValue * (1 + input.consortiumAdminRate / 100);
-    const consortiumMonthly = consortiumTotal / input.consortiumTerm;
-
-    results.push({
-      type: 'CONSORTIUM',
-      name: 'Consórcio',
-      totalCost: consortiumTotal,
-      monthlyPayment: consortiumMonthly,
-      term: input.consortiumTerm,
-      savings: 0,
-      pros: ['Sem juros', 'Disciplina de poupança', 'Taxa admin menor que juros'],
-      cons: ['Não tem o bem imediatamente', 'Depende de sorteio ou lance'],
-    });
-
-    // Calculate savings (compared to most expensive)
-    const maxCost = Math.max(...results.map(r => r.totalCost));
-    results.forEach(r => {
-      r.savings = maxCost - r.totalCost;
-    });
-
-    return results.sort((a, b) => a.totalCost - b.totalCost);
-  }, [input]);
-
-  // Best option
-  const bestOption = scenarios[0];
-
-  // Chart data
-  const chartData = scenarios.map(s => ({
-    name: s.name,
-    value: s.totalCost,
-    type: s.type,
-  }));
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (!active || !payload || !payload.length) return null;
-
-    const data = payload[0].payload;
-    return (
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
-        <p className="text-white font-bold">{data.name}</p>
-        <p className="text-lg" style={{ color: COLORS[data.type as keyof typeof COLORS] }}>
-          {formatCurrency(data.value)}
-        </p>
-      </div>
+  const openFinn = () => {
+    if (!results.length) return;
+    const best = results[0];
+    const context = encodeURIComponent(
+      `simulacao-aquisicao:${assetType}:${input.assetValue}:melhor=${best.label}:custo=${best.totalCost}`
     );
+    void navigate(`/insights?context=${context}&source=widget`);
   };
+
+  const bestOption = results[0];
+  const chartData = results.map(r => ({ name: r.label, value: r.totalCost, type: r.type }));
 
   return (
-    <main className="p-4 md:p-6 min-h-full space-y-6 animate-fade-in pb-24">
+    <main className="p-4 md:p-6 min-h-full space-y-6 pb-24">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-          <span>🏠</span> Análise de Aquisição
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Compare as melhores formas de adquirir seu imóvel ou veículo
-        </p>
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <Calculator className="text-blue-500" size={28} />
+            Simulador de Aquisição
+          </h1>
+          <p className="text-gray-500 mt-1 text-sm">
+            Compare Financiamento × Consórcio × Investimento com dados reais do BACEN
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-400 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+          {selicLoading ? (
+            <RefreshCw size={12} className="animate-spin" />
+          ) : (
+            <TrendingUp size={12} className={selicSource === 'api' ? 'text-green-400' : 'text-yellow-400'} />
+          )}
+          <span>SELIC: <strong className="text-white">{selic.toFixed(2)}% a.a.</strong></span>
+          {selicSource === 'api' && <span className="text-green-400">● ao vivo</span>}
+        </div>
       </div>
 
       {/* Asset Type Selector */}
-      <div className="flex gap-4">
-        <button
-          onClick={() => handleAssetTypeChange('REAL_ESTATE')}
-          className={`flex-1 p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-3 ${
-            input.assetType === 'REAL_ESTATE'
-              ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-              : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
-          }`}
-        >
-          <Building size={24} />
-          <span className="font-bold">Imóvel</span>
-        </button>
-        <button
-          onClick={() => handleAssetTypeChange('VEHICLE')}
-          className={`flex-1 p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-3 ${
-            input.assetType === 'VEHICLE'
-              ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-              : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
-          }`}
-        >
-          <Car size={24} />
-          <span className="font-bold">Veículo</span>
-        </button>
-      </div>
-
-      {/* Input Form */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Calculator size={20} /> Dados do Bem
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Valor do Bem
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-              <input
-                type="number"
-                value={input.assetValue}
-                onChange={(e) => setInput({ ...input, assetValue: parseFloat(e.target.value) || 0 })}
-                className="w-full pl-10 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
-              Entrada Disponível
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-              <input
-                type="number"
-                value={input.availableDownPayment}
-                onChange={(e) => setInput({ ...input, availableDownPayment: parseFloat(e.target.value) || 0 })}
-                className="w-full pl-10 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white font-bold"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Financing Section */}
-        <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-900/30">
-          <h3 className="text-sm font-bold text-red-600 dark:text-red-400 mb-3">
-            Opção: Financiamento
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Taxa Anual (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={input.financingRate}
-                onChange={(e) => setInput({ ...input, financingRate: parseFloat(e.target.value) || 0 })}
-                className="w-full p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Prazo (meses)</label>
-              <input
-                type="number"
-                value={input.financingTerm}
-                onChange={(e) => setInput({ ...input, financingTerm: parseInt(e.target.value) || 0 })}
-                className="w-full p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Consortium Section */}
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-900/30">
-          <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3">
-            Opção: Consórcio
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Taxa Administração Total (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={input.consortiumAdminRate}
-                onChange={(e) => setInput({ ...input, consortiumAdminRate: parseFloat(e.target.value) || 0 })}
-                className="w-full p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Prazo (meses)</label>
-              <input
-                type="number"
-                value={input.consortiumTerm}
-                onChange={(e) => setInput({ ...input, consortiumTerm: parseInt(e.target.value) || 0 })}
-                className="w-full p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Comparison Chart */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-          Comparação de Custo Total
-        </h2>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} layout="vertical">
-            <XAxis
-              type="number"
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
-              tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={{ fill: '#9CA3AF', fontSize: 14, fontWeight: 'bold' }}
-              width={100}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell key={index} fill={COLORS[entry.type as keyof typeof COLORS]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Comparison Table */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800">
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Cenário
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Custo Total
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Parcela Mensal
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Prazo
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Economia
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {scenarios.map((scenario, index) => {
-                const isBest = index === 0;
-                return (
-                  <tr
-                    key={scenario.type}
-                    className={isBest ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[scenario.type] }}
-                        />
-                        <span className="font-bold text-gray-900 dark:text-white">
-                          {scenario.name}
-                        </span>
-                        {isBest && (
-                          <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs font-bold rounded">
-                            Melhor
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(scenario.totalCost)}
-                    </td>
-                    <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
-                      {scenario.monthlyPayment > 0 ? formatCurrency(scenario.monthlyPayment) : '-'}
-                    </td>
-                    <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
-                      {scenario.term > 0 ? `${scenario.term} meses` : 'Imediato'}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-emerald-500">
-                      {scenario.savings > 0 ? formatCurrency(scenario.savings) : '-'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Pros and Cons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {scenarios.map((scenario) => (
-          <div
-            key={scenario.type}
-            className="bg-white dark:bg-[#0f172a] rounded-xl p-4 border border-gray-100 dark:border-gray-800"
+      <div className="flex gap-3">
+        {(['REAL_ESTATE', 'VEHICLE'] as AssetType[]).map(type => (
+          <button
+            key={type}
+            onClick={() => handleAssetTypeChange(type)}
+            className={`flex-1 p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-semibold ${
+              assetType === type
+                ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                : 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+            }`}
           >
-            <h3
-              className="font-bold text-lg mb-3"
-              style={{ color: COLORS[scenario.type] }}
-            >
-              {scenario.name}
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-bold text-emerald-500 mb-1">Vantagens</p>
-                <ul className="space-y-1">
-                  {scenario.pros.map((pro, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Check size={14} className="text-emerald-500 mt-0.5 shrink-0" />
-                      {pro}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-red-500 mb-1">Desvantagens</p>
-                <ul className="space-y-1">
-                  {scenario.cons.map((con, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <AlertTriangle size={14} className="text-red-500 mt-0.5 shrink-0" />
-                      {con}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+            {type === 'REAL_ESTATE' ? <Building size={20} /> : <Car size={20} />}
+            {type === 'REAL_ESTATE' ? 'Imóvel' : 'Veículo'}
+          </button>
         ))}
       </div>
 
-      {/* Recommendation */}
-      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
-        <div className="flex items-start gap-3">
-          <Info size={24} className="text-emerald-500" />
-          <div>
-            <h3 className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
-              Recomendação: {bestOption.name}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {bestOption.type === 'CASH' && (
-                <>
-                  Se você tem o capital disponível, comprar à vista é a opção mais econômica,
-                  economizando {formatCurrency(scenarios[scenarios.length - 1].totalCost - bestOption.totalCost)} comparado ao financiamento.
-                </>
-              )}
-              {bestOption.type === 'CONSORTIUM' && (
-                <>
-                  O consórcio oferece um bom equilíbrio entre custo e prazo. Você economiza {formatCurrency(bestOption.savings)} comparado
-                  ao financiamento, mas precisará aguardar o sorteio ou dar um lance.
-                </>
-              )}
-              {bestOption.type === 'FINANCING' && (
-                <>
-                  Nas condições atuais, o financiamento pode ser a única opção viável,
-                  mas considere aumentar a entrada para reduzir o custo total.
-                </>
-              )}
-            </p>
-          </div>
+      {/* Inputs principais */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md space-y-4">
+        <h2 className="text-white font-semibold">Parâmetros</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="space-y-1">
+            <span className="text-gray-400 text-sm">Valor do bem</span>
+            <input
+              type="number"
+              value={input.assetValue}
+              onChange={e => handleField('assetValue', Number(e.target.value))}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-gray-400 text-sm">Entrada (%)</span>
+            <input
+              type="number"
+              min={0} max={100}
+              value={input.downPayment}
+              onChange={e => handleField('downPayment', Number(e.target.value))}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-gray-400 text-sm">Prazo (meses)</span>
+            <input
+              type="number"
+              min={6}
+              value={input.term}
+              onChange={e => handleField('term', Number(e.target.value))}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-gray-400 text-sm">Juros financiamento (% a.a.)</span>
+            <input
+              type="number"
+              step={0.1}
+              value={input.interestRate}
+              onChange={e => handleField('interestRate', Number(e.target.value))}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+            />
+          </label>
         </div>
+
+        {/* Avançado */}
+        <button
+          onClick={() => setShowAdvanced(v => !v)}
+          className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm transition-colors"
+        >
+          <ChevronDown size={14} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+          Parâmetros avançados
+        </button>
+
+        {showAdvanced && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-white/10">
+            <label className="space-y-1">
+              <span className="text-gray-400 text-sm">Taxa adm consórcio (%)</span>
+              <input
+                type="number"
+                step={0.5}
+                value={input.adminRate}
+                onChange={e => handleField('adminRate', Number(e.target.value))}
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-gray-400 text-sm">Rendimento investimento (% a.a.)</span>
+              <input
+                type="number"
+                step={0.1}
+                value={input.returnRate}
+                onChange={e => handleField('returnRate', Number(e.target.value))}
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-gray-400 text-sm">Sistema amortização</span>
+              <select
+                value={input.system}
+                onChange={e => handleField('system', e.target.value)}
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="PRICE">PRICE (parcela fixa)</option>
+                <option value="SAC">SAC (amortização constante)</option>
+              </select>
+            </label>
+          </div>
+        )}
       </div>
 
-      {/* Disclaimer */}
-      <p className="text-xs text-gray-400 text-center">
-        * Valores aproximados para fins de comparação. Consulte instituições financeiras para condições reais.
-      </p>
+      {/* Cards de resultado */}
+      {results.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {results.map((r, i) => {
+            const cfg = TYPE_CONFIG[r.type];
+            const Icon = cfg.icon;
+            const isBest = i === 0;
+
+            return (
+              <div
+                key={r.type}
+                className={`relative bg-gradient-to-br ${cfg.bg} to-transparent border rounded-2xl p-5 backdrop-blur-md transition-all ${
+                  isBest
+                    ? 'border-[2px] shadow-lg'
+                    : 'border-white/10'
+                }`}
+                style={isBest ? { borderColor: cfg.color, boxShadow: `0 0 30px ${cfg.color}30` } : {}}
+              >
+                {isBest && (
+                  <span
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full text-white"
+                    style={{ background: cfg.color }}
+                  >
+                    Melhor opção
+                  </span>
+                )}
+
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon size={20} style={{ color: cfg.color }} />
+                  <h3 className="text-white font-bold">{r.label}</h3>
+                </div>
+
+                <p className="text-2xl font-bold text-white mb-1">
+                  {formatCurrency(r.totalCost)}
+                </p>
+                <p className="text-gray-400 text-xs mb-3">custo total</p>
+
+                <div className="flex justify-between text-sm mb-4">
+                  <div>
+                    <p className="text-gray-400 text-xs">Parcela</p>
+                    <p className="text-white font-medium">{r.monthlyPayment > 0 ? formatCurrency(r.monthlyPayment) : '—'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-gray-400 text-xs">Prazo</p>
+                    <p className="text-white font-medium">{r.term > 0 ? `${r.term}m` : '—'}</p>
+                  </div>
+                </div>
+
+                {r.detail && (
+                  <p className="text-xs text-gray-500 mb-3">{r.detail}</p>
+                )}
+
+                <div className="space-y-1">
+                  {r.pros.map(p => (
+                    <p key={p} className="text-xs text-green-400 flex items-center gap-1">
+                      <span>✓</span> {p}
+                    </p>
+                  ))}
+                  {r.cons.map(c => (
+                    <p key={c} className="text-xs text-red-400 flex items-center gap-1">
+                      <span>✕</span> {c}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Gráfico comparativo */}
+      {results.length > 0 && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
+          <h2 className="text-white font-semibold mb-4">Custo Total Comparado</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartData} layout="vertical">
+              <XAxis type="number" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false}
+                tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false} width={110} />
+              <Tooltip
+                formatter={(v: unknown) => formatCurrency(v as number)}
+                contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
+              />
+              <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+                {chartData.map(d => (
+                  <Cell key={d.type} fill={TYPE_CONFIG[d.type as SimulationResult['type']].color} fillOpacity={0.85} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Finn CTA */}
+      {bestOption && (
+        <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-white font-semibold">Quer uma análise personalizada?</p>
+            <p className="text-gray-400 text-sm mt-0.5">
+              O Finn já sabe que a melhor opção é <strong className="text-white">{bestOption.label}</strong> com custo de <strong className="text-white">{formatCurrency(bestOption.totalCost)}</strong>.
+            </p>
+          </div>
+          <button
+            onClick={openFinn}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 active:scale-95 whitespace-nowrap"
+          >
+            <MessageCircle size={18} />
+            Perguntar ao Finn
+          </button>
+        </div>
+      )}
     </main>
   );
 };
-
-export default Acquisition;

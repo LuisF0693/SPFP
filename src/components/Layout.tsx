@@ -35,6 +35,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/portfolio': 'Portfólio de Investimentos',
   '/goals-v2': 'Objetivos Financeiros',
   '/partnerships': 'Gestão de Parcerias',
+  '/crm/financeiro': 'Financeiro do Negócio',
   '/accounts': 'Minhas Contas',
   '/transactions': 'Lançamentos',
   '/budget': 'Orçamento',
