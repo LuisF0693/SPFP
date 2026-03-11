@@ -15,6 +15,7 @@ export const CLICKUP = {
     CS_RETENCAO:      '901326289246',
     // Marketing
     EDITORIAL:        '901326289280',
+    MARKETING_EMAIL:  '901326289313', // 📧 Email Marketing
     MARKETING_SOCIAL: 'TODO', // pegar ID no ClickUp
     // Produtos
     PRODUTOS_BACKLOG: 'TODO', // pegar ID no ClickUp
